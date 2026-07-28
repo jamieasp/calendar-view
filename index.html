@@ -144,23 +144,6 @@
       transform: rotate(0.2deg);
     }
 
-    .race-summary {
-      margin-top: 20px;
-      padding: 16px;
-      background: color-mix(in srgb, var(--paper) 92%, white);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: 0 12px 32px rgba(50, 40, 25, 0.06);
-    }
-    .race-summary h2 { margin: 0 0 10px; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .race-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .race-card { border-left: 4px solid var(--line); padding: 8px 10px; background: rgba(255,255,255,0.45); border-radius: 10px; }
-    .race-card.upcoming,
-    .race-card.completed,
-    .race-card.trip { border-color: #e7c92e; }
-    .race-card.cancelled { border-color: #aaa06a; opacity: 0.78; }
-    .race-card strong { display: block; }
-    .race-card small { color: var(--muted); }
 
     @media (max-width: 1280px) { .year-grid { grid-template-columns: repeat(2, minmax(340px, 1fr)); } }
     @media (max-width: 760px) {
@@ -191,10 +174,6 @@
       </div>
     </header>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
-    <section class="race-summary" aria-label="Event list">
-      <h2>Year at a glance</h2>
-      <div id="race-list" class="race-list"></div>
-    </section>
   </main>
   <script>
     const year = 2026;
@@ -203,8 +182,6 @@
     const today = new Date();
     const isCurrentYear = today.getFullYear() === year;
     const calendar = document.getElementById("calendar");
-    const raceList = document.getElementById("race-list");
-
     const runDistances = {
           "2026-02-14": 8,
           "2026-02-21": 36,
@@ -339,14 +316,6 @@
       calendar.appendChild(el);
     }
 
-    for (const event of events) {
-      const card = document.createElement("div");
-      card.className = `race-card ${event.status}`;
-      const dateText = event.end ? `${dateLabel(event.start)}–${dateLabel(event.end)}` : dateLabel(event.start);
-      const type = event.status === "trip" ? "trip" : event.status;
-      card.innerHTML = `<small>${dateText} · ${type}</small><strong>${event.listTitle}</strong><small>${event.meta}</small>`;
-      raceList.appendChild(card);
-    }
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("sw.js").catch(() => {});
