@@ -42,13 +42,13 @@
       break-inside: avoid;
     }
     .month h2 { margin: 0 0 12px; font-size: 1.3rem; letter-spacing: -0.03em; }
-    .days, .dates { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .days, .dates { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
     .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; }
     .day {
       min-height: 76px;
       border-radius: 9px;
       border: 1px solid #eadfce;
-      padding: 5px 4px;
+      padding: 4px 0;
       position: relative;
       background: rgba(255,255,255,0.55);
       overflow: visible;
@@ -61,13 +61,13 @@
       font-size: 0.76rem;
       font-weight: 850;
       line-height: 1;
-      margin-bottom: 5px;
+      margin: 0 4px 4px;
     }
-    .event-stack { display: grid; gap: 3px; position: relative; }
+    .event-stack { display: grid; gap: 2px; position: relative; }
     .event-bar, .event-spacer {
       min-height: 17px;
       border-radius: 4px;
-      font-size: 0.58rem;
+      font-size: 0.54rem;
       line-height: 1.08;
       font-weight: 850;
       letter-spacing: -0.02em;
@@ -77,10 +77,10 @@
       color: var(--pencil);
       font-family: "Permanent Marker", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
       font-weight: 800;
-      padding: 3px 5px;
+      padding: 3px 2px;
       position: relative;
       z-index: 3;
-      background: linear-gradient(100deg, transparent 1%, var(--highlighter) 5% 95%, transparent 99%);
+      background: linear-gradient(100deg, transparent 0, var(--highlighter-strong) 2% 98%, transparent 100%);
       box-shadow: none;
       transform: rotate(-0.25deg);
     }
@@ -95,15 +95,24 @@
     }
     .event-bar.upcoming,
     .event-bar.completed,
-    .event-bar.trip { background: linear-gradient(100deg, transparent 1%, var(--highlighter) 5% 95%, transparent 99%); }
+    .event-bar.trip { background: linear-gradient(100deg, transparent 0, var(--highlighter) 2% 98%, transparent 100%); }
     .event-bar.cancelled {
-      background: linear-gradient(100deg, transparent 1%, rgba(220, 220, 120, 0.42) 5% 95%, transparent 99%);
+      background: linear-gradient(100deg, transparent 0, rgba(220, 220, 120, 0.42) 2% 98%, transparent 100%);
       text-decoration: line-through;
       opacity: 0.74;
     }
     .event-bar.continuation { opacity: 0.82; }
     .event-bar.end { border-top-right-radius: 7px; border-bottom-right-radius: 8px; }
     .event-bar.start { border-top-left-radius: 8px; border-bottom-left-radius: 6px; }
+    .run-distance {
+      display: block;
+      margin: 3px 4px 0;
+      color: var(--pencil);
+      font-size: 0.62rem;
+      font-weight: 850;
+      line-height: 1;
+      white-space: nowrap;
+    }
 
     .race-summary {
       margin-top: 20px;
@@ -129,7 +138,7 @@
       header { align-items: start; flex-direction: column; }
       .year-grid { grid-template-columns: 1fr; }
       .day { min-height: 66px; }
-      .event-bar { font-size: 0.56rem; }
+      .event-bar { font-size: 0.54rem; }
       .race-list { grid-template-columns: 1fr; }
     }
     @media print {
@@ -139,7 +148,7 @@
       .year-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .month { box-shadow: none; border-radius: 8px; padding: 8px; }
       .day { min-height: 52px; padding: 3px; }
-      .event-bar { font-size: 0.48rem; min-height: 14px; }
+      .event-bar { font-size: 0.46rem; min-height: 14px; }
     }
   </style>
 </head>
@@ -166,6 +175,38 @@
     const isCurrentYear = today.getFullYear() === year;
     const calendar = document.getElementById("calendar");
     const raceList = document.getElementById("race-list");
+
+    const runDistances = {
+          "2026-02-14": 8,
+          "2026-02-21": 36,
+          "2026-02-28": 2,
+          "2026-03-03": 4,
+          "2026-03-14": 23,
+          "2026-03-28": 6,
+          "2026-04-01": 2,
+          "2026-04-05": 20,
+          "2026-04-18": 3,
+          "2026-04-25": 4,
+          "2026-04-28": 5,
+          "2026-05-16": 13,
+          "2026-05-20": 10,
+          "2026-05-23": 14,
+          "2026-05-25": 2,
+          "2026-05-27": 18,
+          "2026-05-30": 8,
+          "2026-06-06": 24,
+          "2026-06-11": 7,
+          "2026-06-13": 8,
+          "2026-06-15": 17,
+          "2026-06-18": 11,
+          "2026-06-27": 5,
+          "2026-07-02": 12,
+          "2026-07-04": 21,
+          "2026-07-07": 10,
+          "2026-07-18": 29,
+          "2026-07-26": 13,
+          "2026-07-27": 8
+    };
 
     const events = [
       { start: "2026-01-25", status: "completed", title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
@@ -245,6 +286,7 @@
         const iso = isoDate(year, month, day);
         const isToday = isCurrentYear && today.getMonth() === month && today.getDate() === day;
         const dayEvents = eventsForDate(iso);
+        const runDistance = runDistances[iso];
         const cell = document.createElement("div");
         cell.className = `day${isToday ? " today" : ""}`;
         cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
@@ -256,10 +298,11 @@
           const isMulti = span > 1 || event.end;
           const startClass = iso === event.start || date.getDay() === 1 || day === 1 ? " start" : "";
           const endClass = iso === end || date.getDay() === 0 || day === daysInMonth ? " end" : "";
-          const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 4}px)"` : "";
+          const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 3}px)"` : "";
           return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${event.title}</div>`;
         }).join("");
-        cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>`;
+        const runLabel = runDistance ? `<span class="run-distance">🏃 ${runDistance}km</span>` : "";
+        cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
         dates.appendChild(cell);
       }
       el.appendChild(dates);
