@@ -26,7 +26,6 @@
       --pencil: #16120d;
       --highlighter: rgba(255, 226, 77, 0.62);
       --highlighter-strong: rgba(255, 216, 38, 0.78);
-      --run-highlighter: rgba(126, 205, 255, 0.58);
     }
     * { box-sizing: border-box; }
     body {
@@ -137,13 +136,12 @@
       font-weight: 800;
       line-height: 1.16;
       white-space: nowrap;
-      background: linear-gradient(transparent 44%, var(--run-highlighter) 44% 82%, transparent 82%);
-      -webkit-box-decoration-break: clone;
-      box-decoration-break: clone;
+      background: none;
       padding: 0 0.08em;
       transform: rotate(0.2deg);
     }
     .run-distance sub {
+      color: var(--muted);
       font-size: 0.54em;
       vertical-align: sub;
       line-height: 0;
