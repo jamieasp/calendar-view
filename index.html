@@ -145,11 +145,8 @@
       padding: 0 0.08em;
       transform: rotate(0.2deg);
     }
-    .run-distance sub {
+    .run-distance .unit {
       color: var(--muted);
-      font-size: 0.54em;
-      vertical-align: sub;
-      line-height: 0;
       margin-left: 1px;
     }
 
@@ -318,7 +315,7 @@
           const label = isMulti ? event.title : `<span class="highlight-text">${event.title}</span>`;
           return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
         }).join("");
-        const runLabel = runDistance ? `<span class="run-distance">${runDistance}<sub>km</sub></span>` : "";
+        const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
         cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
         dates.appendChild(cell);
       }
