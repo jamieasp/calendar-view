@@ -40,8 +40,7 @@
       box-shadow: 0 12px 32px rgba(50, 40, 25, 0.07);
       break-inside: avoid;
     }
-    .month h2 { margin: 0 0 12px; font-size: 1.25rem; letter-spacing: -0.03em; display: flex; justify-content: space-between; }
-    .month h2 span:last-child { color: var(--accent); font-size: 0.9rem; align-self: center; }
+    .month h2 { margin: 0 0 12px; font-size: 1.25rem; letter-spacing: -0.03em; }
     .days, .dates { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .dow { color: var(--muted); font-size: 0.68rem; font-weight: 800; text-align: center; text-transform: uppercase; padding-bottom: 4px; }
     .day {
@@ -150,7 +149,7 @@
       const offset = mondayFirstOffset(first);
       const el = document.createElement("article");
       el.className = "month";
-      el.innerHTML = `<h2><span>${monthNames[month]}</span><span>${String(month + 1).padStart(2, "0")}</span></h2>`;
+      el.innerHTML = `<h2>${monthNames[month]}</h2>`;
 
       const days = document.createElement("div");
       days.className = "days";
