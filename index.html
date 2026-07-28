@@ -26,6 +26,7 @@
       --pencil: #16120d;
       --highlighter: rgba(255, 226, 77, 0.62);
       --highlighter-strong: rgba(255, 216, 38, 0.78);
+      --run-highlighter: rgba(126, 205, 255, 0.58);
     }
     * { box-sizing: border-box; }
     body {
@@ -127,10 +128,20 @@
     .event-bar.end { border-top-right-radius: 7px; border-bottom-right-radius: 8px; }
     .event-bar.start { border-top-left-radius: 8px; border-bottom-left-radius: 6px; }
     .run-distance {
-      color: var(--muted);
-      font-size: 0.7rem;
-      font-weight: 850;
+      display: block;
+      width: fit-content;
+      margin: 3px 2px 0;
+      color: var(--pencil);
+      font-family: "Permanent Marker", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 0.58rem;
+      font-weight: 800;
+      line-height: 1.22;
       white-space: nowrap;
+      background: linear-gradient(transparent 44%, var(--run-highlighter) 44% 82%, transparent 82%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      padding: 0 0.08em;
+      transform: rotate(0.2deg);
     }
 
     .race-summary {
@@ -320,8 +331,8 @@
           const label = isMulti ? event.title : `<span class="highlight-text">${event.title}</span>`;
           return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
         }).join("");
-        const dateText = runDistance ? `${day} <span class="run-distance">• ${runDistance}km</span>` : day;
-        cell.innerHTML = `<span class="date-number">${dateText}</span><div class="event-stack">${stack}</div>`;
+        const runLabel = runDistance ? `<span class="run-distance">${runDistance}km</span>` : "";
+        cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
         dates.appendChild(cell);
       }
       el.appendChild(dates);
