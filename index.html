@@ -71,7 +71,7 @@
       padding: 5px 4px;
       position: relative;
       background: rgba(255,255,255,0.55);
-      overflow: hidden;
+      overflow: visible;
     }
     .today { outline: 2px solid var(--today); outline-offset: -2px; }
     .empty { opacity: 0; pointer-events: none; }
@@ -83,20 +83,31 @@
       line-height: 1;
       margin-bottom: 5px;
     }
-    .event-stack { display: grid; gap: 3px; }
-    .event-bar {
+    .event-stack { display: grid; gap: 3px; position: relative; }
+    .event-bar, .event-spacer {
       min-height: 17px;
       border-radius: 4px;
-      color: white;
       font-size: 0.58rem;
-      line-height: 1.05;
+      line-height: 1.08;
       font-weight: 850;
       letter-spacing: -0.02em;
+    }
+    .event-spacer { visibility: hidden; }
+    .event-bar {
+      color: white;
       padding: 3px 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12);
+      position: relative;
+      z-index: 3;
+    }
+    .event-bar.single {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      min-height: 26px;
+    }
+    .event-bar.multi {
+      white-space: nowrap;
+      overflow: visible;
     }
     .event-bar.upcoming { background: var(--upcoming); }
     .event-bar.completed { background: var(--completed); }
@@ -205,6 +216,19 @@
       const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
       return iso === event.start || date.getDay() === 1 || date.getDate() === 1;
     }
+    function daysBetween(startIso, endIso) {
+      const start = new Date(`${startIso}T12:00:00`);
+      const end = new Date(`${endIso}T12:00:00`);
+      return Math.round((end - start) / 86400000) + 1;
+    }
+    function visibleSegmentSpan(event, date, daysInMonth) {
+      const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
+      const end = event.end || event.start;
+      const daysLeftInWeek = 7 - ((date.getDay() + 6) % 7);
+      const daysLeftInMonth = daysInMonth - date.getDate() + 1;
+      const daysLeftInEvent = daysBetween(iso, end);
+      return Math.max(1, Math.min(daysLeftInWeek, daysLeftInMonth, daysLeftInEvent));
+    }
 
     for (let month = 0; month < 12; month++) {
       const first = new Date(year, month, 1);
@@ -242,10 +266,14 @@
         cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
         const stack = dayEvents.map(event => {
           const end = event.end || event.start;
+          const startsSegment = isStartOfVisibleSegment(event, date);
+          if (!startsSegment) return `<div class="event-spacer">&nbsp;</div>`;
+          const span = visibleSegmentSpan(event, date, daysInMonth);
+          const isMulti = span > 1 || event.end;
           const startClass = iso === event.start || date.getDay() === 1 || day === 1 ? " start" : "";
           const endClass = iso === end || date.getDay() === 0 || day === daysInMonth ? " end" : "";
-          const label = isStartOfVisibleSegment(event, date) ? event.title : "";
-          return `<div class="event-bar ${event.status}${label ? "" : " continuation"}${startClass}${endClass}">${label || "&nbsp;"}</div>`;
+          const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 4}px)"` : "";
+          return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${event.title}</div>`;
         }).join("");
         cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>`;
         dates.appendChild(cell);
