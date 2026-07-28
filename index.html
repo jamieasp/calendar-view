@@ -14,10 +14,9 @@
       --line: #ded6c8;
       --weekend: #f1e8da;
       --today: #f9d65c;
-      --upcoming: #13746b;
-      --completed: #4f66d8;
-      --cancelled: #9a6b45;
-      --trip: #b5478c;
+      --pencil: #16120d;
+      --highlighter: rgba(255, 226, 77, 0.62);
+      --highlighter-strong: rgba(255, 216, 38, 0.78);
     }
     * { box-sizing: border-box; }
     body {
@@ -46,11 +45,13 @@
       box-shadow: 0 12px 32px rgba(50, 40, 25, 0.06);
     }
     .legend-item { display: inline-flex; gap: 7px; align-items: center; }
-    .swatch { width: 28px; height: 9px; border-radius: 999px; display: inline-block; }
-    .swatch.upcoming { background: var(--upcoming); }
-    .swatch.completed { background: var(--completed); }
-    .swatch.cancelled { background: var(--cancelled); opacity: 0.75; }
-    .swatch.trip { background: var(--trip); }
+    .swatch {
+      width: 34px;
+      height: 10px;
+      border-radius: 2px 9px 3px 8px;
+      display: inline-block;
+      background: linear-gradient(100deg, transparent 3%, var(--highlighter) 8% 92%, transparent 98%);
+    }
 
     .year-grid { display: grid; grid-template-columns: repeat(3, minmax(360px, 1fr)); gap: 18px; }
     .month {
@@ -94,11 +95,15 @@
     }
     .event-spacer { visibility: hidden; }
     .event-bar {
-      color: white;
-      padding: 3px 4px;
-      box-shadow: inset 0 -1px 0 rgba(0,0,0,0.12);
+      color: var(--pencil);
+      font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-weight: 800;
+      padding: 3px 5px;
       position: relative;
       z-index: 3;
+      background: linear-gradient(100deg, transparent 1%, var(--highlighter) 5% 95%, transparent 99%);
+      box-shadow: none;
+      transform: rotate(-0.25deg);
     }
     .event-bar.single {
       white-space: normal;
@@ -109,13 +114,17 @@
       white-space: nowrap;
       overflow: visible;
     }
-    .event-bar.upcoming { background: var(--upcoming); }
-    .event-bar.completed { background: var(--completed); }
-    .event-bar.cancelled { background: color-mix(in srgb, var(--cancelled) 82%, white); text-decoration: line-through; }
-    .event-bar.trip { background: var(--trip); }
+    .event-bar.upcoming,
+    .event-bar.completed,
+    .event-bar.trip { background: linear-gradient(100deg, transparent 1%, var(--highlighter) 5% 95%, transparent 99%); }
+    .event-bar.cancelled {
+      background: linear-gradient(100deg, transparent 1%, rgba(220, 220, 120, 0.42) 5% 95%, transparent 99%);
+      text-decoration: line-through;
+      opacity: 0.74;
+    }
     .event-bar.continuation { opacity: 0.82; }
-    .event-bar.end { border-top-right-radius: 999px; border-bottom-right-radius: 999px; }
-    .event-bar.start { border-top-left-radius: 999px; border-bottom-left-radius: 999px; }
+    .event-bar.end { border-top-right-radius: 7px; border-bottom-right-radius: 8px; }
+    .event-bar.start { border-top-left-radius: 8px; border-bottom-left-radius: 6px; }
 
     .race-summary {
       margin-top: 20px;
@@ -128,10 +137,10 @@
     .race-summary h2 { margin: 0 0 10px; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
     .race-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .race-card { border-left: 4px solid var(--line); padding: 8px 10px; background: rgba(255,255,255,0.45); border-radius: 10px; }
-    .race-card.upcoming { border-color: var(--upcoming); }
-    .race-card.completed { border-color: var(--completed); }
-    .race-card.cancelled { border-color: var(--cancelled); opacity: 0.78; }
-    .race-card.trip { border-color: var(--trip); }
+    .race-card.upcoming,
+    .race-card.completed,
+    .race-card.trip { border-color: #e7c92e; }
+    .race-card.cancelled { border-color: #aaa06a; opacity: 0.78; }
     .race-card strong { display: block; }
     .race-card small { color: var(--muted); }
 
@@ -165,10 +174,8 @@
       <div class="sub">Monday-first · write-in wall-calendar style</div>
     </header>
     <section class="legend" aria-label="Event legend">
-      <span class="legend-item"><span class="swatch upcoming"></span> Upcoming</span>
-      <span class="legend-item"><span class="swatch completed"></span> Completed</span>
-      <span class="legend-item"><span class="swatch cancelled"></span> Cancelled / skipped</span>
-      <span class="legend-item"><span class="swatch trip"></span> Trip / vacation</span>
+      <span class="legend-item"><span class="swatch"></span> Handwritten event label / highlighted span</span>
+      <span class="legend-item">Cancelled/skipped entries are crossed out</span>
     </section>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
     <section class="race-summary" aria-label="Event list">
