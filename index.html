@@ -85,22 +85,33 @@
       transform: rotate(-0.25deg);
     }
     .event-bar.single {
+      display: inline;
       white-space: normal;
       overflow-wrap: anywhere;
-      min-height: 26px;
+      min-height: 0;
+      padding: 0 0.08em;
+      border-radius: 0;
+      line-height: 1.32;
+      background: linear-gradient(transparent 34%, var(--highlighter-strong) 34% 84%, transparent 84%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
     }
     .event-bar.multi {
       white-space: nowrap;
       overflow: hidden;
     }
-    .event-bar.upcoming,
-    .event-bar.completed,
-    .event-bar.trip { background: linear-gradient(100deg, transparent 0, var(--highlighter) 2% 98%, transparent 100%); }
+    .event-bar.multi.upcoming,
+    .event-bar.multi.completed,
+    .event-bar.multi.trip { background: linear-gradient(100deg, transparent 0, var(--highlighter) 2% 98%, transparent 100%); }
+    .event-bar.single.upcoming,
+    .event-bar.single.completed,
+    .event-bar.single.trip { background: linear-gradient(transparent 34%, var(--highlighter-strong) 34% 84%, transparent 84%); }
     .event-bar.cancelled {
-      background: linear-gradient(100deg, transparent 0, rgba(220, 220, 120, 0.42) 2% 98%, transparent 100%);
       text-decoration: line-through;
       opacity: 0.74;
     }
+    .event-bar.multi.cancelled { background: linear-gradient(100deg, transparent 0, rgba(220, 220, 120, 0.42) 2% 98%, transparent 100%); }
+    .event-bar.single.cancelled { background: linear-gradient(transparent 34%, rgba(220, 220, 120, 0.55) 34% 84%, transparent 84%); }
     .event-bar.continuation { opacity: 0.82; }
     .event-bar.end { border-top-right-radius: 7px; border-bottom-right-radius: 8px; }
     .event-bar.start { border-top-left-radius: 8px; border-bottom-left-radius: 6px; }
