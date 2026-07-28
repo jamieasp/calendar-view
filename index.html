@@ -109,10 +109,14 @@
     .event-bar.multi {
       white-space: nowrap;
       overflow: hidden;
+      min-height: 0;
+      padding: 0 2px;
+      line-height: 1.22;
+      border-radius: 0;
     }
     .event-bar.multi.upcoming,
     .event-bar.multi.completed,
-    .event-bar.multi.trip { background: linear-gradient(100deg, transparent 0, var(--highlighter) 2% 98%, transparent 100%); }
+    .event-bar.multi.trip { background: linear-gradient(transparent 44%, var(--highlighter) 44% 82%, transparent 82%); }
     .event-bar.single.upcoming,
     .event-bar.single.completed,
     .event-bar.single.trip { background: none; }
@@ -120,7 +124,7 @@
       text-decoration: line-through;
       opacity: 0.74;
     }
-    .event-bar.multi.cancelled { background: linear-gradient(100deg, transparent 0, rgba(220, 220, 120, 0.42) 2% 98%, transparent 100%); }
+    .event-bar.multi.cancelled { background: linear-gradient(transparent 44%, rgba(220, 220, 120, 0.55) 44% 82%, transparent 82%); }
     .event-bar.single.cancelled { background: none; }
     .event-bar.single.cancelled .highlight-text { background: linear-gradient(transparent 44%, rgba(220, 220, 120, 0.55) 44% 82%, transparent 82%); }
     .event-bar.continuation { opacity: 0.82; }
