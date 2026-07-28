@@ -2,7 +2,7 @@
 """Refresh Jamie's 2026 calendar running distances from local Suunto data.
 
 - Pulls fresh 2026 Suunto workouts with bin/suuntool.
-- Treats Suunto activityId 22 as running, based on Jamie's existing race/run data.
+- Treats Suunto activityIds 1 and 22 as running, based on Jamie's existing run data.
 - Aggregates total running distance per UTC calendar day.
 - Floors daily km to integers.
 - Updates the `const runDistances = {...};` block in index.html.
@@ -24,7 +24,7 @@ SUUNTOOL = WORKSPACE / "bin" / "suuntool"
 INDEX = REPO / "index.html"
 DATA_DIR = WORKSPACE / "data" / "suunto"
 FRESH_NDJSON = DATA_DIR / "workouts_2026_fresh.ndjson"
-RUN_ACTIVITY_ID = 22
+RUN_ACTIVITY_IDS = {1, 22}
 YEAR = 2026
 
 
@@ -100,7 +100,7 @@ def load_running_distances() -> dict[str, int]:
 
     daily_km: dict[str, float] = collections.defaultdict(float)
     for workout in seen.values():
-        if workout.get("activityId") != RUN_ACTIVITY_ID:
+        if workout.get("activityId") not in RUN_ACTIVITY_IDS:
             continue
         distance_m = workout.get("totalDistance") or 0
         if distance_m <= 0:
