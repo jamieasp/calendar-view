@@ -1,0 +1,31 @@
+{
+  "name": "2026 Calendar View",
+  "short_name": "2026 Runs",
+  "description": "Jamie’s 2026 race, travel, and running calendar.",
+  "start_url": "/calendar-view/",
+  "scope": "/calendar-view/",
+  "display": "standalone",
+  "background_color": "#f6f2ea",
+  "theme_color": "#ffe24d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
