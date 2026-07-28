@@ -91,16 +91,20 @@
       transform: rotate(-0.25deg);
     }
     .event-bar.single {
-      display: inline;
+      display: block;
       white-space: normal;
-      overflow-wrap: anywhere;
+      overflow-wrap: normal;
       min-height: 0;
-      padding: 0 0.08em;
+      padding: 0 2px;
       border-radius: 0;
-      line-height: 1.32;
-      background: linear-gradient(transparent 34%, var(--highlighter-strong) 34% 84%, transparent 84%);
+      line-height: 1.22;
+      background: none;
+    }
+    .event-bar.single .highlight-text {
+      background: linear-gradient(transparent 44%, var(--highlighter-strong) 44% 82%, transparent 82%);
       -webkit-box-decoration-break: clone;
       box-decoration-break: clone;
+      padding: 0 0.05em;
     }
     .event-bar.multi {
       white-space: nowrap;
@@ -111,13 +115,14 @@
     .event-bar.multi.trip { background: linear-gradient(100deg, transparent 0, var(--highlighter) 2% 98%, transparent 100%); }
     .event-bar.single.upcoming,
     .event-bar.single.completed,
-    .event-bar.single.trip { background: linear-gradient(transparent 34%, var(--highlighter-strong) 34% 84%, transparent 84%); }
+    .event-bar.single.trip { background: none; }
     .event-bar.cancelled {
       text-decoration: line-through;
       opacity: 0.74;
     }
     .event-bar.multi.cancelled { background: linear-gradient(100deg, transparent 0, rgba(220, 220, 120, 0.42) 2% 98%, transparent 100%); }
-    .event-bar.single.cancelled { background: linear-gradient(transparent 34%, rgba(220, 220, 120, 0.55) 34% 84%, transparent 84%); }
+    .event-bar.single.cancelled { background: none; }
+    .event-bar.single.cancelled .highlight-text { background: linear-gradient(transparent 44%, rgba(220, 220, 120, 0.55) 44% 82%, transparent 82%); }
     .event-bar.continuation { opacity: 0.82; }
     .event-bar.end { border-top-right-radius: 7px; border-bottom-right-radius: 8px; }
     .event-bar.start { border-top-left-radius: 8px; border-bottom-left-radius: 6px; }
@@ -312,7 +317,8 @@
           const startClass = iso === event.start || date.getDay() === 1 || day === 1 ? " start" : "";
           const endClass = iso === end || date.getDay() === 0 || day === daysInMonth ? " end" : "";
           const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 3}px - 4px)"` : "";
-          return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${event.title}</div>`;
+          const label = isMulti ? event.title : `<span class="highlight-text">${event.title}</span>`;
+          return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
         }).join("");
         const dateText = runDistance ? `${day} <span class="run-distance">• ${runDistance}km</span>` : day;
         cell.innerHTML = `<span class="date-number">${dateText}</span><div class="event-stack">${stack}</div>`;
