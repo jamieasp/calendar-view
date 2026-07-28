@@ -40,6 +40,7 @@
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
     .year-grid { display: grid; grid-template-columns: repeat(3, minmax(360px, 1fr)); gap: 18px; }
     .month {
+      scroll-margin-top: 18px;
       background: color-mix(in srgb, var(--paper) 94%, white);
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -275,6 +276,7 @@
       const offset = mondayFirstOffset(first);
       const el = document.createElement("article");
       el.className = "month";
+      el.id = `month-${month + 1}`;
       el.innerHTML = `<h2>${monthNames[month]}</h2>`;
 
       const days = document.createElement("div");
@@ -322,6 +324,12 @@
       }
       el.appendChild(dates);
       calendar.appendChild(el);
+    }
+
+    if (isCurrentYear) {
+      window.addEventListener("load", () => {
+        document.getElementById(`month-${today.getMonth() + 1}`)?.scrollIntoView({ block: "start" });
+      });
     }
 
     if ("serviceWorker" in navigator) {
