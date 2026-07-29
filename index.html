@@ -37,7 +37,8 @@
       margin: 0;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        linear-gradient(135deg, #fff6a3 0%, #ffe24d 32%, #ffc65a 58%, #fff0a8 100%);
+        radial-gradient(circle at 50% 0%, #fff7a6 0 18%, transparent 42%),
+        linear-gradient(135deg, #fff6a3 0%, #ffe24d 34%, #ffc65a 62%, #fff0a8 100%);
       color: var(--ink);
       overflow-x: hidden;
       position: relative;
@@ -53,14 +54,14 @@
     }
     body::before {
       background:
-        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.88) 0 8%, transparent 20%),
-        radial-gradient(circle at 80% 8%, rgba(255,96,182,0.42) 0 8%, transparent 24%),
-        radial-gradient(circle at 12% 42%, rgba(88,211,255,0.38) 0 10%, transparent 27%),
-        radial-gradient(circle at 86% 44%, rgba(155,92,255,0.34) 0 11%, transparent 28%),
-        radial-gradient(circle at 32% 78%, rgba(42,226,141,0.34) 0 9%, transparent 25%),
-        radial-gradient(circle at 72% 86%, rgba(255,126,68,0.42) 0 13%, transparent 30%),
-        conic-gradient(from 128deg at 50% 50%, rgba(255,238,93,0.95), rgba(255,84,168,0.32), rgba(98,176,255,0.34), rgba(79,224,134,0.30), rgba(255,238,93,0.95));
-      filter: blur(34px) saturate(1.42);
+        radial-gradient(circle at 24% 10%, rgba(255,255,255,0.86) 0 8%, transparent 22%),
+        radial-gradient(circle at 66% 14%, rgba(255,121,189,0.20) 0 8%, transparent 25%),
+        radial-gradient(circle at 34% 40%, rgba(96,219,255,0.16) 0 10%, transparent 28%),
+        radial-gradient(circle at 68% 48%, rgba(164,113,255,0.15) 0 11%, transparent 30%),
+        radial-gradient(circle at 38% 78%, rgba(78,231,151,0.15) 0 9%, transparent 27%),
+        radial-gradient(circle at 68% 86%, rgba(255,148,74,0.22) 0 13%, transparent 32%),
+        conic-gradient(from 128deg at 50% 50%, rgba(255,239,98,0.98), rgba(255,126,190,0.13), rgba(121,205,255,0.14), rgba(100,233,157,0.13), rgba(255,239,98,0.98));
+      filter: blur(42px) saturate(1.24) brightness(1.12);
       transform: translate3d(0, calc(var(--scroll-y) * -0.045), 0) rotate(calc(var(--scroll-y) * 0.006deg)) scale(1.08);
     }
     body::after {
@@ -78,10 +79,10 @@
       width: min(100%, 430px);
       margin: 0 auto;
       padding: 24px 12px 34px;
-      background: rgba(255, 255, 255, 0.74);
+      background: rgba(255, 255, 255, 0.62);
       backdrop-filter: blur(18px) saturate(1.18);
       -webkit-backdrop-filter: blur(18px) saturate(1.18);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.26), 0 26px 90px rgba(125, 83, 0, 0.12);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.22), 0 18px 58px rgba(180, 126, 0, 0.08);
       position: relative;
       z-index: 2;
     }
@@ -455,6 +456,17 @@
       .header-button { width: 38px; height: 38px; font-size: 1.05rem; }
       .day { min-height: 66px; }
       .event-bar { font-size: 1.03rem; }
+    }
+    @media (max-width: 430px) {
+      main {
+        width: 100vw;
+        max-width: none;
+        box-shadow: none;
+      }
+      body::before {
+        inset: -10vmax;
+        filter: blur(46px) saturate(1.14) brightness(1.18);
+      }
     }
     @media print {
       body { background: white; }
