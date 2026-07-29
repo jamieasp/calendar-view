@@ -50,16 +50,15 @@
       break-inside: avoid;
     }
     .month h2 {
-      margin: 0 0 16px;
+      margin: 0 0 18px;
       text-align: center;
-      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 2.15rem;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 1.72rem;
       line-height: 0.95;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.055em;
       text-transform: uppercase;
-      color: var(--pencil);
-      text-shadow: 0 1px 0 rgba(255, 226, 77, 0.45);
-      transform: rotate(-0.4deg);
+      color: var(--ink);
+      font-weight: 900;
     }
     .days, .dates { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
     .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; }
@@ -165,6 +164,66 @@
       margin-left: 1px;
     }
 
+    .chart-section {
+      margin-top: 64px;
+      padding-top: 12px;
+    }
+    .chart-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+    .chart-header h2 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .chart-total {
+      color: var(--muted);
+      font-weight: 850;
+      letter-spacing: 0.02em;
+    }
+    .distance-chart {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+    .chart-axis,
+    .chart-grid {
+      stroke: #ded6c8;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+    .chart-grid { opacity: 0.68; }
+    .chart-line {
+      fill: none;
+      stroke: #17202a;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .chart-dot { fill: var(--pencil); }
+    .chart-label {
+      fill: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .chart-note {
+      fill: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .chart-itbs {
+      fill: var(--pink-highlighter);
+      opacity: 0.72;
+    }
+
 
     @media (max-width: 1280px) { .year-grid { grid-template-columns: repeat(2, minmax(340px, 1fr)); } }
     @media (max-width: 760px) {
@@ -193,6 +252,13 @@
       </div>
     </header>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+    <section class="chart-section" aria-labelledby="distance-chart-title">
+      <div class="chart-header">
+        <h2 id="distance-chart-title">Cumulative running distance</h2>
+        <div id="chart-total" class="chart-total"></div>
+      </div>
+      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 420" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+    </section>
   </main>
   <script>
     const year = 2026;
@@ -322,6 +388,56 @@
       return Math.max(1, Math.min(daysLeftInWeek, daysLeftInMonth, daysLeftInEvent));
     }
 
+    function renderDistanceChart() {
+      const svg = document.getElementById("distance-chart");
+      const totalEl = document.getElementById("chart-total");
+      if (!svg || !totalEl) return;
+
+      const width = 1500;
+      const height = 420;
+      const margin = { top: 28, right: 34, bottom: 54, left: 62 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const yearStart = new Date(`${year}-01-01T12:00:00`);
+      const yearEnd = new Date(`${year}-12-31T12:00:00`);
+      const totalDays = Math.round((yearEnd - yearStart) / 86400000);
+      const entries = Object.entries(runDistances)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([iso, km]) => ({ iso, date: new Date(`${iso}T12:00:00`), km }));
+      if (!entries.length) return;
+
+      let cumulative = 0;
+      const points = [{ iso: `${year}-01-01`, date: yearStart, km: 0, cumulative: 0 }];
+      for (const entry of entries) {
+        cumulative += Number(entry.km || 0);
+        points.push({ ...entry, cumulative });
+      }
+      const total = Math.round(cumulative);
+      totalEl.textContent = `${total.toLocaleString("en-GB")} km logged so far`;
+
+      const yMax = Math.max(50, Math.ceil(total / 50) * 50);
+      const x = date => margin.left + ((date - yearStart) / 86400000 / totalDays) * plotW;
+      const y = value => margin.top + plotH - (value / yMax) * plotH;
+      const path = points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
+      const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
+      const yTicks = Array.from({ length: 5 }, (_, i) => Math.round((yMax / 4) * i));
+      const itbsStart = new Date(`${year}-02-22T12:00:00`);
+      const itbsEnd = new Date(`${year}-05-10T12:00:00`);
+      const last = points[points.length - 1];
+
+      svg.innerHTML = `
+        <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
+        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 12}" y="${(y(tick) + 4).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
+        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
+        <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
+        <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
+        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 31}" text-anchor="middle">ITBS</text>
+        <path class="chart-line" d="${path}"></path>
+        <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
+        <text class="chart-note" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 10).toFixed(1)}">${total}km</text>
+      `;
+    }
+
     for (let month = 0; month < 12; month++) {
       const first = new Date(year, month, 1);
       const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -377,6 +493,8 @@
       el.appendChild(dates);
       calendar.appendChild(el);
     }
+
+    renderDistanceChart();
 
     if (isCurrentYear) {
       window.addEventListener("load", () => {
