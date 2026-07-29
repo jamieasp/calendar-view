@@ -641,7 +641,9 @@
       el.className = "month";
       el.id = `month-${month + 1}`;
       const monthTotal = monthRunTotal(month);
-      el.innerHTML = `<div class="month-heading"><h2>${monthNames[month]}</h2><span class="month-total">${monthTotal}<span class="unit">km</span></span></div>`;
+      const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
+      const monthTotalLabel = hasMonthStarted ? `<span class="month-total">${monthTotal}<span class="unit">km</span></span>` : "";
+      el.innerHTML = `<div class="month-heading"><h2>${monthNames[month]}</h2>${monthTotalLabel}</div>`;
 
       const days = document.createElement("div");
       days.className = "days";
