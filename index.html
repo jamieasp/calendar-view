@@ -102,7 +102,7 @@
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
     .year-grid { display: grid; grid-template-columns: repeat(3, minmax(360px, 1fr)); column-gap: 26px; row-gap: 46px; }
     .month {
-      scroll-margin-top: 18px;
+      scroll-margin-top: 112px;
       background: transparent;
       border: 0;
       border-radius: 0;
@@ -842,10 +842,11 @@
     renderUpcomingRaces();
     renderDistanceChart();
 
-    function scrollToToday() {
-      if (isCurrentYear) {
-        document.querySelector(".day.today")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+    function currentMonthEl() {
+      return isCurrentYear ? document.getElementById(`month-${today.getMonth() + 1}`) : null;
+    }
+    function scrollToToday(options = { behavior: "smooth" }) {
+      currentMonthEl()?.scrollIntoView({ behavior: options.behavior, block: "start" });
     }
     function scrollToChart() {
       document.getElementById("distance-chart-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -865,7 +866,7 @@
 
     if (isCurrentYear) {
       window.addEventListener("load", () => {
-        document.getElementById(`month-${today.getMonth() + 1}`)?.scrollIntoView({ block: "start" });
+        scrollToToday({ behavior: "auto" });
       });
     }
 
