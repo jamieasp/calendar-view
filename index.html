@@ -393,10 +393,10 @@
     .health-run-head { fill: #111; opacity: 0.9; }
     .health-rug { stroke: #6f8fad; stroke-width: 2; opacity: 0.50; stroke-linecap: round; }
     .health-rug-latest { stroke: #152536; stroke-width: 4.2; opacity: 0.94; stroke-linecap: round; }
-    .health-title { fill: var(--ink); font-size: 30px; font-weight: 900; }
-    .health-axis-label { fill: var(--muted); font-size: 17px; font-weight: 800; }
-    .health-event-label { font-size: 15px; font-weight: 850; }
-    .health-percentile { fill: #152536; font-size: 22px; font-weight: 900; }
+    .health-title { fill: var(--ink); font-size: 38px; font-weight: 900; }
+    .health-axis-label { fill: var(--muted); font-size: 24px; font-weight: 850; }
+    .health-event-label { font-size: 24px; font-weight: 850; }
+    .health-percentile { fill: #152536; font-size: 25px; font-weight: 900; }
     .health-percentile-bg { fill: white; opacity: 0.78; }
     .health-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.16; }
     .health-y-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.25; }
@@ -808,7 +808,7 @@
     function renderHealthPanel(panel, data) {
       const width = 1500;
       const height = 620;
-      const margin = { top: 76, right: 104, bottom: 58, left: 92 };
+      const margin = { top: 88, right: 118, bottom: 74, left: 112 };
       const plotW = width - margin.left - margin.right;
       const plotH = height - margin.top - margin.bottom;
       const points = panel.points.map(point => ({ date: dateFromIso(point.date), iso: point.date, value: Number(point.value) }));
@@ -857,8 +857,8 @@
       const rug = panel.kind === "RHR" ? "" : values.map((value, index) => {
         const jitter = Math.max(yr * 0.018, 0.28) * Math.sin(index * 12.9898) * 0.85;
         const yy = y(value + jitter);
-        return `<line class="health-rug" x1="${(width - margin.right - 25).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
-      }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right - 35).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
+        return `<line class="health-rug" x1="${(width - margin.right + 22).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
+      }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right + 10).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
       const latestText = `${latest.value.toFixed(panel.kind === "RHR" ? 0 : 1)}${panel.unit ? ` ${panel.unit}` : ""}`;
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
@@ -868,7 +868,7 @@
         ${monthTicks.map(date => `<text class="health-axis-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="health-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="health-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
-        <text class="health-title" x="${margin.left}" y="36">${panel.title}</text>
+        <text class="health-title" x="${margin.left}" y="46">${panel.title}</text>
         <text class="health-axis-label" x="22" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 22 ${margin.top + plotH / 2})">${panel.ylabel}</text>
         <path class="health-ma3" d="${svgPath(ma3, x, y)}"></path>
         <path class="health-ma7" d="${svgPath(ma7, x, y)}"></path>
@@ -878,8 +878,8 @@
         ${longRuns}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
-        <rect class="health-percentile-bg" x="${width - margin.right - 84}" y="${margin.top + 8}" width="72" height="38" rx="10"></rect>
-        <text class="health-percentile" x="${width - margin.right - 48}" y="${margin.top + 34}" text-anchor="middle">${pct}</text>
+        <rect class="health-percentile-bg" x="${width - margin.right - 92}" y="${margin.top + 8}" width="82" height="42" rx="10"></rect>
+        <text class="health-percentile" x="${width - margin.right - 51}" y="${margin.top + 37}" text-anchor="middle">${pct}</text>
         <text class="health-axis-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
       </svg></article>`;
     }
