@@ -49,8 +49,13 @@
       box-shadow: none;
       break-inside: avoid;
     }
-    .month h2 {
+    .month-heading {
+      position: relative;
       margin: 0 0 18px;
+      min-height: 1.72rem;
+    }
+    .month h2 {
+      margin: 0;
       text-align: center;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-size: 1.72rem;
@@ -59,6 +64,22 @@
       text-transform: uppercase;
       color: var(--ink);
       font-weight: 900;
+    }
+    .month-total {
+      position: absolute;
+      right: 2px;
+      top: 50%;
+      transform: translateY(-47%) rotate(-2deg);
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 1.24rem;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .month-total .unit {
+      color: var(--muted);
+      margin-left: 1px;
     }
     .days, .dates { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
     .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; }
@@ -387,6 +408,12 @@
       const daysLeftInEvent = daysBetween(iso, end);
       return Math.max(1, Math.min(daysLeftInWeek, daysLeftInMonth, daysLeftInEvent));
     }
+    function monthRunTotal(month) {
+      const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+      return Object.entries(runDistances)
+        .filter(([iso]) => iso.startsWith(prefix))
+        .reduce((sum, [, km]) => sum + Number(km || 0), 0);
+    }
 
     function renderDistanceChart() {
       const svg = document.getElementById("distance-chart");
@@ -445,7 +472,8 @@
       const el = document.createElement("article");
       el.className = "month";
       el.id = `month-${month + 1}`;
-      el.innerHTML = `<h2>${monthNames[month]}</h2>`;
+      const monthTotal = monthRunTotal(month);
+      el.innerHTML = `<div class="month-heading"><h2>${monthNames[month]}</h2><span class="month-total">${monthTotal}<span class="unit">km</span></span></div>`;
 
       const days = document.createElement("div");
       days.className = "days";
