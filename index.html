@@ -185,6 +185,54 @@
       margin-left: 1px;
     }
 
+    .races-section {
+      margin-top: 56px;
+      padding-top: 8px;
+    }
+    .races-section h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .race-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .race-card {
+      border: 1px solid #eadfce;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.62);
+    }
+    .race-name {
+      display: block;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      font-size: 1.18rem;
+      line-height: 1.05;
+    }
+    .race-countdown {
+      display: block;
+      margin-top: 6px;
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .race-meta {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 0.88rem;
+    }
+
     .chart-section {
       margin-top: 64px;
       padding-top: 12px;
@@ -263,6 +311,7 @@
       .year-grid { grid-template-columns: 1fr; }
       .day { min-height: 66px; }
       .event-bar { font-size: 1.03rem; }
+      .race-list { grid-template-columns: 1fr; }
     }
     @media print {
       body { background: white; }
@@ -283,6 +332,10 @@
       </div>
     </header>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+    <section class="races-section" aria-labelledby="upcoming-races-title">
+      <h2 id="upcoming-races-title">Upcoming races</h2>
+      <ul id="upcoming-races" class="race-list"></ul>
+    </section>
     <section class="chart-section" aria-labelledby="distance-chart-title">
       <div class="chart-header">
         <h2 id="distance-chart-title">Cumulative running distance</h2>
@@ -503,16 +556,16 @@
 
     const events = [
       { start: "2026-01-10", end: "2026-01-12", status: "trip", title: "Saudi", listTitle: "Saudi", meta: "10–12 Jan" },
-      { start: "2026-01-25", status: "completed", title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
+      { start: "2026-01-25", status: "completed", race: true, title: "🏁 UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
       { start: "2026-01-30", end: "2026-02-01", status: "trip", title: "Elche", listTitle: "Elche", meta: "30 Jan–1 Feb" },
       { start: "2026-02-21", status: "trip", title: "Box Hill", listTitle: "Box Hill", meta: "" },
       { start: "2026-02-22", end: "2026-05-10", status: "injury", title: "ITBS", listTitle: "ITBS", meta: "22 Feb–10 May" },
       { start: "2026-03-09", end: "2026-03-13", status: "trip", title: "MTV", listTitle: "MTV", meta: "9–13 Mar" },
-      { start: "2026-03-14", status: "completed", title: "Maverick Hampshire", listTitle: "Maverick Hampshire Trail", meta: "24km" },
+      { start: "2026-03-14", status: "completed", race: true, title: "🏁 Maverick Hampshire", listTitle: "Maverick Hampshire Trail", meta: "24km" },
       { start: "2026-03-17", status: "trip", title: "Meningitis", listTitle: "Meningitis", meta: "" },
       { start: "2026-04-03", end: "2026-04-05", status: "trip", title: "Wales", listTitle: "Wales", meta: "3–5 Apr" },
-      { start: "2026-05-01", end: "2026-05-03", status: "cancelled", title: "Oh Meu Deus", listTitle: "UTMB Oh Meu Deus", meta: "22km · Portugal" },
-      { start: "2026-05-15", end: "2026-05-17", status: "cancelled", title: "UTMB Eryri", listTitle: "UTMB Eryri", meta: "25km" },
+      { start: "2026-05-01", end: "2026-05-03", status: "cancelled", race: true, title: "🏁 Oh Meu Deus", listTitle: "UTMB Oh Meu Deus", meta: "22km · Portugal" },
+      { start: "2026-05-15", end: "2026-05-17", status: "cancelled", race: true, title: "🏁 UTMB Eryri", listTitle: "UTMB Eryri", meta: "25km" },
       { start: "2026-05-16", status: "trip", title: "Ivinghoe", listTitle: "Ivinghoe", meta: "" },
       { start: "2026-05-22", end: "2026-05-30", status: "trip", title: "Scotland", listTitle: "Scotland", meta: "22–30 May" },
       { start: "2026-06-05", end: "2026-06-07", status: "trip", title: "Pyrenees", listTitle: "Pyrenees", meta: "5–7 Jun" },
@@ -520,16 +573,16 @@
       { start: "2026-06-13", end: "2026-06-20", status: "trip", title: "Mallorca", listTitle: "Mallorca", meta: "13–20 Jun" },
       { start: "2026-06-29", end: "2026-07-10", status: "trip", title: "Chamonix", listTitle: "Chamonix", meta: "29 Jun–10 Jul" },
       { start: "2026-07-17", end: "2026-07-19", status: "trip", title: "Lakes", listTitle: "Lakes", meta: "17–19 Jul" },
-      { start: "2026-07-18", status: "completed", title: "St Sunday", listTitle: "St Sunday Crag Skyrace", meta: "29km / +2,050m · 4:39:40 · 16th overall · 2nd M40-44 🥈" },
+      { start: "2026-07-18", status: "completed", race: true, title: "🏁 St Sunday", listTitle: "St Sunday Crag Skyrace", meta: "29km / +2,050m · 4:39:40 · 16th overall · 2nd M40-44 🥈" },
       { start: "2026-07-22", end: "2026-07-28", status: "trip", title: "Picos de Europa", listTitle: "Picos de Europa vacation", meta: "Wednesday–Tuesday" },
       { start: "2026-08-01", end: "2026-08-14", status: "trip", title: "Gemma away", listTitle: "Gemma away", meta: "1–14 Aug" },
       { start: "2026-08-14", end: "2026-08-16", status: "trip", title: "Wales", listTitle: "Wales", meta: "14–16 Aug" },
-      { start: "2026-08-15", status: "upcoming", title: "Copper Skytrail", listTitle: "Copper Skytrail Eryri", meta: "27km / +2,300m · Snowdonia, Wales" },
+      { start: "2026-08-15", status: "upcoming", race: true, title: "🏁 Copper Skytrail", listTitle: "Copper Skytrail Eryri", meta: "27km / +2,300m · Snowdonia, Wales" },
       { start: "2026-08-17", end: "2026-08-21", status: "trip", title: "Lake District", listTitle: "Lake District", meta: "4 nights" },
       { start: "2026-09-06", status: "trip", title: "Valencia?", listTitle: "Valencia?", meta: "" },
       { start: "2026-09-17", end: "2026-09-21", status: "trip", title: "Slovenia", listTitle: "Slovenia", meta: "4 nights" },
-      { start: "2026-09-20", status: "upcoming", title: "Julian Alps UTMB", listTitle: "Julian Alps Trail Run by UTMB", meta: "20km / +800m · Slovenia" },
-      { start: "2026-10-17", status: "upcoming", title: "Jurassic Coast", listTitle: "Jurassic Coast Ultra by UTMB", meta: "54km / +1,500m · Dorset · with Cali" },
+      { start: "2026-09-20", status: "upcoming", race: true, title: "🏁 Julian Alps UTMB", listTitle: "Julian Alps Trail Run by UTMB", meta: "20km / +800m · Slovenia" },
+      { start: "2026-10-17", status: "upcoming", race: true, title: "🏁 Jurassic Coast", listTitle: "Jurassic Coast Ultra by UTMB", meta: "54km / +1,500m · Dorset · with Cali" },
       { start: "2026-10-26", end: "2026-11-01", status: "trip", title: "Half Term", listTitle: "Half Term", meta: "7 days" },
       { start: "2026-11-29", status: "trip", title: "Deportivo?", listTitle: "Deportivo?", meta: "" },
       { start: "2026-12-13", status: "trip", title: "Malaga?", listTitle: "Malaga?", meta: "" },
@@ -571,6 +624,21 @@
       return Object.entries(runDistances)
         .filter(([iso]) => iso.startsWith(prefix))
         .reduce((sum, [, km]) => sum + Number(km || 0), 0);
+    }
+    function renderUpcomingRaces() {
+      const list = document.getElementById("upcoming-races");
+      if (!list) return;
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const upcoming = events
+        .filter(event => event.race && event.status === "upcoming")
+        .map(event => ({ ...event, date: new Date(`${event.start}T12:00:00`) }))
+        .filter(event => event.date >= todayStart)
+        .sort((a, b) => a.date - b.date);
+      list.innerHTML = upcoming.map(event => {
+        const daysLeft = Math.ceil((event.date - todayStart) / 86400000);
+        const dayLabel = daysLeft === 0 ? "today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+        return `<li class="race-card"><span class="race-name">${event.title}</span><span class="race-countdown">${dayLabel}</span><span class="race-meta">${dateLabel(event.start)}${event.meta ? ` · ${event.meta}` : ""}</span></li>`;
+      }).join("");
     }
 
     function cumulativeSeries(distances, seriesYear) {
@@ -692,6 +760,7 @@
       calendar.appendChild(el);
     }
 
+    renderUpcomingRaces();
     renderDistanceChart();
 
     if (isCurrentYear) {
