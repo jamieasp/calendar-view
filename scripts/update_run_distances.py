@@ -6,6 +6,9 @@
 - Aggregates total running distance per UTC calendar day.
 - Floors daily km to integers.
 - Updates the `const runDistances = {...};` block in index.html.
+- Monthly totals and the cumulative chart are intentionally derived client-side
+  from `runDistances`, so refreshing this one block updates the calendar cells,
+  month-title totals, and chart together.
 """
 from __future__ import annotations
 
@@ -116,6 +119,18 @@ def load_running_distances() -> dict[str, int]:
 
 def update_index(run_distances: dict[str, int]) -> bool:
     html = INDEX.read_text()
+    required_dynamic_consumers = [
+        "function monthRunTotal(month)",
+        "function renderDistanceChart()",
+        "cumulativeSeries(runDistances, year)",
+    ]
+    missing = [needle for needle in required_dynamic_consumers if needle not in html]
+    if missing:
+        raise RuntimeError(
+            "index.html no longer derives monthly totals/chart from runDistances; "
+            f"missing: {', '.join(missing)}"
+        )
+
     replacement = "    const runDistances = " + json.dumps(run_distances, indent=6).replace("\n", "\n    ") + ";"
     pattern = re.compile(r"    const runDistances = \{.*?\};", re.S)
     updated, count = pattern.subn(replacement, html, count=1)
