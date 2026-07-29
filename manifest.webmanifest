@@ -1,7 +1,7 @@
 {
-  "name": "2026 Calendar View",
-  "short_name": "2026 Runs",
-  "description": "Jamie’s 2026 race, travel, and running calendar.",
+  "name": "Jamie Runs",
+  "short_name": "Jamie Runs",
+  "description": "Jamie’s running, race, travel, and training calendar.",
   "start_url": "/calendar-view/",
   "scope": "/calendar-view/",
   "display": "standalone",
