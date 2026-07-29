@@ -57,7 +57,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: 8px;
-      flex-wrap: wrap;
+      flex: 0 0 auto;
     }
     .header-button {
       appearance: none;
@@ -65,9 +65,13 @@
       border-radius: 999px;
       background: rgba(255,255,255,0.78);
       color: var(--ink);
-      padding: 9px 13px;
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      padding: 0;
       font: inherit;
-      font-size: 0.88rem;
+      font-size: 1.16rem;
       font-weight: 850;
       letter-spacing: -0.02em;
       cursor: pointer;
@@ -344,9 +348,9 @@
     @media (max-width: 1280px) { .year-grid { grid-template-columns: repeat(2, minmax(340px, 1fr)); } }
     @media (max-width: 760px) {
       main { padding: 24px 12px 34px; }
-      header { align-items: stretch; flex-direction: column; margin: -24px -12px 28px; padding: 18px 12px 14px; }
-      .header-actions { justify-content: flex-start; }
-      .header-button { padding: 8px 11px; font-size: 0.82rem; }
+      header { margin: -24px -12px 28px; padding: 18px 12px 14px; gap: 12px; }
+      h1 { font-size: clamp(1.7rem, 8vw, 2.6rem); }
+      .header-button { width: 38px; height: 38px; font-size: 1.05rem; }
       .year-grid { grid-template-columns: 1fr; }
       .day { min-height: 66px; }
       .event-bar { font-size: 1.03rem; }
@@ -371,9 +375,9 @@
         <h1>Jamie's 2026 Running</h1>
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
-        <button type="button" class="header-button" data-action="today">Today</button>
-        <button type="button" class="header-button" data-action="chart">Chart</button>
-        <button type="button" class="header-button" data-action="refresh">Hard refresh</button>
+        <button type="button" class="header-button" data-action="today" aria-label="Scroll to today" title="Today">◎</button>
+        <button type="button" class="header-button" data-action="chart" aria-label="Scroll to chart" title="Chart">↗</button>
+        <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh">↻</button>
       </nav>
     </header>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
