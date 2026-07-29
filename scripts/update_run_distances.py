@@ -9,6 +9,8 @@
 - Monthly totals and the cumulative chart are intentionally derived client-side
   from `runDistances`, so refreshing this one block updates the calendar cells,
   month-title totals, and chart together.
+- Upcoming race countdowns are client-side date calculations, so they stay fresh
+  on page load; race-looking future events are detected from the event list.
 """
 from __future__ import annotations
 
@@ -123,6 +125,9 @@ def update_index(run_distances: dict[str, int]) -> bool:
         "function monthRunTotal(month)",
         "function renderDistanceChart()",
         "cumulativeSeries(runDistances, year)",
+        "function renderUpcomingRaces()",
+        "function isRaceEvent(event)",
+        "renderUpcomingRaces();",
     ]
     missing = [needle for needle in required_dynamic_consumers if needle not in html]
     if missing:
