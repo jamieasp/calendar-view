@@ -223,26 +223,31 @@
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
     }
-    .chart-line.comparison {
-      stroke: #9a9287;
-      stroke-width: 2.4;
-      opacity: 0.82;
+    .chart-line.comparison-2025 {
+      stroke: #8f887e;
+      stroke-width: 3;
+      opacity: 0.86;
     }
-    .chart-legend {
-      fill: var(--muted);
-      font-size: 18px;
-      font-weight: 850;
+    .chart-line.comparison-2024 {
+      stroke: #c4beb5;
+      stroke-width: 3;
+      opacity: 0.9;
     }
     .chart-dot { fill: var(--pencil); }
     .chart-label {
       fill: var(--muted);
-      font-size: 18px;
+      font-size: 24px;
       font-weight: 850;
+    }
+    .chart-end-label {
+      fill: var(--ink);
+      font-size: 25px;
+      font-weight: 900;
     }
     .chart-note {
       fill: var(--pencil);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 30px;
+      font-size: 38px;
       font-weight: 800;
     }
     .chart-itbs {
@@ -282,7 +287,7 @@
       <div class="chart-header">
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
-      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 560" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
     </section>
   </main>
   <script>
@@ -442,6 +447,60 @@
           "2025-12-27": 4
     };
 
+    const comparisonRunDistances2024 = {
+          "2024-03-19": 8,
+          "2024-04-17": 7,
+          "2024-04-20": 6,
+          "2024-04-23": 7,
+          "2024-04-24": 7,
+          "2024-05-01": 8,
+          "2024-05-02": 4,
+          "2024-05-07": 5,
+          "2024-05-17": 4,
+          "2024-05-22": 7,
+          "2024-05-29": 11,
+          "2024-05-31": 9,
+          "2024-06-05": 8,
+          "2024-06-06": 6,
+          "2024-06-12": 6,
+          "2024-06-13": 5,
+          "2024-06-19": 7,
+          "2024-06-23": 4,
+          "2024-06-26": 8,
+          "2024-07-03": 7,
+          "2024-07-09": 6,
+          "2024-07-13": 16,
+          "2024-07-17": 7,
+          "2024-07-20": 24,
+          "2024-07-27": 25,
+          "2024-08-02": 7,
+          "2024-08-07": 6,
+          "2024-08-12": 7,
+          "2024-08-18": 14,
+          "2024-08-21": 7,
+          "2024-08-25": 13,
+          "2024-08-30": 9,
+          "2024-08-31": 18,
+          "2024-09-04": 4,
+          "2024-09-09": 4,
+          "2024-09-11": 6,
+          "2024-09-12": 21,
+          "2024-09-21": 35,
+          "2024-10-06": 19,
+          "2024-10-18": 7,
+          "2024-10-23": 7,
+          "2024-10-27": 10,
+          "2024-10-30": 5,
+          "2024-10-31": 5,
+          "2024-11-03": 9,
+          "2024-11-05": 5,
+          "2024-11-08": 9,
+          "2024-11-13": 6,
+          "2024-11-23": 10,
+          "2024-12-22": 12,
+          "2024-12-28": 4
+    };
+
     const events = [
       { start: "2026-01-10", end: "2026-01-12", status: "trip", title: "Saudi", listTitle: "Saudi", meta: "10–12 Jan" },
       { start: "2026-01-25", status: "completed", title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
@@ -532,8 +591,8 @@
       if (!svg) return;
 
       const width = 1500;
-      const height = 560;
-      const margin = { top: 38, right: 42, bottom: 72, left: 78 };
+      const height = 700;
+      const margin = { top: 52, right: 86, bottom: 92, left: 98 };
       const plotW = width - margin.left - margin.right;
       const plotH = height - margin.top - margin.bottom;
       const yearStart = new Date(`${year}-01-01T12:00:00`);
@@ -541,9 +600,10 @@
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
       const current = cumulativeSeries(runDistances, year);
       const comparison = cumulativeSeries(comparisonRunDistances, year - 1);
+      const comparison2024 = cumulativeSeries(comparisonRunDistances2024, year - 2);
       if (!current.points.length) return;
 
-      const yMax = Math.max(50, Math.ceil(Math.max(current.total, comparison.total) / 50) * 50);
+      const yMax = Math.max(50, Math.ceil(Math.max(current.total, comparison.total, comparison2024.total) / 50) * 50);
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
       const x = date => margin.left + (dayOfYear(date) / totalDays) * plotW;
       const y = value => margin.top + plotH - (value / yMax) * plotH;
@@ -554,23 +614,22 @@
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
       const last = current.points[current.points.length - 1];
       const comparisonLast = comparison.points[comparison.points.length - 1];
+      const comparison2024Last = comparison2024.points[comparison2024.points.length - 1];
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
-        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 16}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
-        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 28}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
+        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
+        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 36}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
-        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 42}" text-anchor="middle">ITBS</text>
-        <path class="chart-line comparison" d="${linePath(comparison.points)}"></path>
+        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
+        <path class="chart-line comparison-2024" d="${linePath(comparison2024.points)}"></path>
+        <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        <text class="chart-note" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 10).toFixed(1)}">${current.total}km</text>
-        <text class="chart-label" x="${Math.min(width - margin.right - 8, x(comparisonLast.date) + 12).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 28).toFixed(1)}">2025 · ${comparison.total}km</text>
-        <line class="chart-line" x1="${width - 250}" y1="${margin.top + 3}" x2="${width - 208}" y2="${margin.top + 3}"></line>
-        <text class="chart-legend" x="${width - 198}" y="${margin.top + 7}">2026</text>
-        <line class="chart-line comparison" x1="${width - 132}" y1="${margin.top + 3}" x2="${width - 90}" y2="${margin.top + 3}"></line>
-        <text class="chart-legend" x="${width - 80}" y="${margin.top + 7}">2025</text>
+        <text class="chart-end-label" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 14).toFixed(1)}">2026 · ${current.total}km</text>
+        <text class="chart-end-label" x="${Math.min(width - margin.right - 8, x(comparisonLast.date) + 12).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 34).toFixed(1)}">2025 · ${comparison.total}km</text>
+        <text class="chart-end-label" x="${Math.min(width - margin.right - 8, x(comparison2024Last.date) + 12).toFixed(1)}" y="${(y(comparison2024Last.cumulative) + 34).toFixed(1)}">2024 · ${comparison2024.total}km</text>
       `;
     }
 
