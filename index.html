@@ -363,6 +363,44 @@
       fill: var(--pink-highlighter);
       opacity: 0.38;
     }
+    .health-charts {
+      margin-top: 72px;
+      padding-top: 12px;
+    }
+    .health-charts h2 {
+      margin: 0 0 18px;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .health-panel {
+      margin-top: 28px;
+    }
+    .health-svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+    .health-daily-dot { fill: #6f8fad; opacity: 0.38; }
+    .health-latest-dot { fill: #152536; stroke: white; stroke-width: 2.2; opacity: 0.98; }
+    .health-ma3 { fill: none; stroke: #d46a00; stroke-width: 3.5; opacity: 0.95; stroke-linejoin: round; stroke-linecap: round; }
+    .health-ma7 { fill: none; stroke: #0b65c2; stroke-width: 4.8; stroke-linejoin: round; stroke-linecap: round; }
+    .health-latest-line { stroke: #152536; stroke-width: 2.9; stroke-dasharray: 3 6; opacity: 0.55; }
+    .health-jan-band { fill: #4caf50; opacity: 0.10; }
+    .health-event-line { stroke-width: 3; stroke-dasharray: 2 6; opacity: 0.9; }
+    .health-run-icon { stroke: #111; fill: none; stroke-width: 2.1; stroke-linecap: round; opacity: 0.9; }
+    .health-run-head { fill: #111; opacity: 0.9; }
+    .health-rug { stroke: #6f8fad; stroke-width: 2; opacity: 0.50; stroke-linecap: round; }
+    .health-rug-latest { stroke: #152536; stroke-width: 4.2; opacity: 0.94; stroke-linecap: round; }
+    .health-title { fill: var(--ink); font-size: 30px; font-weight: 900; }
+    .health-axis-label { fill: var(--muted); font-size: 17px; font-weight: 800; }
+    .health-event-label { font-size: 15px; font-weight: 850; }
+    .health-percentile { fill: #152536; font-size: 22px; font-weight: 900; }
+    .health-percentile-bg { fill: white; opacity: 0.78; }
+    .health-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.16; }
+    .health-y-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.25; }
+    .health-axis { stroke: #ded6c8; stroke-width: 1.3; }
 
 
     @media (max-width: 1280px) { .year-grid { grid-template-columns: repeat(2, minmax(340px, 1fr)); } }
@@ -410,6 +448,10 @@
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
       <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+    </section>
+    <section class="health-charts" aria-labelledby="health-charts-title">
+      <h2 id="health-charts-title">Body metrics</h2>
+      <div id="health-charts"></div>
     </section>
   </main>
   <script>
@@ -732,6 +774,128 @@
       }
       return { points, total: Math.round(cumulative) };
     }
+    function centeredMA(values, windowSize) {
+      const left = Math.floor((windowSize - 1) / 2);
+      const right = Math.floor(windowSize / 2);
+      return values.map((_, index) => {
+        const lo = Math.max(0, index - left);
+        const hi = Math.min(values.length, index + right + 1);
+        return values.slice(lo, hi).reduce((sum, value) => sum + value, 0) / (hi - lo);
+      });
+    }
+    function dateFromIso(iso) {
+      return new Date(`${iso}T12:00:00`);
+    }
+    function svgPath(points, x, y) {
+      return points.map((point, index) => `${index ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.value).toFixed(1)}`).join(" ");
+    }
+    function mondayDates(startDate, endDate) {
+      const dates = [];
+      const cur = new Date(startDate);
+      cur.setDate(cur.getDate() + ((8 - cur.getDay()) % 7));
+      while (cur <= endDate) {
+        dates.push(new Date(cur));
+        cur.setDate(cur.getDate() + 7);
+      }
+      return dates;
+    }
+    function healthRunIcon(x, y) {
+      return `<g class="health-run-icon" transform="translate(${(x - 7).toFixed(1)} ${(y - 14).toFixed(1)})">
+        <circle class="health-run-head" cx="7" cy="3" r="2.1"></circle>
+        <path d="M7 5.5 L6 8.4 M6 7.2 L3.3 6.2 M6 7.2 L9.4 6.6 M6 8.4 L3.8 12.2 M6 8.4 L9.8 12.0"></path>
+      </g>`;
+    }
+    function renderHealthPanel(panel, data) {
+      const width = 1500;
+      const height = 620;
+      const margin = { top: 76, right: 104, bottom: 58, left: 92 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const points = panel.points.map(point => ({ date: dateFromIso(point.date), iso: point.date, value: Number(point.value) }));
+      if (!points.length) return "";
+      const values = points.map(point => point.value);
+      const ymin = Math.min(...values);
+      const ymax = Math.max(...values);
+      const yr = ymax - ymin || 1;
+      const yDomainMin = ymin - yr * 0.18;
+      const yDomainMax = ymax + yr * 0.18;
+      const start = points[0].date;
+      const end = points[points.length - 1].date;
+      const spanDays = Math.max(1, Math.round((end - start) / 86400000));
+      const x = date => margin.left + ((date - start) / 86400000 / spanDays) * plotW;
+      const y = value => margin.top + plotH - ((value - yDomainMin) / (yDomainMax - yDomainMin)) * plotH;
+      const ma3 = centeredMA(values, 3).map((value, index) => ({ date: points[index].date, value }));
+      const ma7 = centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
+      const yTicks = Array.from({ length: 5 }, (_, index) => yDomainMin + ((yDomainMax - yDomainMin) * index / 4));
+      const monthTicks = [];
+      const monthCursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
+      while (monthCursor <= end) {
+        if (monthCursor >= start) monthTicks.push(new Date(monthCursor));
+        monthCursor.setMonth(monthCursor.getMonth() + 1);
+      }
+      const janValues = points.filter(point => point.date.getFullYear() === 2026 && point.date.getMonth() === 0).map(point => point.value);
+      let janBand = "";
+      if (janValues.length >= 2) {
+        const avg = janValues.reduce((sum, value) => sum + value, 0) / janValues.length;
+        const sd = Math.sqrt(janValues.reduce((sum, value) => sum + (value - avg) ** 2, 0) / (janValues.length - 1));
+        janBand = `<rect class="health-jan-band" x="${margin.left}" y="${y(avg + sd).toFixed(1)}" width="${plotW}" height="${Math.max(0, y(avg - sd) - y(avg + sd)).toFixed(1)}"></rect>`;
+      }
+      const latest = points[points.length - 1];
+      const iconY = y(ymin - yr * 0.055);
+      const longRuns = data.longRunDates
+        .map(dateFromIso)
+        .filter(date => date >= start && date <= end)
+        .map(date => healthRunIcon(x(date), iconY))
+        .join("");
+      const events = data.eventMarkers
+        .filter(marker => dateFromIso(marker.date) >= start && dateFromIso(marker.date) <= end)
+        .map(marker => {
+          const markerDate = dateFromIso(marker.date);
+          return `<line class="health-event-line" x1="${x(markerDate).toFixed(1)}" y1="${margin.top}" x2="${x(markerDate).toFixed(1)}" y2="${height - margin.bottom}" stroke="${marker.color}"></line>
+            <text class="health-event-label" x="${(x(markerDate) + 6).toFixed(1)}" y="${(ymax + marker.yoff * yr * 0.08, margin.top + (1 - marker.yoff) * 70).toFixed(1)}" fill="${marker.color}">${marker.label}</text>`;
+        }).join("");
+      const rug = panel.kind === "RHR" ? "" : values.map((value, index) => {
+        const jitter = Math.max(yr * 0.018, 0.28) * Math.sin(index * 12.9898) * 0.85;
+        const yy = y(value + jitter);
+        return `<line class="health-rug" x1="${(width - margin.right - 25).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
+      }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right - 35).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
+      const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
+      const latestText = `${latest.value.toFixed(panel.kind === "RHR" ? 0 : 1)}${panel.unit ? ` ${panel.unit}` : ""}`;
+      return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
+        ${janBand}
+        ${mondayDates(start, end).map(date => `<line class="health-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}"></line>`).join("")}
+        ${yTicks.map(tick => `<line class="health-y-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="health-axis-label" x="${margin.left - 14}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick.toFixed(panel.kind === "RHR" ? 0 : 1)}</text>`).join("")}
+        ${monthTicks.map(date => `<text class="health-axis-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
+        <line class="health-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
+        <line class="health-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
+        <text class="health-title" x="${margin.left}" y="36">${panel.title}</text>
+        <text class="health-axis-label" x="22" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 22 ${margin.top + plotH / 2})">${panel.ylabel}</text>
+        <path class="health-ma3" d="${svgPath(ma3, x, y)}"></path>
+        <path class="health-ma7" d="${svgPath(ma7, x, y)}"></path>
+        <line class="health-latest-line" x1="${margin.left}" y1="${y(latest.value).toFixed(1)}" x2="${width - margin.right}" y2="${y(latest.value).toFixed(1)}"></line>
+        ${points.map(point => `<circle class="health-daily-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="4.6"></circle>`).join("")}
+        ${events}
+        ${longRuns}
+        ${rug}
+        <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
+        <rect class="health-percentile-bg" x="${width - margin.right - 84}" y="${margin.top + 8}" width="72" height="38" rx="10"></rect>
+        <text class="health-percentile" x="${width - margin.right - 48}" y="${margin.top + 34}" text-anchor="middle">${pct}</text>
+        <text class="health-axis-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
+      </svg></article>`;
+    }
+    async function renderHealthCharts() {
+      const container = document.getElementById("health-charts");
+      if (!container) return;
+      try {
+        const response = await fetch("health-data.json", { cache: "no-cache" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        container.innerHTML = data.panels.map(panel => renderHealthPanel(panel, data)).join("");
+      } catch (error) {
+        container.innerHTML = `<p class="sub">Health charts unavailable (${error.message}).</p>`;
+      }
+    }
+
     function renderDistanceChart() {
       const svg = document.getElementById("distance-chart");
       if (!svg) return;
@@ -841,6 +1005,7 @@
 
     renderUpcomingRaces();
     renderDistanceChart();
+    renderHealthCharts();
 
     function currentMonthEl() {
       return isCurrentYear ? document.getElementById(`month-${today.getMonth() + 1}`) : null;

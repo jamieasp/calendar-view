@@ -3,6 +3,7 @@ const ASSETS = [
   '/calendar-view/',
   '/calendar-view/index.html',
   '/calendar-view/manifest.webmanifest',
+  '/calendar-view/health-data.json',
   '/calendar-view/favicon.svg',
   '/calendar-view/icon-192.png',
   '/calendar-view/icon-512.png',
