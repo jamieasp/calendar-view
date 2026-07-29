@@ -26,6 +26,7 @@
       --pencil: #16120d;
       --highlighter: rgba(255, 226, 77, 0.62);
       --highlighter-strong: rgba(255, 216, 38, 0.78);
+      --pink-highlighter: rgba(255, 147, 190, 0.58);
     }
     * { box-sizing: border-box; }
     body {
@@ -118,9 +119,12 @@
     .event-bar.multi.upcoming,
     .event-bar.multi.completed,
     .event-bar.multi.trip { background: linear-gradient(transparent 44%, var(--highlighter) 44% 82%, transparent 82%); }
+    .event-bar.multi.injury { background: linear-gradient(transparent 44%, var(--pink-highlighter) 44% 82%, transparent 82%); }
     .event-bar.single.upcoming,
     .event-bar.single.completed,
-    .event-bar.single.trip { background: none; }
+    .event-bar.single.trip,
+    .event-bar.single.injury { background: none; }
+    .event-bar.single.injury .highlight-text { background: linear-gradient(transparent 44%, var(--pink-highlighter) 44% 82%, transparent 82%); }
     .event-bar.cancelled {
       text-decoration: line-through;
       opacity: 0.74;
@@ -246,6 +250,7 @@
       { start: "2026-01-25", status: "completed", title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
       { start: "2026-01-30", end: "2026-02-01", status: "trip", title: "Elche", listTitle: "Elche", meta: "30 Jan–1 Feb" },
       { start: "2026-02-21", status: "trip", title: "Box Hill", listTitle: "Box Hill", meta: "" },
+      { start: "2026-02-22", end: "2026-05-10", status: "injury", title: "ITBS", listTitle: "ITBS", meta: "22 Feb–10 May" },
       { start: "2026-03-09", end: "2026-03-13", status: "trip", title: "MTV", listTitle: "MTV", meta: "9–13 Mar" },
       { start: "2026-03-14", status: "completed", title: "Maverick Hampshire", listTitle: "Maverick Hampshire Trail", meta: "24km" },
       { start: "2026-03-17", status: "trip", title: "Meningitis", listTitle: "Meningitis", meta: "" },
