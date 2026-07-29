@@ -100,50 +100,47 @@
     .header-button:hover { background: rgba(255, 247, 220, 0.62); }
     .header-button:active { transform: translateY(1px); }
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
-    .year-grid { display: grid; grid-template-columns: 1fr; column-gap: 0; row-gap: 46px; }
-    .month {
-      scroll-margin-top: 112px;
-      background: transparent;
-      border: 0;
-      border-radius: 0;
-      padding: 0;
-      box-shadow: none;
-      break-inside: avoid;
+    .year-grid {
+      display: grid;
+      grid-template-columns: 30px repeat(7, minmax(0, 1fr));
+      gap: 3px;
+      align-items: stretch;
     }
-    .month-heading {
+    .month-label {
       position: relative;
-      margin: 0 0 18px;
-      min-height: 1.72rem;
+      scroll-margin-top: 112px;
+      min-height: 100%;
+      border-radius: 9px;
+      background: linear-gradient(180deg, rgba(255, 226, 77, 0.32), rgba(255, 226, 77, 0.08));
     }
-    .month h2 {
-      margin: 0;
-      text-align: center;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 1.72rem;
-      line-height: 0.95;
-      letter-spacing: -0.055em;
-      text-transform: uppercase;
-      color: var(--ink);
-      font-weight: 900;
-    }
-    .month-total {
+    .month-label-text {
       position: absolute;
-      right: 2px;
+      left: 50%;
       top: 50%;
-      transform: translateY(-47%) rotate(-2deg);
-      color: var(--pencil);
-      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 1.24rem;
-      font-weight: 800;
+      display: block;
+      width: max-content;
+      max-width: none;
+      transform: translate(-50%, -50%) rotate(-90deg);
+      transform-origin: center;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 1rem;
       line-height: 1;
+      letter-spacing: -0.045em;
+      text-transform: uppercase;
+      font-weight: 900;
       white-space: nowrap;
     }
-    .month-total .unit {
-      color: var(--muted);
-      margin-left: 1px;
+    .month-total {
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 1.04rem;
+      font-weight: 800;
+      text-transform: none;
+      letter-spacing: -0.02em;
     }
-    .days, .dates { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
-    .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; }
+    .month-total .unit { color: var(--muted); margin-left: 1px; }
+    .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; align-self: end; }
     .day {
       min-height: 76px;
       border-radius: 9px;
@@ -719,20 +716,19 @@
     }
     function isStartOfVisibleSegment(event, date) {
       const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
-      return iso === event.start || date.getDay() === 1 || date.getDate() === 1;
+      return iso === event.start || date.getDay() === 1;
     }
     function daysBetween(startIso, endIso) {
       const start = new Date(`${startIso}T12:00:00`);
       const end = new Date(`${endIso}T12:00:00`);
       return Math.round((end - start) / 86400000) + 1;
     }
-    function visibleSegmentSpan(event, date, daysInMonth) {
+    function visibleSegmentSpan(event, date) {
       const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
       const end = event.end || event.start;
       const daysLeftInWeek = 7 - ((date.getDay() + 6) % 7);
-      const daysLeftInMonth = daysInMonth - date.getDate() + 1;
       const daysLeftInEvent = daysBetween(iso, end);
-      return Math.max(1, Math.min(daysLeftInWeek, daysLeftInMonth, daysLeftInEvent));
+      return Math.max(1, Math.min(daysLeftInWeek, daysLeftInEvent));
     }
     function monthRunTotal(month) {
       const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
@@ -938,65 +934,97 @@
       `;
     }
 
-    for (let month = 0; month < 12; month++) {
-      const first = new Date(year, month, 1);
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const offset = mondayFirstOffset(first);
-      const el = document.createElement("article");
-      el.className = "month";
-      el.id = `month-${month + 1}`;
-      const monthTotal = monthRunTotal(month);
-      const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
-      const monthTotalLabel = hasMonthStarted ? `<span class="month-total">${monthTotal}<span class="unit">km</span></span>` : "";
-      el.innerHTML = `<div class="month-heading"><h2>${monthNames[month]}</h2>${monthTotalLabel}</div>`;
-
-      const days = document.createElement("div");
-      days.className = "days";
-      for (const dow of dows) {
+    function weekIndex(date) {
+      const yearStart = new Date(`${year}-01-01T12:00:00`);
+      const leading = mondayFirstOffset(yearStart);
+      return Math.floor((leading + daysBetween(`${year}-01-01`, isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
+    }
+    function monthGridRows(month) {
+      const first = new Date(year, month, 1, 12);
+      const last = new Date(year, month + 1, 0, 12);
+      const startRow = weekIndex(first) + 2;
+      const endRow = weekIndex(last) + 2;
+      return { startRow, span: endRow - startRow + 1 };
+    }
+    function renderCalendar() {
+      calendar.innerHTML = "";
+      for (const [index, dow] of dows.entries()) {
         const cell = document.createElement("div");
         cell.className = "dow";
         cell.textContent = dow;
-        days.appendChild(cell);
+        cell.style.gridColumn = String(index + 2);
+        cell.style.gridRow = "1";
+        calendar.appendChild(cell);
       }
-      el.appendChild(days);
 
-      const dates = document.createElement("div");
-      dates.className = "dates";
-      for (let i = 0; i < offset; i++) {
+      const first = new Date(year, 0, 1, 12);
+      for (let i = 0; i < mondayFirstOffset(first); i++) {
         const blank = document.createElement("div");
         blank.className = "day empty";
         blank.textContent = "·";
-        dates.appendChild(blank);
+        blank.style.gridColumn = String(i + 2);
+        blank.style.gridRow = "2";
+        calendar.appendChild(blank);
       }
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const iso = isoDate(year, month, day);
-        const isToday = isCurrentYear && today.getMonth() === month && today.getDate() === day;
-        const dayEvents = eventsForDate(iso);
-        const runDistance = runDistances[iso];
-        const cell = document.createElement("div");
-        cell.className = `day${isToday ? " today" : ""}`;
-        cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
-        const stack = dayEvents.map(event => {
-          const end = event.end || event.start;
-          const startsSegment = isStartOfVisibleSegment(event, date);
-          if (!startsSegment) return `<div class="event-spacer">&nbsp;</div>`;
-          const span = visibleSegmentSpan(event, date, daysInMonth);
-          const isMulti = span > 1 || event.end;
-          const startClass = iso === event.start || date.getDay() === 1 || day === 1 ? " start" : "";
-          const endClass = iso === end || date.getDay() === 0 || day === daysInMonth ? " end" : "";
-          const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 3}px - 4px)"` : "";
-          const title = raceDisplayTitle(event);
-          const label = isMulti ? title : `<span class="highlight-text">${title}</span>`;
-          return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
-        }).join("");
-        const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
-        cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
-        dates.appendChild(cell);
+      const last = new Date(year, 11, 31, 12);
+      const trailing = 6 - mondayFirstOffset(last);
+      for (let i = 0; i < trailing; i++) {
+        const blank = document.createElement("div");
+        blank.className = "day empty";
+        blank.textContent = "·";
+        blank.style.gridColumn = String(mondayFirstOffset(last) + 3 + i);
+        blank.style.gridRow = String(weekIndex(last) + 2);
+        calendar.appendChild(blank);
       }
-      el.appendChild(dates);
-      calendar.appendChild(el);
+
+      for (let month = 0; month < 12; month++) {
+        const { startRow, span } = monthGridRows(month);
+        const monthTotal = monthRunTotal(month);
+        const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
+        const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
+        const label = document.createElement("div");
+        label.className = "month-label";
+        label.id = `month-${month + 1}`;
+        label.style.gridColumn = "1";
+        label.style.gridRow = `${startRow} / span ${span}`;
+        label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
+        calendar.appendChild(label);
+      }
+
+      for (let month = 0; month < 12; month++) {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+          const date = new Date(year, month, day, 12);
+          const iso = isoDate(year, month, day);
+          const isToday = isCurrentYear && today.getMonth() === month && today.getDate() === day;
+          const dayEvents = eventsForDate(iso);
+          const runDistance = runDistances[iso];
+          const cell = document.createElement("div");
+          cell.className = `day${isToday ? " today" : ""}`;
+          cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
+          cell.style.gridRow = String(weekIndex(date) + 2);
+          cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
+          const stack = dayEvents.map(event => {
+            const end = event.end || event.start;
+            const startsSegment = isStartOfVisibleSegment(event, date);
+            if (!startsSegment) return `<div class="event-spacer">&nbsp;</div>`;
+            const span = visibleSegmentSpan(event, date);
+            const isMulti = span > 1 || event.end;
+            const startClass = iso === event.start || date.getDay() === 1 ? " start" : "";
+            const endClass = iso === end || date.getDay() === 0 ? " end" : "";
+            const width = isMulti ? ` style="width: calc(${span * 100}% + ${(span - 1) * 3}px - 4px)"` : "";
+            const title = raceDisplayTitle(event);
+            const label = isMulti ? title : `<span class="highlight-text">${title}</span>`;
+            return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
+          }).join("");
+          const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
+          cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
+          calendar.appendChild(cell);
+        }
+      }
     }
+
+    renderCalendar();
 
     renderUpcomingRaces();
     renderDistanceChart();
