@@ -22,21 +22,69 @@
       --ink: #17202a;
       --muted: #7b7468;
       --line: #ded6c8;
-      --weekend: #f1e8da;
+      --weekend: rgba(241, 232, 218, 0.72);
       --today: #f9d65c;
       --pencil: #16120d;
       --highlighter: rgba(255, 226, 77, 0.62);
       --highlighter-strong: rgba(255, 216, 38, 0.78);
       --pink-highlighter: rgba(255, 147, 190, 0.58);
+      --scroll-y: 0px;
     }
     * { box-sizing: border-box; }
+    html { min-height: 100%; background: #ffe45c; }
     body {
+      min-height: 100%;
       margin: 0;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #fff;
+      background:
+        linear-gradient(135deg, #fff6a3 0%, #ffe24d 32%, #ffc65a 58%, #fff0a8 100%);
       color: var(--ink);
+      overflow-x: hidden;
+      position: relative;
     }
-    main { width: min(100%, 430px); margin: 0 auto; padding: 24px 12px 34px; background: #fff; }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -22vmax;
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    body::before {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.88) 0 8%, transparent 20%),
+        radial-gradient(circle at 80% 8%, rgba(255,96,182,0.42) 0 8%, transparent 24%),
+        radial-gradient(circle at 12% 42%, rgba(88,211,255,0.38) 0 10%, transparent 27%),
+        radial-gradient(circle at 86% 44%, rgba(155,92,255,0.34) 0 11%, transparent 28%),
+        radial-gradient(circle at 32% 78%, rgba(42,226,141,0.34) 0 9%, transparent 25%),
+        radial-gradient(circle at 72% 86%, rgba(255,126,68,0.42) 0 13%, transparent 30%),
+        conic-gradient(from 128deg at 50% 50%, rgba(255,238,93,0.95), rgba(255,84,168,0.32), rgba(98,176,255,0.34), rgba(79,224,134,0.30), rgba(255,238,93,0.95));
+      filter: blur(34px) saturate(1.42);
+      transform: translate3d(0, calc(var(--scroll-y) * -0.045), 0) rotate(calc(var(--scroll-y) * 0.006deg)) scale(1.08);
+    }
+    body::after {
+      z-index: 1;
+      opacity: 0.34;
+      background:
+        radial-gradient(circle at 28% 18%, rgba(255,255,255,0.82) 0 1px, transparent 2px),
+        radial-gradient(circle at 72% 64%, rgba(255,255,255,0.60) 0 1px, transparent 2px),
+        repeating-radial-gradient(circle at 44% 38%, rgba(255,255,255,0.10) 0 2px, transparent 2px 9px);
+      background-size: 46px 46px, 62px 62px, 100% 100%;
+      mix-blend-mode: soft-light;
+      transform: translate3d(0, calc(var(--scroll-y) * 0.025), 0) scale(1.04);
+    }
+    main {
+      width: min(100%, 430px);
+      margin: 0 auto;
+      padding: 24px 12px 34px;
+      background: rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(18px) saturate(1.18);
+      -webkit-backdrop-filter: blur(18px) saturate(1.18);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.26), 0 26px 90px rgba(125, 83, 0, 0.12);
+      position: relative;
+      z-index: 2;
+    }
     header {
       position: sticky;
       top: 0;
@@ -1022,6 +1070,20 @@
     document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
+
+    function updateParallax() {
+      document.documentElement.style.setProperty("--scroll-y", `${window.scrollY || 0}px`);
+    }
+    let parallaxQueued = false;
+    window.addEventListener("scroll", () => {
+      if (parallaxQueued) return;
+      parallaxQueued = true;
+      requestAnimationFrame(() => {
+        updateParallax();
+        parallaxQueued = false;
+      });
+    }, { passive: true });
+    updateParallax();
 
     if (isCurrentYear) {
       window.addEventListener("load", () => {
