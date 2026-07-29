@@ -202,11 +202,6 @@
       letter-spacing: -0.055em;
       line-height: 0.95;
     }
-    .chart-total {
-      color: var(--muted);
-      font-weight: 850;
-      letter-spacing: 0.02em;
-    }
     .distance-chart {
       display: block;
       width: 100%;
@@ -235,19 +230,19 @@
     }
     .chart-legend {
       fill: var(--muted);
-      font-size: 14px;
+      font-size: 18px;
       font-weight: 850;
     }
     .chart-dot { fill: var(--pencil); }
     .chart-label {
       fill: var(--muted);
-      font-size: 13px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 850;
     }
     .chart-note {
       fill: var(--pencil);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 22px;
+      font-size: 30px;
       font-weight: 800;
     }
     .chart-itbs {
@@ -286,9 +281,8 @@
     <section class="chart-section" aria-labelledby="distance-chart-title">
       <div class="chart-header">
         <h2 id="distance-chart-title">Cumulative running distance</h2>
-        <div id="chart-total" class="chart-total"></div>
       </div>
-      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 420" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 560" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
     </section>
   </main>
   <script>
@@ -535,12 +529,11 @@
     }
     function renderDistanceChart() {
       const svg = document.getElementById("distance-chart");
-      const totalEl = document.getElementById("chart-total");
-      if (!svg || !totalEl) return;
+      if (!svg) return;
 
       const width = 1500;
-      const height = 420;
-      const margin = { top: 28, right: 34, bottom: 54, left: 62 };
+      const height = 560;
+      const margin = { top: 38, right: 42, bottom: 72, left: 78 };
       const plotW = width - margin.left - margin.right;
       const plotH = height - margin.top - margin.bottom;
       const yearStart = new Date(`${year}-01-01T12:00:00`);
@@ -549,8 +542,6 @@
       const current = cumulativeSeries(runDistances, year);
       const comparison = cumulativeSeries(comparisonRunDistances, year - 1);
       if (!current.points.length) return;
-
-      totalEl.textContent = `2026: ${current.total.toLocaleString("en-GB")} km · 2025: ${comparison.total.toLocaleString("en-GB")} km`;
 
       const yMax = Math.max(50, Math.ceil(Math.max(current.total, comparison.total) / 50) * 50);
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
@@ -566,20 +557,20 @@
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
-        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 12}" y="${(y(tick) + 4).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
-        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
+        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 16}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
+        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 28}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
-        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 31}" text-anchor="middle">ITBS</text>
+        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 42}" text-anchor="middle">ITBS</text>
         <path class="chart-line comparison" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
         <text class="chart-note" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 10).toFixed(1)}">${current.total}km</text>
-        <text class="chart-label" x="${Math.min(width - margin.right - 8, x(comparisonLast.date) + 12).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 20).toFixed(1)}">2025 · ${comparison.total}km</text>
+        <text class="chart-label" x="${Math.min(width - margin.right - 8, x(comparisonLast.date) + 12).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 28).toFixed(1)}">2025 · ${comparison.total}km</text>
         <line class="chart-line" x1="${width - 250}" y1="${margin.top + 3}" x2="${width - 208}" y2="${margin.top + 3}"></line>
-        <text class="chart-legend" x="${width - 198}" y="${margin.top + 8}">2026</text>
+        <text class="chart-legend" x="${width - 198}" y="${margin.top + 7}">2026</text>
         <line class="chart-line comparison" x1="${width - 132}" y1="${margin.top + 3}" x2="${width - 90}" y2="${margin.top + 3}"></line>
-        <text class="chart-legend" x="${width - 80}" y="${margin.top + 8}">2025</text>
+        <text class="chart-legend" x="${width - 80}" y="${margin.top + 7}">2025</text>
       `;
     }
 
