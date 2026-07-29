@@ -228,6 +228,16 @@
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
     }
+    .chart-line.comparison {
+      stroke: #9a9287;
+      stroke-width: 2.4;
+      opacity: 0.82;
+    }
+    .chart-legend {
+      fill: var(--muted);
+      font-size: 14px;
+      font-weight: 850;
+    }
     .chart-dot { fill: var(--pencil); }
     .chart-label {
       fill: var(--muted);
@@ -343,6 +353,101 @@
           "2026-07-27": 8
     };
 
+    const comparisonRunDistances = {
+          "2025-01-03": 12,
+          "2025-01-05": 6,
+          "2025-01-08": 7,
+          "2025-01-09": 5,
+          "2025-01-12": 5,
+          "2025-01-15": 12,
+          "2025-01-17": 5,
+          "2025-01-18": 11,
+          "2025-01-22": 5,
+          "2025-01-26": 13,
+          "2025-01-27": 4,
+          "2025-02-06": 9,
+          "2025-02-12": 7,
+          "2025-02-17": 13,
+          "2025-02-19": 6,
+          "2025-02-26": 6,
+          "2025-03-04": 2,
+          "2025-03-05": 7,
+          "2025-03-26": 4,
+          "2025-04-15": 4,
+          "2025-04-19": 1,
+          "2025-04-23": 4,
+          "2025-04-29": 5,
+          "2025-04-30": 7,
+          "2025-05-04": 21,
+          "2025-05-10": 19,
+          "2025-05-12": 6,
+          "2025-05-14": 2,
+          "2025-05-19": 7,
+          "2025-05-20": 7,
+          "2025-05-22": 7,
+          "2025-05-27": 7,
+          "2025-05-29": 4,
+          "2025-06-01": 6,
+          "2025-06-06": 6,
+          "2025-06-09": 13,
+          "2025-06-12": 5,
+          "2025-06-13": 8,
+          "2025-06-18": 8,
+          "2025-06-26": 8,
+          "2025-07-10": 5,
+          "2025-07-14": 7,
+          "2025-07-16": 7,
+          "2025-07-17": 4,
+          "2025-07-18": 15,
+          "2025-07-21": 12,
+          "2025-07-26": 12,
+          "2025-07-27": 12,
+          "2025-07-30": 7,
+          "2025-07-31": 2,
+          "2025-08-01": 10,
+          "2025-08-03": 23,
+          "2025-08-15": 6,
+          "2025-08-16": 12,
+          "2025-08-19": 7,
+          "2025-08-20": 5,
+          "2025-08-24": 24,
+          "2025-08-27": 21,
+          "2025-08-30": 19,
+          "2025-09-04": 23,
+          "2025-09-07": 24,
+          "2025-09-10": 7,
+          "2025-09-13": 6,
+          "2025-09-18": 13,
+          "2025-09-22": 5,
+          "2025-09-24": 13,
+          "2025-09-26": 7,
+          "2025-09-27": 35,
+          "2025-10-07": 12,
+          "2025-10-09": 7,
+          "2025-10-12": 36,
+          "2025-10-17": 6,
+          "2025-10-19": 33,
+          "2025-10-24": 18,
+          "2025-10-28": 4,
+          "2025-11-01": 9,
+          "2025-11-08": 16,
+          "2025-11-12": 11,
+          "2025-11-15": 26,
+          "2025-11-26": 6,
+          "2025-11-28": 10,
+          "2025-11-29": 4,
+          "2025-12-02": 16,
+          "2025-12-04": 7,
+          "2025-12-07": 11,
+          "2025-12-10": 8,
+          "2025-12-12": 10,
+          "2025-12-17": 2,
+          "2025-12-18": 11,
+          "2025-12-20": 22,
+          "2025-12-23": 9,
+          "2025-12-27": 4
+    };
+
     const events = [
       { start: "2026-01-10", end: "2026-01-12", status: "trip", title: "Saudi", listTitle: "Saudi", meta: "10–12 Jan" },
       { start: "2026-01-25", status: "completed", title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "" },
@@ -415,6 +520,19 @@
         .reduce((sum, [, km]) => sum + Number(km || 0), 0);
     }
 
+    function cumulativeSeries(distances, seriesYear) {
+      const seriesStart = new Date(`${seriesYear}-01-01T12:00:00`);
+      const points = [{ iso: `${seriesYear}-01-01`, date: seriesStart, km: 0, cumulative: 0 }];
+      let cumulative = 0;
+      const entries = Object.entries(distances)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([iso, km]) => ({ iso, date: new Date(`${iso}T12:00:00`), km }));
+      for (const entry of entries) {
+        cumulative += Number(entry.km || 0);
+        points.push({ ...entry, cumulative });
+      }
+      return { points, total: Math.round(cumulative) };
+    }
     function renderDistanceChart() {
       const svg = document.getElementById("distance-chart");
       const totalEl = document.getElementById("chart-total");
@@ -428,29 +546,23 @@
       const yearStart = new Date(`${year}-01-01T12:00:00`);
       const yearEnd = new Date(`${year}-12-31T12:00:00`);
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
-      const entries = Object.entries(runDistances)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([iso, km]) => ({ iso, date: new Date(`${iso}T12:00:00`), km }));
-      if (!entries.length) return;
+      const current = cumulativeSeries(runDistances, year);
+      const comparison = cumulativeSeries(comparisonRunDistances, year - 1);
+      if (!current.points.length) return;
 
-      let cumulative = 0;
-      const points = [{ iso: `${year}-01-01`, date: yearStart, km: 0, cumulative: 0 }];
-      for (const entry of entries) {
-        cumulative += Number(entry.km || 0);
-        points.push({ ...entry, cumulative });
-      }
-      const total = Math.round(cumulative);
-      totalEl.textContent = `${total.toLocaleString("en-GB")} km logged so far`;
+      totalEl.textContent = `2026: ${current.total.toLocaleString("en-GB")} km · 2025: ${comparison.total.toLocaleString("en-GB")} km`;
 
-      const yMax = Math.max(50, Math.ceil(total / 50) * 50);
-      const x = date => margin.left + ((date - yearStart) / 86400000 / totalDays) * plotW;
+      const yMax = Math.max(50, Math.ceil(Math.max(current.total, comparison.total) / 50) * 50);
+      const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
+      const x = date => margin.left + (dayOfYear(date) / totalDays) * plotW;
       const y = value => margin.top + plotH - (value / yMax) * plotH;
-      const path = points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
+      const linePath = points => points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
       const yTicks = Array.from({ length: 5 }, (_, i) => Math.round((yMax / 4) * i));
       const itbsStart = new Date(`${year}-02-22T12:00:00`);
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
-      const last = points[points.length - 1];
+      const last = current.points[current.points.length - 1];
+      const comparisonLast = comparison.points[comparison.points.length - 1];
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
@@ -459,9 +571,15 @@
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 31}" text-anchor="middle">ITBS</text>
-        <path class="chart-line" d="${path}"></path>
+        <path class="chart-line comparison" d="${linePath(comparison.points)}"></path>
+        <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        <text class="chart-note" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 10).toFixed(1)}">${total}km</text>
+        <text class="chart-note" x="${Math.min(width - margin.right - 8, x(last.date) + 13).toFixed(1)}" y="${(y(last.cumulative) - 10).toFixed(1)}">${current.total}km</text>
+        <text class="chart-label" x="${Math.min(width - margin.right - 8, x(comparisonLast.date) + 12).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 20).toFixed(1)}">2025 · ${comparison.total}km</text>
+        <line class="chart-line" x1="${width - 250}" y1="${margin.top + 3}" x2="${width - 208}" y2="${margin.top + 3}"></line>
+        <text class="chart-legend" x="${width - 198}" y="${margin.top + 8}">2026</text>
+        <line class="chart-line comparison" x1="${width - 132}" y1="${margin.top + 3}" x2="${width - 90}" y2="${margin.top + 3}"></line>
+        <text class="chart-legend" x="${width - 80}" y="${margin.top + 8}">2025</text>
       `;
     }
 
