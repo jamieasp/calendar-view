@@ -250,12 +250,9 @@
       font-size: 38px;
       font-weight: 800;
     }
-    .chart-note.itbs-label {
-      opacity: 0.46;
-    }
     .chart-itbs {
       fill: var(--pink-highlighter);
-      opacity: 0.72;
+      opacity: 0.38;
     }
 
 
@@ -625,7 +622,7 @@
         ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 36}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
-        <text class="chart-note itbs-label" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
+        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
         <path class="chart-line comparison-2024" d="${linePath(comparison2024.points)}"></path>
         <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
