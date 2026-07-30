@@ -127,7 +127,7 @@ def load_running_distances() -> dict[str, int]:
         day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date().isoformat()
         daily_km[day] += distance_m / 1000
 
-    return {day: math.floor(km) for day, km in sorted(daily_km.items()) if math.floor(km) > 0}
+    return {day: math.floor(km + 0.5) for day, km in sorted(daily_km.items()) if math.floor(km + 0.5) > 0}
 
 
 
