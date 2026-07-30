@@ -952,6 +952,7 @@
     function renderMonthLabels() {
       calendar.querySelectorAll(".month-label").forEach(label => label.remove());
       const calendarTop = calendar.getBoundingClientRect().top;
+      const rowGap = parseFloat(getComputedStyle(calendar).rowGap) || 0;
       for (let month = 0; month < 12; month++) {
         const first = new Date(year, month, 1, 12);
         const last = new Date(year, month + 1, 0, 12);
@@ -963,8 +964,10 @@
 
         const firstRect = firstCell.getBoundingClientRect();
         const lastRect = lastCell.getBoundingClientRect();
-        const top = firstRect.top - calendarTop + (mondayFirstOffset(first) / 7) * firstRect.height;
-        const bottom = lastRect.top - calendarTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height;
+        const startsAfterRowGap = month > 0 && mondayFirstOffset(first) === 0;
+        const endsBeforeRowGap = month < 11 && mondayFirstOffset(last) === 6;
+        const top = firstRect.top - calendarTop + (mondayFirstOffset(first) / 7) * firstRect.height - (startsAfterRowGap ? rowGap / 2 : 0);
+        const bottom = lastRect.top - calendarTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height + (endsBeforeRowGap ? rowGap / 2 : 0);
         const monthTotal = monthRunTotal(month);
         const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
         const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
