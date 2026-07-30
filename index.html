@@ -22,7 +22,7 @@
       --ink: #17202a;
       --muted: #7b7468;
       --line: #ded6c8;
-      --weekend: #f1e8da;
+      --weekend: rgba(120, 120, 120, 0.08);
       --today: #f9d65c;
       --pencil: #16120d;
       --highlighter: rgba(255, 226, 77, 0.62);
@@ -150,6 +150,7 @@
       background: rgba(255,255,255,0.55);
       overflow: visible;
     }
+    .weekend { background: var(--weekend); }
     .today { outline: 2px solid var(--today); outline-offset: -2px; }
     .empty { opacity: 0; pointer-events: none; }
     .date-number {
@@ -999,7 +1000,8 @@
           const dayEvents = eventsForDate(iso);
           const runDistance = runDistances[iso];
           const cell = document.createElement("div");
-          cell.className = `day${isToday ? " today" : ""}`;
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+          cell.className = `day${isWeekend ? " weekend" : ""}${isToday ? " today" : ""}`;
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
           cell.style.gridRow = String(weekIndex(date) + 2);
           cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
