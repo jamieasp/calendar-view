@@ -111,12 +111,24 @@
       scroll-margin-top: 112px;
       min-height: 100%;
       border-radius: 9px;
+      background: none;
+      overflow: hidden;
+    }
+    .month-label::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(var(--month-start-cut, 0) * 100% / var(--month-row-span, 1));
+      bottom: calc(var(--month-end-cut, 0) * 100% / var(--month-row-span, 1));
+      border-radius: 9px;
       background: linear-gradient(180deg, rgba(255, 226, 77, 0.32), rgba(255, 226, 77, 0.08));
     }
     .month-label-text {
       position: absolute;
+      z-index: 1;
       left: 50%;
-      top: 50%;
+      top: var(--month-center, 50%);
       display: block;
       width: max-content;
       max-width: none;
@@ -951,7 +963,11 @@
       const last = new Date(year, month + 1, 0, 12);
       const startRow = weekIndex(first) + 2;
       const endRow = weekIndex(last) + 2;
-      return { startRow, span: endRow - startRow + 1 };
+      const span = endRow - startRow + 1;
+      const startCut = mondayFirstOffset(first) / 7;
+      const endCut = (6 - mondayFirstOffset(last)) / 7;
+      const center = ((startCut + (span - startCut - endCut) / 2) / span) * 100;
+      return { startRow, span, startCut, endCut, center };
     }
     function renderCalendar() {
       calendar.innerHTML = "";
@@ -985,7 +1001,7 @@
       }
 
       for (let month = 0; month < 12; month++) {
-        const { startRow, span } = monthGridRows(month);
+        const { startRow, span, startCut, endCut, center } = monthGridRows(month);
         const monthTotal = monthRunTotal(month);
         const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
         const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
@@ -994,6 +1010,10 @@
         label.id = `month-${month + 1}`;
         label.style.gridColumn = "1";
         label.style.gridRow = `${startRow} / span ${span}`;
+        label.style.setProperty("--month-row-span", span);
+        label.style.setProperty("--month-start-cut", startCut.toFixed(4));
+        label.style.setProperty("--month-end-cut", endCut.toFixed(4));
+        label.style.setProperty("--month-center", `${center.toFixed(2)}%`);
         label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
         calendar.appendChild(label);
       }
