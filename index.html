@@ -151,6 +151,8 @@
       overflow: visible;
     }
     .weekend { background: var(--weekend); }
+    .past { border-color: rgba(234, 223, 206, 0.55); }
+    .past .date-number { color: color-mix(in srgb, var(--muted) 45%, white); }
     .today { outline: 2px solid var(--today); outline-offset: -2px; }
     .empty { opacity: 0; pointer-events: none; }
     .date-number {
@@ -1002,7 +1004,8 @@
           const runDistance = runDistances[iso];
           const cell = document.createElement("div");
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          cell.className = `day${isWeekend ? " weekend" : ""}${isToday ? " today" : ""}`;
+          const isPast = isCurrentYear && date < new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+          cell.className = `day${isWeekend ? " weekend" : ""}${isPast ? " past" : ""}${isToday ? " today" : ""}`;
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
           cell.style.gridRow = String(weekIndex(date) + 2);
           cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
