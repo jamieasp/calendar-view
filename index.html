@@ -112,7 +112,7 @@
       left: 0;
       width: 30px;
       scroll-margin-top: 112px;
-      border-radius: var(--month-top-radius, 9px) var(--month-top-radius, 9px) var(--month-bottom-radius, 9px) var(--month-bottom-radius, 9px);
+      border-radius: 0;
       background: linear-gradient(180deg, rgba(255, 226, 77, 0.32), rgba(255, 226, 77, 0.08));
       overflow: visible;
     }
@@ -974,8 +974,6 @@
         label.id = `month-${month + 1}`;
         label.style.top = `${top.toFixed(1)}px`;
         label.style.height = `${Math.max(1, bottom - top).toFixed(1)}px`;
-        label.style.setProperty("--month-top-radius", mondayFirstOffset(first) === 0 ? "9px" : "0");
-        label.style.setProperty("--month-bottom-radius", mondayFirstOffset(last) === 6 ? "9px" : "0");
         label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
         calendar.appendChild(label);
       }
