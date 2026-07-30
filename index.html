@@ -101,34 +101,25 @@
     .header-button:active { transform: translateY(1px); }
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
     .year-grid {
+      position: relative;
       display: grid;
       grid-template-columns: 30px repeat(7, minmax(0, 1fr));
       gap: 3px;
       align-items: stretch;
     }
     .month-label {
-      position: relative;
-      scroll-margin-top: 112px;
-      min-height: 100%;
-      border-radius: 9px;
-      background: none;
-      overflow: hidden;
-    }
-    .month-label::before {
-      content: "";
       position: absolute;
       left: 0;
-      right: 0;
-      top: calc(var(--month-start-cut, 0) * 100% / var(--month-row-span, 1));
-      bottom: calc(var(--month-end-cut, 0) * 100% / var(--month-row-span, 1));
+      width: 30px;
+      scroll-margin-top: 112px;
       border-radius: var(--month-top-radius, 9px) var(--month-top-radius, 9px) var(--month-bottom-radius, 9px) var(--month-bottom-radius, 9px);
       background: linear-gradient(180deg, rgba(255, 226, 77, 0.32), rgba(255, 226, 77, 0.08));
+      overflow: visible;
     }
     .month-label-text {
       position: absolute;
-      z-index: 1;
       left: 50%;
-      top: var(--month-center, 50%);
+      top: 50%;
       display: block;
       width: max-content;
       max-width: none;
@@ -958,18 +949,36 @@
       const leading = mondayFirstOffset(yearStart);
       return Math.floor((leading + daysBetween(`${year}-01-01`, isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
     }
-    function monthGridRows(month) {
-      const first = new Date(year, month, 1, 12);
-      const last = new Date(year, month + 1, 0, 12);
-      const startRow = weekIndex(first) + 2;
-      const endRow = weekIndex(last) + 2;
-      const span = endRow - startRow + 1;
-      const startCut = mondayFirstOffset(first) / 7;
-      const endCut = (6 - mondayFirstOffset(last)) / 7;
-      const center = ((startCut + (span - startCut - endCut) / 2) / span) * 100;
-      const topRadius = startCut > 0 ? "1px" : "9px";
-      const bottomRadius = endCut > 0 ? "1px" : "9px";
-      return { startRow, span, startCut, endCut, center, topRadius, bottomRadius };
+    function renderMonthLabels() {
+      calendar.querySelectorAll(".month-label").forEach(label => label.remove());
+      const calendarTop = calendar.getBoundingClientRect().top;
+      for (let month = 0; month < 12; month++) {
+        const first = new Date(year, month, 1, 12);
+        const last = new Date(year, month + 1, 0, 12);
+        const firstIso = isoDate(year, month, 1);
+        const lastIso = isoDate(year, month, last.getDate());
+        const firstCell = calendar.querySelector(`[data-iso="${firstIso}"]`);
+        const lastCell = calendar.querySelector(`[data-iso="${lastIso}"]`);
+        if (!firstCell || !lastCell) continue;
+
+        const firstRect = firstCell.getBoundingClientRect();
+        const lastRect = lastCell.getBoundingClientRect();
+        const top = firstRect.top - calendarTop + (mondayFirstOffset(first) / 7) * firstRect.height;
+        const bottom = lastRect.top - calendarTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height;
+        const monthTotal = monthRunTotal(month);
+        const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
+        const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
+
+        const label = document.createElement("div");
+        label.className = "month-label";
+        label.id = `month-${month + 1}`;
+        label.style.top = `${top.toFixed(1)}px`;
+        label.style.height = `${Math.max(1, bottom - top).toFixed(1)}px`;
+        label.style.setProperty("--month-top-radius", mondayFirstOffset(first) === 0 ? "9px" : "0");
+        label.style.setProperty("--month-bottom-radius", mondayFirstOffset(last) === 6 ? "9px" : "0");
+        label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
+        calendar.appendChild(label);
+      }
     }
     function renderCalendar() {
       calendar.innerHTML = "";
@@ -1003,26 +1012,6 @@
       }
 
       for (let month = 0; month < 12; month++) {
-        const { startRow, span, startCut, endCut, center, topRadius, bottomRadius } = monthGridRows(month);
-        const monthTotal = monthRunTotal(month);
-        const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
-        const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
-        const label = document.createElement("div");
-        label.className = "month-label";
-        label.id = `month-${month + 1}`;
-        label.style.gridColumn = "1";
-        label.style.gridRow = `${startRow} / span ${span}`;
-        label.style.setProperty("--month-row-span", span);
-        label.style.setProperty("--month-start-cut", startCut.toFixed(4));
-        label.style.setProperty("--month-end-cut", endCut.toFixed(4));
-        label.style.setProperty("--month-center", `${center.toFixed(2)}%`);
-        label.style.setProperty("--month-top-radius", topRadius);
-        label.style.setProperty("--month-bottom-radius", bottomRadius);
-        label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
-        calendar.appendChild(label);
-      }
-
-      for (let month = 0; month < 12; month++) {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(year, month, day, 12);
@@ -1036,6 +1025,7 @@
           cell.className = `day${isWeekend ? " weekend" : ""}${isPast ? " past" : ""}${isToday ? " today" : ""}`;
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
           cell.style.gridRow = String(weekIndex(date) + 2);
+          cell.dataset.iso = iso;
           cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
           const stack = dayEvents.map(event => {
             const end = event.end || event.start;
@@ -1055,9 +1045,12 @@
           calendar.appendChild(cell);
         }
       }
+      renderMonthLabels();
     }
 
     renderCalendar();
+    document.fonts?.ready.then(renderMonthLabels);
+    window.addEventListener("resize", renderMonthLabels);
 
     renderUpcomingRaces();
     renderDistanceChart();
