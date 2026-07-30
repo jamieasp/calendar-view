@@ -964,10 +964,16 @@
 
         const firstRect = firstCell.getBoundingClientRect();
         const lastRect = lastCell.getBoundingClientRect();
+        const firstCellTop = firstRect.top - calendarTop;
+        const lastCellTop = lastRect.top - calendarTop;
         const startsAfterRowGap = month > 0 && mondayFirstOffset(first) === 0;
         const endsBeforeRowGap = month < 11 && mondayFirstOffset(last) === 6;
-        const top = firstRect.top - calendarTop + (mondayFirstOffset(first) / 7) * firstRect.height - (startsAfterRowGap ? rowGap / 2 : 0);
-        const bottom = lastRect.top - calendarTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height + (endsBeforeRowGap ? rowGap / 2 : 0);
+        const top = month === 0
+          ? firstCellTop
+          : firstCellTop + (mondayFirstOffset(first) / 7) * firstRect.height - (startsAfterRowGap ? rowGap / 2 : 0);
+        const bottom = month === 11
+          ? lastCellTop + lastRect.height
+          : lastCellTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height + (endsBeforeRowGap ? rowGap / 2 : 0);
         const monthTotal = monthRunTotal(month);
         const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
         const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
