@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-29T13:38:32.524867+00:00",
+  "generatedAt": "2026-07-30T06:01:07.782896+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1096,9 +1096,13 @@
         {
           "date": "2026-07-29",
           "value": 58.0
+        },
+        {
+          "date": "2026-07-30",
+          "value": 56.0
         }
       ],
-      "latestPercentile": 71.8
+      "latestPercentile": 93.1
     },
     {
       "kind": "HRV",
@@ -2182,9 +2186,13 @@
         {
           "date": "2026-07-29",
           "value": 49.75
+        },
+        {
+          "date": "2026-07-30",
+          "value": 48.4
         }
       ],
-      "latestPercentile": 97.8
+      "latestPercentile": 95.2
     },
     {
       "kind": "RHR/HRV",
@@ -3196,9 +3204,13 @@
         {
           "date": "2026-07-29",
           "value": 1.1658
+        },
+        {
+          "date": "2026-07-30",
+          "value": 1.157
         }
       ],
-      "latestPercentile": 96.8
+      "latestPercentile": 97.2
     }
   ]
 }
