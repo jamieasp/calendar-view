@@ -151,7 +151,11 @@
       overflow: visible;
     }
     .weekend { background: var(--weekend); }
-    .past { border-color: rgba(234, 223, 206, 0.55); }
+    .past {
+      background: rgba(246, 242, 234, 0.62);
+      border-color: rgba(234, 223, 206, 0.55);
+    }
+    .past.weekend { background: rgba(232, 230, 226, 0.62); }
     .past .date-number { color: color-mix(in srgb, var(--muted) 45%, white); }
     .today { outline: 2px solid var(--today); outline-offset: -2px; }
     .empty { opacity: 0; pointer-events: none; }
