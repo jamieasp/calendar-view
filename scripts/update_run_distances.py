@@ -277,6 +277,8 @@ def update_index(run_distances: dict[str, int]) -> bool:
         "renderUpcomingRaces();",
         "function renderHealthCharts()",
         "health-data.json",
+        "const stretchStreaks =",
+        "stretch-streak",
     ]
     missing = [needle for needle in required_dynamic_consumers if needle not in html]
     if missing:
@@ -296,8 +298,15 @@ def update_index(run_distances: dict[str, int]) -> bool:
     return True
 
 
+def update_stretch_streaks() -> bool:
+    before = INDEX.read_text()
+    script = REPO / "scripts" / "update_stretch_streaks.py"
+    run([str(script)], cwd=REPO)
+    return INDEX.read_text() != before
+
+
 def git_commit_push() -> None:
-    run(["git", "add", "index.html", "health-data.json", "scripts/update_run_distances.py", "sw.js"], cwd=REPO)
+    run(["git", "add", "index.html", "health-data.json", "scripts/update_run_distances.py", "scripts/update_stretch_streaks.py", "sw.js"], cwd=REPO)
     diff = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO)
     if diff.returncode == 0:
         print("No calendar changes to commit.")
@@ -312,10 +321,12 @@ def main() -> int:
     pull_workouts()
     distances = load_running_distances()
     changed = update_index(distances)
+    stretch_changed = update_stretch_streaks()
     health_changed = write_health_chart_data()
     print(f"Loaded {len(distances)} run-distance days for {YEAR}.")
+    print(f"Stretch streak badges {'updated' if stretch_changed else 'already up to date'}.")
     print(f"Health chart data {'updated' if health_changed else 'already up to date'}.")
-    if changed or health_changed:
+    if changed or stretch_changed or health_changed:
         git_commit_push()
     else:
         print("index.html already up to date.")

@@ -166,13 +166,30 @@
       outline-offset: -2px;
     }
     .empty { opacity: 0; pointer-events: none; }
+    .date-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2px;
+      min-height: 1rem;
+      margin: 0 4px 4px;
+    }
     .date-number {
       display: block;
       color: color-mix(in srgb, var(--muted) 72%, white);
       font-size: 0.76rem;
       font-weight: 850;
       line-height: 1;
-      margin: 0 4px 4px;
+      margin: 0;
+    }
+    .stretch-streak {
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 0.84rem;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      transform: rotate(-2deg);
     }
     .event-stack { display: grid; gap: 2px; position: relative; }
     .event-bar, .event-spacer {
@@ -521,6 +538,18 @@
           "2026-07-26": 13,
           "2026-07-27": 9,
           "2026-07-30": 7
+    };
+
+    const stretchStreaks = {
+          "2026-07-02": 1,
+          "2026-07-03": 2,
+          "2026-07-11": 1,
+          "2026-07-13": 1,
+          "2026-07-19": 1,
+          "2026-07-24": 1,
+          "2026-07-26": 1,
+          "2026-07-27": 2,
+          "2026-07-31": 1
     };
 
     const comparisonRunDistances = {
@@ -1052,7 +1081,9 @@
             return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
           }).join("");
           const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
-          cell.innerHTML = `<span class="date-number">${day}</span><div class="event-stack">${stack}</div>${runLabel}`;
+          const stretchStreak = stretchStreaks[iso];
+          const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${stretchStreak}</span>` : "";
+          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}`;
           calendar.appendChild(cell);
         }
       }
