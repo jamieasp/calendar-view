@@ -1082,7 +1082,10 @@
           }).join("");
           const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
           const stretchStreak = stretchStreaks[iso];
-          const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${stretchStreak}</span>` : "";
+          const nextDate = new Date(year, month, day + 1, 12);
+          const nextIso = nextDate.getFullYear() === year ? isoDate(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate()) : null;
+          const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
+          const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
           cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}`;
           calendar.appendChild(cell);
         }
