@@ -579,7 +579,21 @@
     };
 
     const absStreaks = {
-          "2026-08-01": 1
+          "2026-04-14": 1,
+          "2026-04-23": 1,
+          "2026-05-01": 1,
+          "2026-05-05": 1,
+          "2026-05-08": 1,
+          "2026-05-15": 1,
+          "2026-05-21": 1,
+          "2026-06-04": 1,
+          "2026-06-12": 1,
+          "2026-06-17": 1,
+          "2026-06-27": 1,
+          "2026-07-14": 1,
+          "2026-07-20": 1,
+          "2026-07-31": 1,
+          "2026-08-01": 2
     };
 
     const comparisonRunDistances = {
@@ -1117,7 +1131,7 @@
           const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
           const absStreak = absStreaks[iso];
-          const absLabel = absStreak ? `<span class="abs-streak" title="Abs workout streak">💪${absStreak}</span>` : "";
+          const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${absStreak}</span>` : "";
           cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
@@ -1133,11 +1147,13 @@
     renderDistanceChart();
     renderHealthCharts();
 
-    function currentMonthEl() {
-      return isCurrentYear ? document.getElementById(`month-${today.getMonth() + 1}`) : null;
+    function currentDayEl() {
+      if (!isCurrentYear) return null;
+      const iso = isoDate(year, today.getMonth(), today.getDate());
+      return document.querySelector(`.day.today[data-iso="${iso}"]`);
     }
     function scrollToToday(options = { behavior: "smooth" }) {
-      currentMonthEl()?.scrollIntoView({ behavior: options.behavior, block: "start" });
+      currentDayEl()?.scrollIntoView({ behavior: options.behavior, block: "center" });
     }
     function scrollToChart() {
       document.getElementById("distance-chart-title")?.scrollIntoView({ behavior: "smooth", block: "start" });

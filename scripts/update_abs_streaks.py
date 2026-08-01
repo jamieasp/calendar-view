@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Update calendar-view/index.html with Jamie's abs/core workout streak badges.
+"""Update calendar-view/index.html with Jamie's strength/abs workout streak badges.
 
-Source of truth is memory/abs-workouts.md. A day counts as abs/core done when
-there is a row for that local date with status=done.
+Sources of truth:
+- memory/abs-workouts.md for manual abs/core completions.
+- local/fresh Suunto workout data for strength-training sessions.
+
+A day counts when either source has a completed session on that UTC date.
 
 The badge rendered in index.html is 💪N in the bottom-right of the day cell,
-where N is the consecutive abs-workout-day chain ending on that date.
+where N is the consecutive strength/abs-workout-day chain ending on that date.
 """
 from __future__ import annotations
 
@@ -14,12 +17,18 @@ import json
 import re
 import subprocess
 from pathlib import Path
+from typing import Iterable
 
 REPO = Path(__file__).resolve().parents[1]
 WORKSPACE = REPO.parent
 INDEX = REPO / "index.html"
 LOG = WORKSPACE / "memory" / "abs-workouts.md"
+SUUNTOOL = WORKSPACE / "bin" / "suuntool"
+DATA_DIR = WORKSPACE / "data" / "suunto"
+FRESH_NDJSON = DATA_DIR / "workouts_2026_fresh.ndjson"
 YEAR = 2026
+# Suunto activityId 23 is GYM, the activity currently used for strength training.
+SUUNTO_STRENGTH_ACTIVITY_IDS = {23}
 
 ROW_RE = re.compile(
     r"^\|\s*(?P<id>[^|]+?)\s*\|\s*(?P<workout_utc>[^|]*?)\s*\|\s*"
@@ -51,7 +60,84 @@ def local_date_from_row(row: dict[str, str]) -> dt.date | None:
     return None
 
 
-def abs_dates() -> set[dt.date]:
+def pull_workouts() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with FRESH_NDJSON.open("w") as out:
+        result = subprocess.run([
+            str(SUUNTOOL),
+            "workouts",
+            "list",
+            "--since",
+            f"{YEAR}-01-01",
+            "--stream",
+            "--format",
+            "json",
+        ], stdout=out, cwd=WORKSPACE, text=True)
+    if result.returncode != 0:
+        if not FRESH_NDJSON.exists() or FRESH_NDJSON.stat().st_size == 0:
+            raise subprocess.CalledProcessError(result.returncode, result.args)
+        print(f"suuntool exited {result.returncode}; using captured NDJSON plus local cache.")
+
+
+def iter_workouts_from_file(path: Path) -> Iterable[dict]:
+    if not path.exists():
+        return
+    if path.suffix == ".ndjson":
+        for raw in path.read_text(errors="ignore").splitlines():
+            if not raw.strip():
+                continue
+            try:
+                workout = json.loads(raw)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(workout, dict):
+                yield workout
+        return
+
+    try:
+        data = json.loads(path.read_text(errors="ignore"))
+    except json.JSONDecodeError:
+        return
+    if isinstance(data, dict) and isinstance(data.get("items"), list):
+        for workout in data["items"]:
+            if isinstance(workout, dict):
+                yield workout
+    elif isinstance(data, dict) and "activityId" in data:
+        yield data
+    elif isinstance(data, list):
+        for workout in data:
+            if isinstance(workout, dict):
+                yield workout
+
+
+def suunto_strength_dates() -> set[dt.date]:
+    dates: set[dt.date] = set()
+    seen: dict[str, dict] = {}
+    sources = [
+        FRESH_NDJSON,
+        DATA_DIR / "workouts_since_2025-06-18.ndjson",
+        DATA_DIR / "workouts_all.ndjson",
+        DATA_DIR / "pages" / "workouts_offset_0.json",
+    ]
+    for source in sources:
+        for workout in iter_workouts_from_file(source) or []:
+            key = workout.get("key")
+            if key:
+                seen[key] = workout
+
+    for workout in seen.values():
+        if workout.get("activityId") not in SUUNTO_STRENGTH_ACTIVITY_IDS:
+            continue
+        start_ms = workout.get("startTime")
+        if not start_ms:
+            continue
+        day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date()
+        if day.year == YEAR:
+            dates.add(day)
+    return dates
+
+
+def manual_abs_dates() -> set[dt.date]:
     dates: set[dt.date] = set()
     if not LOG.exists():
         return dates
@@ -68,6 +154,10 @@ def abs_dates() -> set[dt.date]:
         if day and day.year == YEAR:
             dates.add(day)
     return dates
+
+
+def workout_dates() -> set[dt.date]:
+    return manual_abs_dates() | suunto_strength_dates()
 
 
 def build_streaks(dates: set[dt.date]) -> dict[str, int]:
@@ -108,7 +198,9 @@ def git_commit_push() -> None:
 
 
 def main() -> int:
-    changed = update_index(build_streaks(abs_dates()))
+    if "--no-pull" not in __import__("sys").argv:
+        pull_workouts()
+    changed = update_index(build_streaks(workout_dates()))
     if "--commit" in __import__("sys").argv:
         git_commit_push()
     else:
