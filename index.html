@@ -191,6 +191,18 @@
       white-space: nowrap;
       transform: rotate(-2deg);
     }
+    .abs-streak {
+      position: absolute;
+      right: 4px;
+      bottom: 3px;
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 0.86rem;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      transform: rotate(2deg);
+    }
     .event-stack { display: grid; gap: 2px; position: relative; }
     .event-bar, .event-spacer {
       min-height: 17px;
@@ -564,6 +576,10 @@
           "2026-07-27": 2,
           "2026-07-31": 1,
           "2026-08-01": 2
+    };
+
+    const absStreaks = {
+          "2026-08-01": 1
     };
 
     const comparisonRunDistances = {
@@ -1100,7 +1116,9 @@
           const nextIso = nextDate.getFullYear() === year ? isoDate(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate()) : null;
           const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
-          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}`;
+          const absStreak = absStreaks[iso];
+          const absLabel = absStreak ? `<span class="abs-streak" title="Abs workout streak">💪${absStreak}</span>` : "";
+          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
       }
