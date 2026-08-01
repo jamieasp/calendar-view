@@ -1131,7 +1131,8 @@
           const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
           const absStreak = absStreaks[iso];
-          const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${absStreak}</span>` : "";
+          const isFinalAbsDay = absStreak && !absStreaks[nextIso];
+          const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${isFinalAbsDay ? absStreak : ""}</span>` : "";
           cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
