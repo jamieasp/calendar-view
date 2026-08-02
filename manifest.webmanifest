@@ -1,6 +1,6 @@
 {
-  "name": "Jamie Runs",
-  "short_name": "Jamie Runs",
+  "name": "ClawjCal",
+  "short_name": "ClawjCal",
   "description": "Jamie’s running, race, travel, and training calendar.",
   "start_url": "/calendar-view/",
   "scope": "/calendar-view/",
