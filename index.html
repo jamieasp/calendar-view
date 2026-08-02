@@ -550,6 +550,7 @@
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
     </header>
+    <button type="button" class="expand-years" data-action="toggle-earlier" aria-expanded="false">Show earlier</button>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
     <button type="button" class="expand-years" data-action="toggle-2027" aria-expanded="false">Show 2027</button>
     <section class="health-charts" aria-labelledby="health-charts-title">
@@ -581,6 +582,7 @@
     const calendarStartMonth = 0;
     const monthsToRender = 18;
     let show2027 = false;
+    let showEarlier = false;
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const today = new Date();
@@ -589,7 +591,15 @@
       return { year: calendarStartYear + Math.floor(monthIndex / 12), month: monthIndex % 12 };
     });
     function visibleDisplayMonths() {
-      return show2027 ? displayMonths : displayMonths.filter(({ year }) => year === calendarStartYear);
+      const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1, 12);
+      const earliestDefault = new Date(currentMonthStart);
+      earliestDefault.setMonth(earliestDefault.getMonth() - 3);
+      return displayMonths.filter(({ year: displayYear, month }) => {
+        const date = new Date(displayYear, month, 1, 12);
+        const isEarlier = date < earliestDefault;
+        const isFutureYear = displayYear > calendarStartYear;
+        return (showEarlier || !isEarlier) && (show2027 || !isFutureYear);
+      });
     }
     const calendar = document.getElementById("calendar");
     const runDistances = {
@@ -1415,6 +1425,18 @@
     function scrollToLists() {
       document.querySelector(".races-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    function toggleEarlier() {
+      showEarlier = !showEarlier;
+      const button = document.querySelector('[data-action="toggle-earlier"]');
+      if (button) {
+        button.textContent = showEarlier ? "Hide earlier" : "Show earlier";
+        button.setAttribute("aria-expanded", String(showEarlier));
+      }
+      renderCalendar();
+      if (!showEarlier) {
+        calendar.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
     function toggle2027() {
       show2027 = !show2027;
       const button = document.querySelector('[data-action="toggle-2027"]');
@@ -1459,6 +1481,7 @@
     document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
     document.querySelector('[data-action="list"]')?.addEventListener("click", scrollToLists);
+    document.querySelector('[data-action="toggle-earlier"]')?.addEventListener("click", toggleEarlier);
     document.querySelector('[data-action="toggle-2027"]')?.addEventListener("click", toggle2027);
     document.querySelector('[data-action="copy-url"]')?.addEventListener("click", () => { copyCalendarUrl().catch(() => {}); });
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
