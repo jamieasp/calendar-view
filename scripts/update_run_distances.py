@@ -245,9 +245,7 @@ def build_health_chart_data() -> dict:
         "generatedAt": dt.datetime.now(dt.UTC).isoformat(),
         "start": HEALTH_START,
         "eventMarkers": [
-            {"date": TRT_DATE.isoformat(), "label": "TRT", "color": "#6a1b9a", "yoff": 0.93},
             {"date": VIRUS_DATE.isoformat(), "label": "Virus", "color": "#333333", "yoff": 0.86},
-            {"date": TURMERIC_DATE.isoformat(), "label": "Turmeric", "color": "#c47f00", "yoff": 0.79},
         ],
         "longRunDates": [day.isoformat() for day in long_dates],
         "panels": [
@@ -269,7 +267,7 @@ def write_health_chart_data() -> bool:
 def update_index(run_distances: dict[str, int]) -> bool:
     html = INDEX.read_text()
     required_dynamic_consumers = [
-        "function monthRunTotal(month)",
+        "function monthRunTotal(totalYear, month)",
         "function renderDistanceChart()",
         "cumulativeSeries(runDistances, year)",
         "function renderUpcomingRaces()",
