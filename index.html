@@ -438,13 +438,14 @@
       opacity: 0.9;
     }
     .chart-dot { fill: var(--pencil); }
-    .histogram-bar {
-      fill: var(--today);
+    .histogram-unit {
       stroke: var(--pencil);
-      stroke-width: 1.5;
-      opacity: 0.72;
+      stroke-width: 1.2;
       vector-effect: non-scaling-stroke;
     }
+    .histogram-unit.y2024 { fill: rgba(255, 226, 77, 0.28); }
+    .histogram-unit.y2025 { fill: rgba(255, 226, 77, 0.46); }
+    .histogram-unit.y2026 { fill: rgba(255, 226, 77, 0.72); }
     .histogram-unit-divider {
       stroke: rgba(21, 37, 54, 0.72);
       stroke-width: 1.4;
@@ -1179,14 +1180,20 @@
     function renderRunDensityChart() {
       const svg = document.getElementById("run-density-chart");
       if (!svg) return;
-      const dailyByIso = Object.entries(runDistances).reduce((days, [iso, km]) => {
-        days[iso] = (days[iso] || 0) + Number(km || 0);
-        return days;
-      }, {});
-      const dailyDistances = Object.entries(dailyByIso)
-        .map(([iso, km]) => ({ iso, date: dateFromIso(iso), km }))
-        .filter(day => day.km > 0)
-        .sort((a, b) => a.date - b.date);
+      const yearlySources = [
+        { year: 2024, distances: comparisonRunDistances2024 },
+        { year: 2025, distances: comparisonRunDistances },
+        { year: 2026, distances: runDistances },
+      ];
+      const dailyDistances = yearlySources.flatMap(source => {
+        const dailyByIso = Object.entries(source.distances).reduce((days, [iso, km]) => {
+          days[iso] = (days[iso] || 0) + Number(km || 0);
+          return days;
+        }, {});
+        return Object.entries(dailyByIso)
+          .map(([iso, km]) => ({ iso, year: source.year, date: dateFromIso(iso), km }))
+          .filter(day => day.km > 0);
+      }).sort((a, b) => a.date - b.date);
       if (!dailyDistances.length) return;
 
       const width = 1500;
@@ -1196,41 +1203,49 @@
       const plotH = height - margin.top - margin.bottom;
       const maxDistance = Math.ceil(Math.max(...dailyDistances.map(day => day.km)));
       const domainMax = Math.max(20, Math.ceil(maxDistance / 5) * 5);
-      const buckets = Array.from({ length: domainMax + 1 }, (_, km) => ({ km, count: 0 }));
+      const buckets = Array.from({ length: domainMax + 1 }, (_, km) => ({ km, days: [] }));
       dailyDistances.forEach(day => {
         const bucket = Math.min(domainMax, Math.max(0, Math.floor(day.km)));
-        buckets[bucket].count += 1;
+        buckets[bucket].days.push(day);
       });
-      const maxCount = Math.max(1, ...buckets.map(bucket => bucket.count));
+      buckets.forEach(bucket => bucket.days.sort((a, b) => a.year - b.year || a.date - b.date));
+      const maxCount = Math.max(1, ...buckets.map(bucket => bucket.days.length));
       const yTicks = niceTicks(0, maxCount, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const x = value => margin.left + (value / domainMax) * plotW;
       const y = count => margin.top + plotH - (count / yMax) * plotH;
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
-      const latest = dailyDistances[dailyDistances.length - 1];
-      const latestBucketIndex = Math.min(domainMax, Math.max(0, Math.floor(latest.km)));
+      const latest = Object.entries(runDistances)
+        .map(([iso, km]) => ({ iso, year, date: dateFromIso(iso), km: Number(km || 0) }))
+        .filter(day => day.km > 0)
+        .sort((a, b) => a.date - b.date)
+        .at(-1);
+      const latestBucketIndex = latest ? Math.min(domainMax, Math.max(0, Math.floor(latest.km))) : null;
       const avg = dailyDistances.reduce((sum, day) => sum + day.km, 0) / dailyDistances.length;
       const barGap = 3;
       const barWidth = Math.max(2, (plotW / (domainMax + 1)) - barGap);
       const unitHeight = plotH / yMax;
       const bars = buckets.map(bucket => {
-        if (!bucket.count) return "";
+        if (!bucket.days.length) return "";
         const bx = x(bucket.km) + barGap / 2;
-        const by = y(bucket.count);
-        const dividers = Array.from({ length: bucket.count - 1 }, (_, index) => {
+        const units = bucket.days.map((day, index) => {
+          const yy = baseline - unitHeight * (index + 1);
+          const isLatest = latest && day.iso === latest.iso && day.year === latest.year;
+          const cls = isLatest ? "histogram-latest-unit" : `histogram-unit y${day.year}`;
+          const label = isLatest ? `Latest day: ${day.km.toFixed(day.km % 1 ? 1 : 0)}km` : `${day.iso}: ${day.km.toFixed(day.km % 1 ? 1 : 0)}km`;
+          return `<rect class="${cls}" x="${bx.toFixed(1)}" y="${yy.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>${label}</title></rect>`;
+        }).join("");
+        const dividers = Array.from({ length: bucket.days.length - 1 }, (_, index) => {
           const yy = baseline - unitHeight * (index + 1);
           return `<line class="histogram-unit-divider" x1="${bx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(bx + barWidth).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
         }).join("");
-        const latestUnit = bucket.km === latestBucketIndex
-          ? `<rect class="histogram-latest-unit" x="${bx.toFixed(1)}" y="${(baseline - unitHeight).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>Latest day: ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km</title></rect>`
-          : "";
-        return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>${latestUnit}${dividers}`;
+        return `${units}${dividers}`;
       }).join("");
 
       svg.innerHTML = `
         <text class="chart-end-label" x="${margin.left}" y="42">Daily distance histogram</text>
-        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">Latest day ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km · avg ${avg.toFixed(1)}km</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">2024–26 · latest day ${latest ? latest.km.toFixed(latest.km % 1 ? 1 : 0) : "—"}km · avg ${avg.toFixed(1)}km</text>
         ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${tick}</text>`).join("")}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
