@@ -1345,8 +1345,9 @@
       const y = count => margin.top + plotH - (count / yMax) * plotH;
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
-      const latest = dailyDistances.at(-1);
-      const latestBucketIndex = latest ? Math.min(domainMax, Math.max(0, Math.floor(latest.km))) : null;
+      const latest = allDailyDistances.at(-1);
+      const latestVisible = histogramYearFilter === "all" || histogramYearFilter === String(latest?.year);
+      const latestBucketIndex = latest && latestVisible ? Math.min(domainMax, Math.max(0, Math.floor(latest.km))) : null;
       const avg = dailyDistances.reduce((sum, day) => sum + day.km, 0) / dailyDistances.length;
       const barGap = 3;
       const barWidth = Math.max(2, (plotW / (domainMax + 1)) - barGap);
@@ -1356,7 +1357,7 @@
         const bx = x(bucket.km) + barGap / 2;
         const units = bucket.days.map((day, index) => {
           const yy = baseline - unitHeight * (index + 1);
-          const isLatest = latest && day.iso === latest.iso && day.year === latest.year;
+          const isLatest = latestVisible && latest && day.iso === latest.iso && day.year === latest.year;
           const cls = isLatest ? "histogram-latest-unit" : `histogram-unit y${day.year}`;
           const label = isLatest ? `Latest day: ${day.km.toFixed(day.km % 1 ? 1 : 0)}km` : `${day.iso}: ${day.km.toFixed(day.km % 1 ? 1 : 0)}km`;
           return `<rect class="${cls}" x="${bx.toFixed(1)}" y="${yy.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>${label}</title></rect>`;
