@@ -492,6 +492,10 @@
       <h2 id="upcoming-races-title">Upcoming races</h2>
       <ul id="upcoming-races" class="race-list"></ul>
     </section>
+    <section class="races-section" aria-labelledby="considered-races-title">
+      <h2 id="considered-races-title">Considered races</h2>
+      <ul id="considered-races" class="race-list"></ul>
+    </section>
   </main>
   <script>
     const year = 2026;
@@ -844,20 +848,24 @@
         .filter(([iso]) => iso.startsWith(prefix))
         .reduce((sum, [, km]) => sum + Number(km || 0), 0);
     }
-    function renderUpcomingRaces() {
-      const list = document.getElementById("upcoming-races");
+    function renderRaceList(listId, status) {
+      const list = document.getElementById(listId);
       if (!list) return;
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const upcoming = events
-        .filter(event => isRaceEvent(event) && event.status === "upcoming")
+      const races = events
+        .filter(event => isRaceEvent(event) && event.status === status)
         .map(event => ({ ...event, date: new Date(`${event.start}T12:00:00`) }))
         .filter(event => event.date >= todayStart)
         .sort((a, b) => a.date - b.date);
-      list.innerHTML = upcoming.map(event => {
+      list.innerHTML = races.map(event => {
         const daysLeft = Math.ceil((event.date - todayStart) / 86400000);
         const dayLabel = daysLeft === 0 ? "today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
         return `<li class="race-card"><span class="race-name">${raceDisplayTitle(event)}</span><span class="race-countdown">${dayLabel}</span><span class="race-meta">${dateLabel(event.start)}${event.meta ? ` · ${event.meta}` : ""}</span></li>`;
       }).join("");
+    }
+    function renderUpcomingRaces() {
+      renderRaceList("upcoming-races", "upcoming");
+      renderRaceList("considered-races", "interesting");
     }
 
     function cumulativeSeries(distances, seriesYear) {
