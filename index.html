@@ -445,6 +445,11 @@
       opacity: 0.72;
       vector-effect: non-scaling-stroke;
     }
+    .histogram-unit-divider {
+      stroke: rgba(255, 255, 255, 0.82);
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+    }
     .histogram-latest-unit {
       fill: #152536;
       opacity: 0.96;
@@ -1171,10 +1176,14 @@
         if (!bucket.count) return "";
         const bx = x(bucket.km) + barGap / 2;
         const by = y(bucket.count);
+        const dividers = Array.from({ length: bucket.count - 1 }, (_, index) => {
+          const yy = baseline - unitHeight * (index + 1);
+          return `<line class="histogram-unit-divider" x1="${bx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(bx + barWidth).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
+        }).join("");
         const latestUnit = bucket.km === latestBucketIndex
           ? `<rect class="histogram-latest-unit" x="${bx.toFixed(1)}" y="${(baseline - unitHeight).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>Latest run: ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km</title></rect>`
           : "";
-        return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>${latestUnit}`;
+        return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>${latestUnit}${dividers}`;
       }).join("");
 
       svg.innerHTML = `
