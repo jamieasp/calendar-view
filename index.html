@@ -384,7 +384,7 @@
       padding: 0 0.08em;
     }
     .races-section h2 {
-      margin: 0 0 14px;
+      margin: 0 0 22px;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: clamp(1.65rem, 3vw, 2.8rem);
       font-weight: 900;
@@ -634,9 +634,6 @@
         <h1>ClawjCal</h1>
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
-        <button type="button" class="header-button" data-action="today" aria-label="Scroll to today" title="Today"><span class="material-symbols-outlined" aria-hidden="true">event</span></button>
-        <button type="button" class="header-button" data-action="chart" aria-label="Scroll to charts" title="Charts"><span class="material-symbols-outlined" aria-hidden="true">show_chart</span></button>
-        <button type="button" class="header-button" data-action="list" aria-label="Scroll to race lists" title="Lists"><span class="material-symbols-outlined" aria-hidden="true">format_list_bulleted</span></button>
         <button type="button" class="header-button" data-action="copy-url" aria-label="Copy calendar URL" title="Copy URL"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
@@ -1603,9 +1600,6 @@
         if (icon) icon.textContent = originalIcon;
       }, 1400);
     }
-    document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
-    document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
-    document.querySelector('[data-action="list"]')?.addEventListener("click", scrollToLists);
     document.querySelectorAll(".bottom-tab").forEach(button => {
       button.addEventListener("click", () => {
         if (button.dataset.tab === "calendar") scrollToCalendar();
