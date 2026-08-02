@@ -1251,6 +1251,9 @@
         button.setAttribute("aria-expanded", String(show2027));
       }
       renderCalendar();
+      if (!show2027) {
+        document.querySelector('[data-iso="2026-12-31"]')?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
     }
     async function hardRefresh() {
       if ("serviceWorker" in navigator) {
