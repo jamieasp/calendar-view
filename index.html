@@ -138,6 +138,7 @@
       grid-template-columns: 30px repeat(7, minmax(0, 1fr));
       gap: 3px;
       align-items: stretch;
+      margin-top: 10px;
     }
     .month-label {
       position: absolute;
@@ -1283,16 +1284,17 @@
       `;
     }
 
-    function weekIndex(date) {
-      const calendarStart = new Date(calendarStartYear, calendarStartMonth, 1, 12);
+    function weekIndex(date, firstVisibleMonth = visibleDisplayMonths()[0]) {
+      const calendarStart = new Date(firstVisibleMonth.year, firstVisibleMonth.month, 1, 12);
       const leading = mondayFirstOffset(calendarStart);
-      return Math.floor((leading + daysBetween(isoDate(calendarStartYear, calendarStartMonth, 1), isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
+      return Math.floor((leading + daysBetween(isoDate(firstVisibleMonth.year, firstVisibleMonth.month, 1), isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
     }
     function renderMonthLabels() {
       calendar.querySelectorAll(".month-label").forEach(label => label.remove());
       const calendarTop = calendar.getBoundingClientRect().top;
       const rowGap = parseFloat(getComputedStyle(calendar).rowGap) || 0;
       const visibleMonths = visibleDisplayMonths();
+      if (!visibleMonths.length) return;
       visibleMonths.forEach(({ year: labelYear, month }, index) => {
         const first = new Date(labelYear, month, 1, 12);
         const last = new Date(labelYear, month + 1, 0, 12);
@@ -1365,7 +1367,7 @@
         blank.className = "day empty";
         blank.textContent = "·";
         blank.style.gridColumn = String(mondayFirstOffset(last) + 3 + i);
-        blank.style.gridRow = String(weekIndex(last) + 2);
+        blank.style.gridRow = String(weekIndex(last, firstMonth) + 2);
         calendar.appendChild(blank);
       }
 
@@ -1379,7 +1381,7 @@
           const runDistance = runDistances[iso];
           const stretchStreak = stretchStreaks[iso];
           const absStreak = absStreaks[iso];
-          const row = weekIndex(date) + 2;
+          const row = weekIndex(date, firstMonth) + 2;
           rowHeights.set(row, Math.max(rowHeights.get(row) || 76, dayContentHeight(dayEvents, runDistance, stretchStreak, absStreak)));
           const cell = document.createElement("div");
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
