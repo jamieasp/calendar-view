@@ -1700,10 +1700,10 @@
       const selectedYear = Number(heatmapYearFilter || year);
       const distances = runDistanceSourceForYear(selectedYear);
       const width = 1500;
-      const height = 360;
-      const margin = { top: 58, right: 72, bottom: 42, left: 78 };
-      const cell = 18;
-      const gap = 5;
+      const height = 430;
+      const margin = { top: 60, right: 72, bottom: 28, left: 78 };
+      const cell = 26;
+      const gap = 6;
       const rowPitch = cell + gap;
       const colPitch = cell + gap;
       const start = new Date(`${selectedYear}-01-01T12:00:00`);
@@ -1714,7 +1714,6 @@
       const plotW = weeks * colPitch;
       const x0 = margin.left + Math.max(0, (width - margin.left - margin.right - plotW) / 2);
       const y0 = margin.top;
-      const maxKm = Math.max(1, ...Object.values(distances).map(km => Number(km || 0)));
       const latestIso = Object.keys(runDistances).sort().at(-1);
       const latestYear = latestIso ? Number(latestIso.slice(0, 4)) : null;
       const level = km => {
@@ -1748,11 +1747,9 @@
         cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${label}</title></rect>`);
       }
       svg.innerHTML = `
-        <text class="chart-label" x="${width - margin.right}" y="32" text-anchor="end">${selectedYear} · max ${maxKm}km</text>
         ${monthLabels.join("")}
         ${dayLabels}
         ${cells.join("")}
-        <text class="chart-label" x="${width - margin.right}" y="${height - 20}" text-anchor="end">darker = longer daily run</text>
       `;
     }
 
