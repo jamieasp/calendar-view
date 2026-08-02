@@ -473,7 +473,8 @@
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
         <button type="button" class="header-button" data-action="today" aria-label="Scroll to today" title="Today"><span class="material-symbols-outlined" aria-hidden="true">event</span></button>
-        <button type="button" class="header-button" data-action="chart" aria-label="Scroll to chart" title="Chart"><span class="material-symbols-outlined" aria-hidden="true">show_chart</span></button>
+        <button type="button" class="header-button" data-action="chart" aria-label="Scroll to charts" title="Charts"><span class="material-symbols-outlined" aria-hidden="true">show_chart</span></button>
+        <button type="button" class="header-button" data-action="list" aria-label="Scroll to race lists" title="Lists"><span class="material-symbols-outlined" aria-hidden="true">format_list_bulleted</span></button>
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
     </header>
@@ -1188,7 +1189,10 @@
       currentDayEl()?.scrollIntoView({ behavior: options.behavior, block: "center" });
     }
     function scrollToChart() {
-      document.getElementById("distance-chart-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("health-charts-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function scrollToLists() {
+      document.getElementById("upcoming-races-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     async function hardRefresh() {
       if ("serviceWorker" in navigator) {
@@ -1201,6 +1205,7 @@
     }
     document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
+    document.querySelector('[data-action="list"]')?.addEventListener("click", scrollToLists);
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
 
     if (currentDayEl()) {
