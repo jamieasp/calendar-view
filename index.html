@@ -1235,8 +1235,9 @@
       const ymin = Math.min(...values);
       const ymax = Math.max(...values);
       const yr = ymax - ymin || 1;
-      const yDomainMin = ymin - yr * 0.18;
-      const yDomainMax = ymax + yr * 0.18;
+      const yPad = yr * 0.06;
+      const yDomainMin = ymin - yPad;
+      const yDomainMax = ymax + yPad;
       const start = points[0].date;
       const end = points[points.length - 1].date;
       const spanDays = Math.max(1, Math.round((end - start) / 86400000));
