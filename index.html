@@ -560,9 +560,9 @@
       </div>
       <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
       <div class="chart-header secondary-chart-title">
-        <h2>Run distance distribution</h2>
+        <h2>Daily distance distribution</h2>
       </div>
-      <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="Histogram of run distances with latest run marked"></svg>
+      <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="Histogram of daily running distances with latest day marked"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
@@ -644,7 +644,7 @@
           "2026-07-26": 13,
           "2026-07-27": 9,
           "2026-07-30": 7,
-          "2026-08-02": 23
+          "2026-08-02": 24
     };
 
     const stretchStreaks = {
@@ -1181,14 +1181,14 @@
           return `<line class="histogram-unit-divider" x1="${bx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(bx + barWidth).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
         }).join("");
         const latestUnit = bucket.km === latestBucketIndex
-          ? `<rect class="histogram-latest-unit" x="${bx.toFixed(1)}" y="${(baseline - unitHeight).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>Latest run: ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km</title></rect>`
+          ? `<rect class="histogram-latest-unit" x="${bx.toFixed(1)}" y="${(baseline - unitHeight).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>Latest day: ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km</title></rect>`
           : "";
         return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>${latestUnit}${dividers}`;
       }).join("");
 
       svg.innerHTML = `
-        <text class="chart-end-label" x="${margin.left}" y="42">Run distance histogram</text>
-        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">Latest ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km · avg ${avg.toFixed(1)}km</text>
+        <text class="chart-end-label" x="${margin.left}" y="42">Daily distance histogram</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">Latest day ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km · avg ${avg.toFixed(1)}km</text>
         ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${tick}</text>`).join("")}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
