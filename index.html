@@ -293,6 +293,7 @@
     .races-section {
       margin-top: 56px;
       padding-top: 8px;
+      scroll-margin-top: 112px;
     }
     .races-section h2 {
       margin: 0 0 14px;
@@ -420,6 +421,7 @@
     .health-charts {
       margin-top: 72px;
       padding-top: 12px;
+      scroll-margin-top: 112px;
     }
     .health-charts h2 {
       margin: 0 0 18px;
@@ -1200,10 +1202,10 @@
       currentDayEl()?.scrollIntoView({ behavior: options.behavior, block: "center" });
     }
     function scrollToChart() {
-      document.getElementById("health-charts-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector(".health-charts")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function scrollToLists() {
-      document.getElementById("upcoming-races-title")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector(".races-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     async function hardRefresh() {
       if ("serviceWorker" in navigator) {
