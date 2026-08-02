@@ -445,17 +445,9 @@
       opacity: 0.72;
       vector-effect: non-scaling-stroke;
     }
-    .density-latest-line {
-      stroke: #152536;
-      stroke-width: 3.5;
-      stroke-dasharray: 7 9;
-      opacity: 0.78;
-      vector-effect: non-scaling-stroke;
-    }
-    .density-latest-dot {
+    .histogram-latest-unit {
       fill: #152536;
-      stroke: white;
-      stroke-width: 3;
+      opacity: 0.96;
     }
     .chart-label {
       fill: var(--muted);
@@ -1169,17 +1161,19 @@
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
       const yTicks = Array.from({ length: Math.min(5, maxCount) }, (_, index) => Math.round((maxCount / Math.max(1, Math.min(5, maxCount) - 1)) * index));
       const latest = runs[runs.length - 1];
-      const latestX = x(latest.km);
-      const latestBucket = buckets[Math.min(domainMax, Math.max(0, Math.floor(latest.km)))];
-      const latestY = y(latestBucket.count || maxCount * 0.08);
+      const latestBucketIndex = Math.min(domainMax, Math.max(0, Math.floor(latest.km)));
       const avg = runs.reduce((sum, run) => sum + run.km, 0) / runs.length;
       const barGap = 3;
       const barWidth = Math.max(2, (plotW / (domainMax + 1)) - barGap);
+      const unitHeight = plotH / maxCount;
       const bars = buckets.map(bucket => {
         if (!bucket.count) return "";
         const bx = x(bucket.km) + barGap / 2;
         const by = y(bucket.count);
-        return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>`;
+        const latestUnit = bucket.km === latestBucketIndex
+          ? `<rect class="histogram-latest-unit" x="${bx.toFixed(1)}" y="${(baseline - unitHeight).toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>Latest run: ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km</title></rect>`
+          : "";
+        return `<rect class="histogram-bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${(baseline - by).toFixed(1)}" rx="5"><title>${bucket.km}–${bucket.km + 1}km: ${bucket.count} run${bucket.count === 1 ? "" : "s"}</title></rect>${latestUnit}`;
       }).join("");
 
       svg.innerHTML = `
@@ -1191,9 +1185,6 @@
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${baseline}"></line>
         <text class="chart-label" x="${width - margin.right}" y="${height - 30}" text-anchor="end">km</text>
         ${bars}
-        <line class="density-latest-line" x1="${latestX.toFixed(1)}" y1="${margin.top}" x2="${latestX.toFixed(1)}" y2="${baseline}"></line>
-        <circle class="density-latest-dot" cx="${latestX.toFixed(1)}" cy="${latestY.toFixed(1)}" r="8"></circle>
-        <text class="chart-end-label" x="${Math.min(width - margin.right - 120, latestX + 18).toFixed(1)}" y="${Math.max(margin.top + 30, latestY - 18).toFixed(1)}">latest</text>
       `;
     }
 
