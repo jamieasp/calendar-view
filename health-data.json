@@ -3,10 +3,10 @@
   "start": "2025-11-01",
   "eventMarkers": [
     {
-      "date": "2026-05-27",
-      "label": "Turmeric",
-      "color": "#c47f00",
-      "yoff": 0.79
+      "date": "2026-03-19",
+      "label": "Virus",
+      "color": "#333333",
+      "yoff": 0.86
     }
   ],
   "longRunDates": [

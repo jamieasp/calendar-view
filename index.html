@@ -400,6 +400,12 @@
       letter-spacing: -0.055em;
       line-height: 0.95;
     }
+    .secondary-chart-title {
+      margin-top: 32px;
+    }
+    .secondary-chart-title h2 {
+      font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+    }
     .distance-chart {
       display: block;
       width: 100%;
@@ -556,6 +562,9 @@
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
       <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Run distance distribution</h2>
+      </div>
       <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="Histogram of run distances with latest run marked"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
