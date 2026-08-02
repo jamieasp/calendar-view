@@ -525,7 +525,6 @@
     .heatmap-cell.level-2 { fill: rgba(255, 210, 49, 0.82); }
     .heatmap-cell.level-3 { fill: rgba(222, 158, 0, 0.90); }
     .heatmap-cell.level-4 { fill: rgba(143, 91, 0, 0.96); }
-    .heatmap-cell.latest { fill: #152536; }
     .distance-chart {
       display: block;
       width: 100%;
@@ -1714,8 +1713,6 @@
       const plotW = weeks * colPitch;
       const x0 = margin.left + Math.max(0, (width - margin.left - margin.right - plotW) / 2);
       const y0 = margin.top;
-      const latestIso = Object.keys(runDistances).sort().at(-1);
-      const latestYear = latestIso ? Number(latestIso.slice(0, 4)) : null;
       const level = km => {
         if (!km) return 0;
         if (km < 5) return 1;
@@ -1741,8 +1738,7 @@
         const week = Math.floor(index / 7);
         const weekday = index % 7;
         const km = Number(distances[iso] || 0);
-        const isLatest = latestYear === selectedYear && iso === latestIso;
-        const cls = isLatest ? "heatmap-cell latest" : `heatmap-cell level-${level(km)}`;
+        const cls = `heatmap-cell level-${level(km)}`;
         const label = km ? `${iso}: ${km}km` : `${iso}: no run`;
         cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${label}</title></rect>`);
       }
