@@ -445,9 +445,9 @@
       stroke-width: 1.2;
       vector-effect: non-scaling-stroke;
     }
-    .histogram-unit.y2024 { fill: rgba(255, 226, 77, 0.28); }
-    .histogram-unit.y2025 { fill: rgba(255, 226, 77, 0.46); }
-    .histogram-unit.y2026 { fill: rgba(255, 226, 77, 0.72); }
+    .histogram-unit.y2024 { fill: rgba(255, 226, 77, 0.22); }
+    .histogram-unit.y2025 { fill: rgba(255, 226, 77, 0.50); }
+    .histogram-unit.y2026 { fill: rgba(255, 226, 77, 0.82); }
     .histogram-unit-divider {
       stroke: rgba(21, 37, 54, 0.72);
       stroke-width: 1.4;
@@ -1226,7 +1226,7 @@
         const bucket = Math.min(domainMax, Math.max(0, Math.floor(day.km)));
         buckets[bucket].days.push(day);
       });
-      buckets.forEach(bucket => bucket.days.sort((a, b) => a.year - b.year || a.date - b.date));
+      buckets.forEach(bucket => bucket.days.sort((a, b) => b.year - a.year || a.date - b.date));
       const maxCount = Math.max(1, ...buckets.map(bucket => bucket.days.length));
       const yTicks = niceTicks(0, maxCount, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
