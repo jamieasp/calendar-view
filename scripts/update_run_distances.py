@@ -126,6 +126,8 @@ def load_running_totals() -> tuple[dict[str, int], dict[str, int]]:
         if not start_ms:
             continue
         day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date().isoformat()
+        if not day.startswith(f"{YEAR}-"):
+            continue
         daily_km[day] += distance_m / 1000
         daily_ascent_m[day] += workout.get("totalAscent") or 0
 
