@@ -177,7 +177,7 @@
     .month-total .unit { color: var(--muted); margin-left: 1px; }
     .dow { color: var(--muted); font-size: 0.68rem; font-weight: 900; text-align: center; text-transform: uppercase; padding-bottom: 3px; align-self: end; }
     .day {
-      min-height: 76px;
+      min-height: var(--day-min-height, 76px);
       border-radius: 9px;
       border: 1px solid #eadfce;
       padding: 4px 0;
@@ -519,7 +519,7 @@
     @media (max-width: 760px) {
       main { width: 100vw; max-width: none; }
       .header-button { width: 38px; height: 38px; font-size: 1.05rem; }
-      .day { min-height: 66px; }
+      .day { min-height: var(--day-min-height, 66px); }
       .event-bar { font-size: 1.03rem; }
     }
     @media print {
@@ -1300,8 +1300,15 @@
         calendar.appendChild(label);
       });
     }
+    function dayContentHeight(dayEvents, runDistance, stretchStreak, absStreak) {
+      const eventRows = dayEvents.length || 1;
+      const hasLowerBadges = Boolean(runDistance || stretchStreak || absStreak);
+      const eventHeight = eventRows * 22 + Math.max(0, eventRows - 1) * 2;
+      return Math.max(76, 22 + eventHeight + (runDistance ? 23 : 0) + (hasLowerBadges ? 15 : 0) + 8);
+    }
     function renderCalendar() {
       calendar.innerHTML = "";
+      const rowHeights = new Map();
       for (const [index, dow] of dows.entries()) {
         const cell = document.createElement("div");
         cell.className = "dow";
@@ -1342,12 +1349,16 @@
           const isToday = today.getFullYear() === renderYear && today.getMonth() === month && today.getDate() === day;
           const dayEvents = eventsForDate(iso);
           const runDistance = runDistances[iso];
+          const stretchStreak = stretchStreaks[iso];
+          const absStreak = absStreaks[iso];
+          const row = weekIndex(date) + 2;
+          rowHeights.set(row, Math.max(rowHeights.get(row) || 76, dayContentHeight(dayEvents, runDistance, stretchStreak, absStreak)));
           const cell = document.createElement("div");
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
           const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
           cell.className = `day${isWeekend ? " weekend" : ""}${isPast ? " past" : ""}${isToday ? " today" : ""}`;
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
-          cell.style.gridRow = String(weekIndex(date) + 2);
+          cell.style.gridRow = String(row);
           cell.dataset.iso = iso;
           cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
           const stack = dayEvents.map(event => {
@@ -1364,17 +1375,20 @@
             return `<div class="event-bar ${event.status} ${isMulti ? "multi" : "single"}${startClass}${endClass}"${width}>${label}</div>`;
           }).join("");
           const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
-          const stretchStreak = stretchStreaks[iso];
           const nextDate = new Date(year, month, day + 1, 12);
           const nextIso = isoDate(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
           const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
-          const absStreak = absStreaks[iso];
           const isFinalAbsDay = absStreak && !absStreaks[nextIso];
           const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${isFinalAbsDay ? absStreak : ""}</span>` : "";
           cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span></div><div class="event-stack">${stack}</div>${runLabel}${stretchLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
+      });
+      rowHeights.forEach((height, row) => {
+        calendar.querySelectorAll(`.day[style*="grid-row: ${row}"]`).forEach(cell => {
+          cell.style.setProperty("--day-min-height", `${Math.ceil(height)}px`);
+        });
       });
       renderMonthLabels();
     }
