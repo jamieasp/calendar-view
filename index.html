@@ -1297,6 +1297,15 @@
         { year: 2025, distances: comparisonRunDistances },
         { year: 2026, distances: runDistances },
       ];
+      const allDailyDistances = yearlySources.flatMap(source => {
+        const dailyByIso = Object.entries(source.distances).reduce((days, [iso, km]) => {
+          days[iso] = (days[iso] || 0) + Number(km || 0);
+          return days;
+        }, {});
+        return Object.entries(dailyByIso)
+          .map(([iso, km]) => ({ iso, year: source.year, date: dateFromIso(iso), km }))
+          .filter(day => day.km > 0);
+      }).sort((a, b) => a.date - b.date);
       const activeSources = histogramYearFilter === "all"
         ? yearlySources
         : yearlySources.filter(source => String(source.year) === histogramYearFilter);
@@ -1316,15 +1325,20 @@
       const margin = { top: 58, right: 86, bottom: 86, left: 98 };
       const plotW = width - margin.left - margin.right;
       const plotH = height - margin.top - margin.bottom;
-      const maxDistance = Math.ceil(Math.max(...dailyDistances.map(day => day.km)));
+      const maxDistance = Math.ceil(Math.max(...allDailyDistances.map(day => day.km)));
       const domainMax = Math.max(20, Math.ceil(maxDistance / 5) * 5);
+      const axisBuckets = Array.from({ length: domainMax + 1 }, (_, km) => ({ km, days: [] }));
+      allDailyDistances.forEach(day => {
+        const bucket = Math.min(domainMax, Math.max(0, Math.floor(day.km)));
+        axisBuckets[bucket].days.push(day);
+      });
       const buckets = Array.from({ length: domainMax + 1 }, (_, km) => ({ km, days: [] }));
       dailyDistances.forEach(day => {
         const bucket = Math.min(domainMax, Math.max(0, Math.floor(day.km)));
         buckets[bucket].days.push(day);
       });
       buckets.forEach(bucket => bucket.days.sort((a, b) => b.year - a.year || a.date - b.date));
-      const maxCount = Math.max(1, ...buckets.map(bucket => bucket.days.length));
+      const maxCount = Math.max(1, ...axisBuckets.map(bucket => bucket.days.length));
       const yTicks = niceTicks(0, maxCount, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const x = value => margin.left + (value / domainMax) * plotW;
