@@ -432,6 +432,30 @@
       opacity: 0.9;
     }
     .chart-dot { fill: var(--pencil); }
+    .density-area {
+      fill: var(--today);
+      opacity: 0.54;
+    }
+    .density-line {
+      fill: none;
+      stroke: var(--pencil);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .density-latest-line {
+      stroke: #152536;
+      stroke-width: 3.5;
+      stroke-dasharray: 7 9;
+      opacity: 0.78;
+      vector-effect: non-scaling-stroke;
+    }
+    .density-latest-dot {
+      fill: #152536;
+      stroke: white;
+      stroke-width: 3;
+    }
     .chart-label {
       fill: var(--muted);
       font-size: 24px;
@@ -537,6 +561,7 @@
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
       <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="Density curve of run distances with latest run marked"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
@@ -1112,6 +1137,58 @@
       `;
     }
 
+    function renderRunDensityChart() {
+      const svg = document.getElementById("run-density-chart");
+      if (!svg) return;
+      const runs = Object.entries(runDistances)
+        .map(([iso, km]) => ({ iso, date: dateFromIso(iso), km: Number(km || 0) }))
+        .filter(run => run.km > 0)
+        .sort((a, b) => a.date - b.date);
+      if (!runs.length) return;
+
+      const width = 1500;
+      const height = 430;
+      const margin = { top: 58, right: 86, bottom: 86, left: 98 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const maxDistance = Math.ceil(Math.max(...runs.map(run => run.km)) / 5) * 5;
+      const domainMax = Math.max(20, maxDistance);
+      const sampleCount = 180;
+      const bandwidth = Math.max(1.8, domainMax / 14);
+      const samples = Array.from({ length: sampleCount }, (_, index) => {
+        const value = (domainMax * index) / (sampleCount - 1);
+        const density = runs.reduce((sum, run) => {
+          const z = (value - run.km) / bandwidth;
+          return sum + Math.exp(-0.5 * z * z);
+        }, 0) / (runs.length * bandwidth * Math.sqrt(2 * Math.PI));
+        return { value, density };
+      });
+      const maxDensity = Math.max(...samples.map(sample => sample.density));
+      const x = value => margin.left + (value / domainMax) * plotW;
+      const y = density => margin.top + plotH - (density / maxDensity) * plotH;
+      const baseline = margin.top + plotH;
+      const linePath = samples.map((sample, index) => `${index ? "L" : "M"}${x(sample.value).toFixed(1)},${y(sample.density).toFixed(1)}`).join(" ");
+      const areaPath = `${linePath} L${x(domainMax).toFixed(1)},${baseline.toFixed(1)} L${x(0).toFixed(1)},${baseline.toFixed(1)} Z`;
+      const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
+      const latest = runs[runs.length - 1];
+      const latestX = x(latest.km);
+      const latestY = y(samples.reduce((nearest, sample) => Math.abs(sample.value - latest.km) < Math.abs(nearest.value - latest.km) ? sample : nearest, samples[0]).density);
+      const avg = runs.reduce((sum, run) => sum + run.km, 0) / runs.length;
+
+      svg.innerHTML = `
+        <text class="chart-end-label" x="${margin.left}" y="42">Run distance shape</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">Latest ${latest.km.toFixed(latest.km % 1 ? 1 : 0)}km · avg ${avg.toFixed(1)}km</text>
+        ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.42"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${tick}</text>`).join("")}
+        <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
+        <text class="chart-label" x="${width - margin.right}" y="${height - 30}" text-anchor="end">km</text>
+        <path class="density-area" d="${areaPath}"></path>
+        <path class="density-line" d="${linePath}"></path>
+        <line class="density-latest-line" x1="${latestX.toFixed(1)}" y1="${margin.top}" x2="${latestX.toFixed(1)}" y2="${baseline}"></line>
+        <circle class="density-latest-dot" cx="${latestX.toFixed(1)}" cy="${latestY.toFixed(1)}" r="8"></circle>
+        <text class="chart-end-label" x="${Math.min(width - margin.right - 120, latestX + 18).toFixed(1)}" y="${Math.max(margin.top + 30, latestY - 18).toFixed(1)}">latest</text>
+      `;
+    }
+
     function weekIndex(date) {
       const calendarStart = new Date(calendarStartYear, calendarStartMonth, 1, 12);
       const leading = mondayFirstOffset(calendarStart);
@@ -1242,6 +1319,7 @@
 
     renderUpcomingRaces();
     renderDistanceChart();
+    renderRunDensityChart();
     renderHealthCharts();
 
     function currentDayEl() {
