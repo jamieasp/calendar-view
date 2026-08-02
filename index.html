@@ -1536,8 +1536,7 @@
       setActiveTab("calendar");
     }
     function scrollToCalendar() {
-      document.querySelector('[data-action="toggle-earlier"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActiveTab("calendar");
+      scrollToToday({ behavior: "smooth" });
     }
     function scrollToChart() {
       document.querySelector(".health-charts")?.scrollIntoView({ behavior: "smooth", block: "start" });
