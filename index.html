@@ -1142,22 +1142,26 @@
     function renderRunDensityChart() {
       const svg = document.getElementById("run-density-chart");
       if (!svg) return;
-      const runs = Object.entries(runDistances)
-        .map(([iso, km]) => ({ iso, date: dateFromIso(iso), km: Number(km || 0) }))
-        .filter(run => run.km > 0)
+      const dailyByIso = Object.entries(runDistances).reduce((days, [iso, km]) => {
+        days[iso] = (days[iso] || 0) + Number(km || 0);
+        return days;
+      }, {});
+      const dailyDistances = Object.entries(dailyByIso)
+        .map(([iso, km]) => ({ iso, date: dateFromIso(iso), km }))
+        .filter(day => day.km > 0)
         .sort((a, b) => a.date - b.date);
-      if (!runs.length) return;
+      if (!dailyDistances.length) return;
 
       const width = 1500;
       const height = 430;
       const margin = { top: 58, right: 86, bottom: 86, left: 98 };
       const plotW = width - margin.left - margin.right;
       const plotH = height - margin.top - margin.bottom;
-      const maxDistance = Math.ceil(Math.max(...runs.map(run => run.km)));
+      const maxDistance = Math.ceil(Math.max(...dailyDistances.map(day => day.km)));
       const domainMax = Math.max(20, Math.ceil(maxDistance / 5) * 5);
       const buckets = Array.from({ length: domainMax + 1 }, (_, km) => ({ km, count: 0 }));
-      runs.forEach(run => {
-        const bucket = Math.min(domainMax, Math.max(0, Math.floor(run.km)));
+      dailyDistances.forEach(day => {
+        const bucket = Math.min(domainMax, Math.max(0, Math.floor(day.km)));
         buckets[bucket].count += 1;
       });
       const maxCount = Math.max(1, ...buckets.map(bucket => bucket.count));
@@ -1166,9 +1170,9 @@
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
       const yTicks = Array.from({ length: Math.min(5, maxCount) }, (_, index) => Math.round((maxCount / Math.max(1, Math.min(5, maxCount) - 1)) * index));
-      const latest = runs[runs.length - 1];
+      const latest = dailyDistances[dailyDistances.length - 1];
       const latestBucketIndex = Math.min(domainMax, Math.max(0, Math.floor(latest.km)));
-      const avg = runs.reduce((sum, run) => sum + run.km, 0) / runs.length;
+      const avg = dailyDistances.reduce((sum, day) => sum + day.km, 0) / dailyDistances.length;
       const barGap = 3;
       const barWidth = Math.max(2, (plotW / (domainMax + 1)) - barGap);
       const unitHeight = plotH / maxCount;
