@@ -602,9 +602,16 @@
     .health-rug-latest { stroke: #152536; stroke-width: 4.2; opacity: 0.94; stroke-linecap: round; }
     .health-title { fill: var(--ink); font-size: 38px; font-weight: 900; }
     .health-axis-label { fill: var(--muted); font-size: 24px; font-weight: 850; }
-    .health-event-label { font-size: 24px; font-weight: 850; }
-    .health-percentile { fill: #152536; font-size: 25px; font-weight: 900; }
-    .health-percentile-bg { fill: white; opacity: 0.78; }
+    .health-event-highlight,
+    .health-percentile-bg { fill: var(--highlighter-strong); opacity: 0.82; }
+    .health-event-label,
+    .health-percentile,
+    .health-current-label {
+      fill: var(--ink);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 34px;
+      font-weight: 900;
+    }
     .health-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.16; }
     .health-y-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.25; }
     .health-axis { stroke: #ded6c8; stroke-width: 1.3; }
@@ -653,6 +660,10 @@
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
       <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Cumulative elevation gain</h2>
+      </div>
+      <svg id="elevation-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Cumulative running elevation gain through 2026"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
@@ -760,6 +771,62 @@
           "2026-07-27": 9,
           "2026-07-30": 7,
           "2026-08-02": 24
+    };
+
+    const runElevations = {
+          "2026-01-11": 8,
+          "2026-01-14": 5,
+          "2026-01-16": 113,
+          "2026-01-18": 82,
+          "2026-01-25": 722,
+          "2026-01-28": 158,
+          "2026-01-31": 1017,
+          "2026-02-02": 18,
+          "2026-02-05": 6,
+          "2026-02-08": 333,
+          "2026-02-10": 161,
+          "2026-02-14": 173,
+          "2026-02-21": 1077,
+          "2026-02-28": 20,
+          "2026-03-02": 34,
+          "2026-03-03": 156,
+          "2026-03-04": 62,
+          "2026-03-14": 432,
+          "2026-03-28": 36,
+          "2026-04-01": 2,
+          "2026-04-02": 54,
+          "2026-04-05": 930,
+          "2026-04-13": 24,
+          "2026-04-14": 11,
+          "2026-04-18": 107,
+          "2026-04-25": 40,
+          "2026-04-28": 76,
+          "2026-05-07": 43,
+          "2026-05-16": 288,
+          "2026-05-18": 73,
+          "2026-05-20": 305,
+          "2026-05-23": 478,
+          "2026-05-25": 55,
+          "2026-05-27": 760,
+          "2026-05-30": 577,
+          "2026-06-03": 7,
+          "2026-06-06": 1319,
+          "2026-06-11": 92,
+          "2026-06-13": 259,
+          "2026-06-15": 1291,
+          "2026-06-18": 935,
+          "2026-06-19": 5,
+          "2026-06-27": 106,
+          "2026-07-02": 454,
+          "2026-07-04": 1710,
+          "2026-07-07": 706,
+          "2026-07-12": 7,
+          "2026-07-18": 2026,
+          "2026-07-22": 63,
+          "2026-07-26": 1200,
+          "2026-07-27": 257,
+          "2026-07-30": 36,
+          "2026-08-02": 534
     };
 
     const stretchStreaks = {
@@ -1199,8 +1266,12 @@
         .filter(marker => dateFromIso(marker.date) >= start && dateFromIso(marker.date) <= end)
         .map(marker => {
           const markerDate = dateFromIso(marker.date);
+          const labelX = x(markerDate) + 8;
+          const labelY = margin.top + (1 - marker.yoff) * 70;
+          const labelWidth = Math.max(88, marker.label.length * 19 + 22);
           return `<line class="health-event-line" x1="${x(markerDate).toFixed(1)}" y1="${margin.top}" x2="${x(markerDate).toFixed(1)}" y2="${height - margin.bottom}" stroke="${marker.color}"></line>
-            <text class="health-event-label" x="${(x(markerDate) + 6).toFixed(1)}" y="${(ymax + marker.yoff * yr * 0.08, margin.top + (1 - marker.yoff) * 70).toFixed(1)}" fill="${marker.color}">${marker.label}</text>`;
+            <rect class="health-event-highlight" x="${labelX.toFixed(1)}" y="${(labelY - 30).toFixed(1)}" width="${labelWidth.toFixed(1)}" height="40" rx="10" transform="rotate(-1.2 ${labelX.toFixed(1)} ${(labelY - 10).toFixed(1)})"></rect>
+            <text class="health-event-label" x="${(labelX + 10).toFixed(1)}" y="${labelY.toFixed(1)}">${marker.label}</text>`;
         }).join("");
       const rug = panel.kind === "RHR" ? "" : values.map((value, index) => {
         const jitter = Math.max(yr * 0.018, 0.28) * Math.sin(index * 12.9898) * 0.85;
@@ -1226,9 +1297,9 @@
         ${longRuns}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
-        <rect class="health-percentile-bg" x="${width - margin.right - 92}" y="${margin.top + 8}" width="82" height="42" rx="10"></rect>
-        <text class="health-percentile" x="${width - margin.right - 51}" y="${margin.top + 37}" text-anchor="middle">${pct}</text>
-        <text class="health-axis-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
+        <rect class="health-percentile-bg" x="${width - margin.right - 104}" y="${margin.top + 3}" width="98" height="48" rx="12" transform="rotate(1.2 ${width - margin.right - 55} ${margin.top + 27})"></rect>
+        <text class="health-percentile" x="${width - margin.right - 55}" y="${margin.top + 39}" text-anchor="middle">${pct}</text>
+        <text class="health-current-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
       </svg></article>`;
     }
     async function renderHealthCharts() {
@@ -1289,6 +1360,43 @@
         <text class="chart-end-label" x="${(x(last.date) + 22).toFixed(1)}" y="${(y(last.cumulative) - 30).toFixed(1)}" text-anchor="middle"><tspan x="${(x(last.date) + 22).toFixed(1)}">2026</tspan><tspan x="${(x(last.date) + 22).toFixed(1)}" dy="26">${current.total}km</tspan></text>
         <text class="chart-end-label" x="${(x(comparisonLast.date) + 22).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}">2025</tspan><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}" dy="26">${comparison.total}km</tspan></text>
         <text class="chart-end-label" x="${(x(comparison2024Last.date) + 22).toFixed(1)}" y="${(y(comparison2024Last.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}">2024</tspan><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}" dy="26">${comparison2024.total}km</tspan></text>
+      `;
+    }
+
+    function renderElevationChart() {
+      const svg = document.getElementById("elevation-chart");
+      if (!svg) return;
+
+      const current = cumulativeSeries(runElevations, year);
+      if (!current.points.length) return;
+
+      const width = 1500;
+      const height = 620;
+      const margin = { top: 48, right: 190, bottom: 88, left: 112 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const yearStart = new Date(`${year}-01-01T12:00:00`);
+      const yearEnd = new Date(`${year}-12-31T12:00:00`);
+      const totalDays = Math.round((yearEnd - yearStart) / 86400000);
+      const rawYMax = Math.max(1000, current.total);
+      const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
+      const yMax = yTicks[yTicks.length - 1];
+      const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
+      const x = date => margin.left + (dayOfYear(date) / totalDays) * plotW;
+      const y = value => margin.top + plotH - (value / yMax) * plotH;
+      const linePath = points => points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
+      const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
+      const last = current.points[current.points.length - 1];
+
+      svg.innerHTML = `
+        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
+        ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 34}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
+        <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
+        <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
+        <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">metres climbed</text>
+        <path class="chart-line" d="${linePath(current.points)}"></path>
+        <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
+        <text class="chart-end-label" x="${(x(last.date) + 34).toFixed(1)}" y="${(y(last.cumulative) - 22).toFixed(1)}" text-anchor="middle"><tspan x="${(x(last.date) + 34).toFixed(1)}">2026</tspan><tspan x="${(x(last.date) + 34).toFixed(1)}" dy="26">${Math.round(current.total).toLocaleString("en-GB")}m</tspan></text>
       `;
     }
 
@@ -1537,6 +1645,7 @@
 
     renderUpcomingRaces();
     renderDistanceChart();
+    renderElevationChart();
     renderRunDensityChart();
     renderHealthCharts();
 

@@ -3,9 +3,9 @@
 
 - Pulls fresh 2026 Suunto workouts with bin/suuntool.
 - Treats Suunto activityIds 1 and 22 as running, based on Jamie's existing run data.
-- Aggregates total running distance per UTC calendar day.
-- Floors daily km to integers.
-- Updates the `const runDistances = {...};` block in index.html.
+- Aggregates total running distance and ascent per UTC calendar day.
+- Rounds daily km and elevation gain to integers.
+- Updates the `const runDistances = {...};` and `const runElevations = {...};` blocks in index.html.
 - Monthly totals and the cumulative chart are intentionally derived client-side
   from `runDistances`, so refreshing this one block updates the calendar cells,
   month-title totals, and chart together.
@@ -100,7 +100,7 @@ def iter_workouts_from_file(path: Path) -> Iterable[dict]:
                 yield workout
 
 
-def load_running_distances() -> dict[str, int]:
+def load_running_totals() -> tuple[dict[str, int], dict[str, int]]:
     seen: dict[str, dict] = {}
     sources = [
         FRESH_NDJSON,
@@ -115,6 +115,7 @@ def load_running_distances() -> dict[str, int]:
                 seen[key] = workout
 
     daily_km: dict[str, float] = collections.defaultdict(float)
+    daily_ascent_m: dict[str, float] = collections.defaultdict(float)
     for workout in seen.values():
         if workout.get("activityId") not in RUN_ACTIVITY_IDS:
             continue
@@ -126,8 +127,11 @@ def load_running_distances() -> dict[str, int]:
             continue
         day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date().isoformat()
         daily_km[day] += distance_m / 1000
+        daily_ascent_m[day] += workout.get("totalAscent") or 0
 
-    return {day: math.floor(km + 0.5) for day, km in sorted(daily_km.items()) if math.floor(km + 0.5) > 0}
+    distances = {day: math.floor(km + 0.5) for day, km in sorted(daily_km.items()) if math.floor(km + 0.5) > 0}
+    elevations = {day: math.floor(meters + 0.5) for day, meters in sorted(daily_ascent_m.items()) if math.floor(meters + 0.5) > 0}
+    return distances, elevations
 
 
 
@@ -264,12 +268,14 @@ def write_health_chart_data() -> bool:
     HEALTH_DATA.write_text(serialized)
     return True
 
-def update_index(run_distances: dict[str, int]) -> bool:
+def update_index(run_distances: dict[str, int], run_elevations: dict[str, int]) -> bool:
     html = INDEX.read_text()
     required_dynamic_consumers = [
         "function monthRunTotal(totalYear, month)",
         "function renderDistanceChart()",
         "cumulativeSeries(runDistances, year)",
+        "cumulativeSeries(runElevations, year)",
+        "function renderElevationChart()",
         "function renderUpcomingRaces()",
         "function isRaceEvent(event)",
         "renderUpcomingRaces();",
@@ -290,6 +296,12 @@ def update_index(run_distances: dict[str, int]) -> bool:
     updated, count = pattern.subn(replacement, html, count=1)
     if count != 1:
         raise RuntimeError("Could not find exactly one runDistances block in index.html")
+
+    elevation_replacement = "    const runElevations = " + json.dumps(run_elevations, indent=6).replace("\n", "\n    ") + ";"
+    elevation_pattern = re.compile(r"    const runElevations = \{.*?\};", re.S)
+    updated, elevation_count = elevation_pattern.subn(elevation_replacement, updated, count=1)
+    if elevation_count != 1:
+        raise RuntimeError("Could not find exactly one runElevations block in index.html")
     if updated == html:
         return False
     INDEX.write_text(updated)
@@ -317,11 +329,11 @@ def main() -> int:
     if not SUUNTOOL.exists():
         raise FileNotFoundError(f"Missing suuntool at {SUUNTOOL}")
     pull_workouts()
-    distances = load_running_distances()
-    changed = update_index(distances)
+    distances, elevations = load_running_totals()
+    changed = update_index(distances, elevations)
     stretch_changed = update_stretch_streaks()
     health_changed = write_health_chart_data()
-    print(f"Loaded {len(distances)} run-distance days for {YEAR}.")
+    print(f"Loaded {len(distances)} run-distance days and {len(elevations)} elevation days for {YEAR}.")
     print(f"Stretch streak badges {'updated' if stretch_changed else 'already up to date'}.")
     print(f"Health chart data {'updated' if health_changed else 'already up to date'}.")
     if changed or stretch_changed or health_changed:
