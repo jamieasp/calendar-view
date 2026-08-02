@@ -38,7 +38,7 @@
       background: #fff;
       color: var(--ink);
     }
-    main { width: min(100%, 430px); margin: 0 auto; padding: 24px 12px 34px; background: #fff; }
+    main { width: min(100%, 430px); margin: 0 auto; padding: 24px 12px 112px; background: #fff; }
     header {
       position: sticky;
       top: 0;
@@ -114,6 +114,47 @@
     }
     .header-button:hover { background: rgba(255, 247, 220, 0.62); }
     .header-button:active { transform: translateY(1px); }
+    .bottom-tabs {
+      position: fixed;
+      left: 50%;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 30;
+      width: min(calc(100% - 24px), 406px);
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 7px;
+      border: 1px solid rgba(120, 98, 22, 0.16);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255, 226, 77, 0.40));
+      backdrop-filter: blur(24px) saturate(1.45);
+      -webkit-backdrop-filter: blur(24px) saturate(1.45);
+      box-shadow: 0 14px 34px rgba(50, 40, 25, 0.16), inset 0 1px 0 rgba(255,255,255,0.52);
+    }
+    .bottom-tab {
+      appearance: none;
+      border: 0;
+      border-radius: 16px;
+      background: transparent;
+      color: var(--muted);
+      display: grid;
+      gap: 2px;
+      place-items: center;
+      min-height: 52px;
+      padding: 6px 4px 5px;
+      font: inherit;
+      font-size: 0.74rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+    }
+    .bottom-tab .material-symbols-outlined { font-size: 1.42rem; }
+    .bottom-tab.active {
+      color: var(--ink);
+      background: rgba(255, 226, 77, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(120, 98, 22, 0.14), 0 4px 12px rgba(50, 40, 25, 0.08);
+    }
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
     .expand-years {
       appearance: none;
@@ -394,6 +435,13 @@
       text-decoration-thickness: 1px;
       text-underline-offset: 3px;
     }
+    .race-watch {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
 
     .chart-section {
       margin-top: 64px;
@@ -419,6 +467,29 @@
     }
     .secondary-chart-title h2 {
       font-size: clamp(1.65rem, 3vw, 2.8rem);
+    }
+    .histogram-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 12px 0 4px;
+    }
+    .histogram-filter {
+      appearance: none;
+      border: 1px solid rgba(120, 98, 22, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 247, 220, 0.58);
+      color: var(--muted);
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .histogram-filter.active {
+      background: rgba(255, 226, 77, 0.78);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px rgba(120, 98, 22, 0.12);
     }
     .distance-chart {
       display: block;
@@ -547,6 +618,7 @@
       main { max-width: none; padding: 0; }
       header { position: static; margin: 0 0 8px; padding: 0; border: 0; background: transparent; }
       .header-actions { display: none; }
+      .bottom-tabs { display: none; }
       .year-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .month { box-shadow: none; border-radius: 8px; padding: 8px; }
       .day { min-height: 52px; padding: 3px; }
@@ -584,6 +656,12 @@
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
+      <div class="histogram-filters" aria-label="Daily distance histogram years">
+        <button type="button" class="histogram-filter active" data-histogram-year="all">All</button>
+        <button type="button" class="histogram-filter" data-histogram-year="2024">2024</button>
+        <button type="button" class="histogram-filter" data-histogram-year="2025">2025</button>
+        <button type="button" class="histogram-filter" data-histogram-year="2026">2026</button>
+      </div>
       <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of daily running distances with latest day marked"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
@@ -595,6 +673,11 @@
       <ul id="considered-races" class="race-list"></ul>
     </section>
   </main>
+  <nav class="bottom-tabs" aria-label="Primary sections">
+    <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar"><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span><span>Calendar</span></button>
+    <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts"><span class="material-symbols-outlined" aria-hidden="true">query_stats</span><span>Charts</span></button>
+    <button type="button" class="bottom-tab" data-tab="races" aria-label="Races"><span class="material-symbols-outlined" aria-hidden="true">flag</span><span>Races</span></button>
+  </nav>
   <script>
     const year = 2026;
     const calendarStartYear = 2026;
@@ -621,6 +704,7 @@
       });
     }
     const calendar = document.getElementById("calendar");
+    let histogramYearFilter = "all";
     const runDistances = {
           "2026-01-11": 11,
           "2026-01-14": 2,
@@ -911,12 +995,12 @@
       { syncId: "bdays-dec-2026", start: "2026-12-22", end: "2026-12-23", status: "trip", title: "Bdays", listTitle: "Bdays", meta: "22–23 Dec" },
       { syncId: "xmas-2026", start: "2026-12-25", status: "trip", title: "Xmas", listTitle: "Xmas", meta: "" },
       { syncId: "vietnam-highlands-20k-pinhatt-2027", start: "2027-01-09", status: "interesting", race: true, title: "UTMB Vietnam", listTitle: "UTMB Vietnam — 20K Pinhatt", meta: "24.1km · ↗ 1,113m", url: "https://vietnamhighlands.utmb.world/races/20Kpinhatt" },
-      { syncId: "utmb-cornwall-2027", start: "2027-01-25", status: "interesting", race: true, title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "25 Jan 2027", url: "https://arcofattrition.utmb.world/" },
+      { syncId: "utmb-cornwall-2027", start: "2027-01-25", status: "interesting", race: true, title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "25 Jan 2027", url: "https://arcofattrition.utmb.world/", watched: true, lastChecked: "2 Aug 2026 09:01 BST" },
       { syncId: "half-term-feb-2027", start: "2027-02-15", end: "2027-02-22", status: "school", title: "Half Term", listTitle: "Jack half term", meta: "ASL holiday" },
       { syncId: "chianti-marathon-trail-2027", start: "2027-03-19", status: "upcoming", race: true, title: "Chianti Marathon", listTitle: "Chianti Marathon Trail", meta: "46km · ↗ 1,650m · Castellina in Chianti · 09:00" },
       { syncId: "asl-easter-break-2027", start: "2027-03-26", end: "2027-04-02", status: "school", title: "Easter hols", listTitle: "Jack Easter holidays", meta: "ASL holiday" },
       { syncId: "tenerife-bluetrail-24k-2027", start: "2027-04-10", status: "upcoming", race: true, title: "Tenerife Bluetrail", listTitle: "Tenerife Bluetrail 24k", meta: "24km · ↗ 1,300m · Palo Blanco · 17:30" },
-      { syncId: "miut-madeira-2027", start: "2027-04-24", end: "2027-04-25", status: "interesting", race: true, title: "MIUT Madeira", listTitle: "MIUT Madeira", meta: "24–25 Apr 2027", url: "https://miutmadeira.com/miut/miut-2027-save-the-date/" },
+      { syncId: "miut-madeira-2027", start: "2027-04-24", end: "2027-04-25", status: "interesting", race: true, title: "MIUT Madeira", listTitle: "MIUT Madeira", meta: "24–25 Apr 2027", url: "https://miutmadeira.com/miut/miut-2027-save-the-date/", watched: true, lastChecked: "2 Aug 2026 09:01 BST" },
       { syncId: "bank-holiday-may-3-2027", start: "2027-05-03", status: "school", title: "Bank Hol", listTitle: "Bank Holiday", meta: "ASL holiday" },
       { syncId: "bank-holiday-may-31-2027", start: "2027-05-31", status: "school", title: "Bank Hol", listTitle: "Bank Holiday", meta: "ASL holiday" },
       { syncId: "mozart-half-marathon-2027", start: "2027-06-05", status: "interesting", race: true, title: "UTMB Austria", listTitle: "UTMB Austria — Mozart Half Marathon", meta: "28km · ↗ 1,100m", url: "https://mozart.utmb.world/races/mozarthalf" },
@@ -980,7 +1064,8 @@
         const daysLeft = Math.ceil((event.date - todayStart) / 86400000);
         const dayLabel = daysLeft === 0 ? "today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
         const link = status === "interesting" && event.url ? ` · <a class="race-link" href="${event.url}" target="_blank" rel="noopener">Register</a>` : "";
-        return `<li class="race-card"><span class="race-name">${raceDisplayTitle(event)}</span><span class="race-countdown">${dayLabel}</span><span class="race-meta">${dateLabel(event.start)}${event.meta ? ` · ${event.meta}` : ""}${link}</span></li>`;
+        const watch = event.watched && event.lastChecked ? `<span class="race-watch">👀 Last checked ${event.lastChecked}</span>` : "";
+        return `<li class="race-card"><span class="race-name">${raceDisplayTitle(event)}</span><span class="race-countdown">${dayLabel}</span><span class="race-meta">${dateLabel(event.start)}${event.meta ? ` · ${event.meta}` : ""}${link}</span>${watch}</li>`;
       }).join("");
     }
     function renderUpcomingRaces() {
@@ -1215,7 +1300,10 @@
         { year: 2025, distances: comparisonRunDistances },
         { year: 2026, distances: runDistances },
       ];
-      const dailyDistances = yearlySources.flatMap(source => {
+      const activeSources = histogramYearFilter === "all"
+        ? yearlySources
+        : yearlySources.filter(source => String(source.year) === histogramYearFilter);
+      const dailyDistances = activeSources.flatMap(source => {
         const dailyByIso = Object.entries(source.distances).reduce((days, [iso, km]) => {
           days[iso] = (days[iso] || 0) + Number(km || 0);
           return days;
@@ -1246,11 +1334,7 @@
       const y = count => margin.top + plotH - (count / yMax) * plotH;
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
-      const latest = Object.entries(runDistances)
-        .map(([iso, km]) => ({ iso, year, date: dateFromIso(iso), km: Number(km || 0) }))
-        .filter(day => day.km > 0)
-        .sort((a, b) => a.date - b.date)
-        .at(-1);
+      const latest = dailyDistances.at(-1);
       const latestBucketIndex = latest ? Math.min(domainMax, Math.max(0, Math.floor(latest.km))) : null;
       const avg = dailyDistances.reduce((sum, day) => sum + day.km, 0) / dailyDistances.length;
       const barGap = 3;
@@ -1274,7 +1358,7 @@
       }).join("");
 
       svg.innerHTML = `
-        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">2024–26 · latest day ${latest ? latest.km.toFixed(latest.km % 1 ? 1 : 0) : "—"}km · avg ${avg.toFixed(1)}km</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">${histogramYearFilter === "all" ? "2024–26" : histogramYearFilter} · latest day ${latest ? latest.km.toFixed(latest.km % 1 ? 1 : 0) : "—"}km · avg ${avg.toFixed(1)}km</text>
         ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${tick}</text>`).join("")}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
@@ -1330,15 +1414,22 @@
         calendar.appendChild(label);
       });
     }
-    function dayContentHeight(dayEvents, runDistance, stretchStreak, absStreak) {
-      const eventRows = dayEvents.length || 1;
-      const hasLowerBadges = Boolean(runDistance || stretchStreak || absStreak);
-      const eventHeight = eventRows * 22 + Math.max(0, eventRows - 1) * 2;
-      return Math.max(76, 22 + eventHeight + (runDistance ? 23 : 0) + (hasLowerBadges ? 15 : 0) + 8);
+    function resizeCalendarRows() {
+      const rowHeights = new Map();
+      calendar.querySelectorAll(".day:not(.empty)").forEach(cell => {
+        const row = cell.dataset.row;
+        if (!row) return;
+        cell.style.removeProperty("--day-min-height");
+        rowHeights.set(row, Math.max(rowHeights.get(row) || 76, cell.scrollHeight + 6));
+      });
+      rowHeights.forEach((height, row) => {
+        calendar.querySelectorAll(`.day[data-row="${row}"]`).forEach(cell => {
+          cell.style.setProperty("--day-min-height", `${Math.ceil(height)}px`);
+        });
+      });
     }
     function renderCalendar() {
       calendar.innerHTML = "";
-      const rowHeights = new Map();
       for (const [index, dow] of dows.entries()) {
         const cell = document.createElement("div");
         cell.className = "dow";
@@ -1382,7 +1473,6 @@
           const stretchStreak = stretchStreaks[iso];
           const absStreak = absStreaks[iso];
           const row = weekIndex(date, firstMonth) + 2;
-          rowHeights.set(row, Math.max(rowHeights.get(row) || 76, dayContentHeight(dayEvents, runDistance, stretchStreak, absStreak)));
           const cell = document.createElement("div");
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
           const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
@@ -1390,6 +1480,7 @@
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
           cell.style.gridRow = String(row);
           cell.dataset.iso = iso;
+          cell.dataset.row = String(row);
           cell.title = dayEvents.length ? dayEvents.map(event => `${event.listTitle} — ${event.meta}`).join("\n") : iso;
           const stack = dayEvents.map(event => {
             const end = event.end || event.start;
@@ -1415,17 +1506,19 @@
           calendar.appendChild(cell);
         }
       });
-      rowHeights.forEach((height, row) => {
-        calendar.querySelectorAll(`.day[style*="grid-row: ${row}"]`).forEach(cell => {
-          cell.style.setProperty("--day-min-height", `${Math.ceil(height)}px`);
-        });
-      });
+      resizeCalendarRows();
       renderMonthLabels();
     }
 
     renderCalendar();
-    document.fonts?.ready.then(renderMonthLabels);
-    window.addEventListener("resize", renderMonthLabels);
+    document.fonts?.ready.then(() => {
+      resizeCalendarRows();
+      renderMonthLabels();
+    });
+    window.addEventListener("resize", () => {
+      resizeCalendarRows();
+      renderMonthLabels();
+    });
 
     renderUpcomingRaces();
     renderDistanceChart();
@@ -1436,14 +1529,26 @@
       const iso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
       return document.querySelector(`.day.today[data-iso="${iso}"]`);
     }
+    function setActiveTab(tab) {
+      document.querySelectorAll(".bottom-tab").forEach(button => {
+        button.classList.toggle("active", button.dataset.tab === tab);
+      });
+    }
     function scrollToToday(options = { behavior: "smooth" }) {
       currentDayEl()?.scrollIntoView({ behavior: options.behavior, block: "center" });
+      setActiveTab("calendar");
+    }
+    function scrollToCalendar() {
+      document.querySelector('[data-action="toggle-earlier"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTab("calendar");
     }
     function scrollToChart() {
       document.querySelector(".health-charts")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTab("charts");
     }
     function scrollToLists() {
       document.querySelector(".races-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTab("races");
     }
     function toggleEarlier() {
       showEarlier = !showEarlier;
@@ -1501,6 +1606,20 @@
     document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
     document.querySelector('[data-action="list"]')?.addEventListener("click", scrollToLists);
+    document.querySelectorAll(".bottom-tab").forEach(button => {
+      button.addEventListener("click", () => {
+        if (button.dataset.tab === "calendar") scrollToCalendar();
+        if (button.dataset.tab === "charts") scrollToChart();
+        if (button.dataset.tab === "races") scrollToLists();
+      });
+    });
+    document.querySelectorAll(".histogram-filter").forEach(button => {
+      button.addEventListener("click", () => {
+        histogramYearFilter = button.dataset.histogramYear || "all";
+        document.querySelectorAll(".histogram-filter").forEach(filter => filter.classList.toggle("active", filter === button));
+        renderRunDensityChart();
+      });
+    });
     document.querySelector('[data-action="toggle-earlier"]')?.addEventListener("click", toggleEarlier);
     document.querySelector('[data-action="toggle-2027"]')?.addEventListener("click", toggle2027);
     document.querySelector('[data-action="copy-url"]')?.addEventListener("click", () => { copyCalendarUrl().catch(() => {}); });
