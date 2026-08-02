@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="ClawjCal" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,6 +56,19 @@
       box-shadow: 0 14px 36px rgba(50, 40, 25, 0.06), inset 0 -1px 0 rgba(222, 214, 200, 0.24);
     }
     h1 { margin: 0; font-size: clamp(1.7rem, 8vw, 2.6rem); line-height: 0.9; letter-spacing: -0.07em; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      flex: 0 0 auto;
+      box-shadow: 0 4px 14px rgba(50, 40, 25, 0.08);
+    }
     .header-actions {
       display: flex;
       align-items: center;
@@ -501,7 +514,8 @@
 <body>
   <main>
     <header>
-      <div>
+      <div class="brand">
+        <img class="brand-icon" src="clawjcal-icon.png" alt="" aria-hidden="true" />
         <h1>ClawjCal</h1>
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
