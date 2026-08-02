@@ -479,20 +479,21 @@
     }
     .histogram-filter {
       appearance: none;
-      border: 1px solid rgba(120, 98, 22, 0.22);
+      border: 1px solid rgba(120, 98, 22, 0.26);
       border-radius: 999px;
-      background: rgba(255, 247, 220, 0.58);
-      color: var(--muted);
+      background: white;
+      color: var(--ink);
       padding: 6px 10px;
       font: inherit;
       font-size: 0.84rem;
       font-weight: 900;
       cursor: pointer;
     }
+    .histogram-filter[data-histogram-year="2024"] { background: rgba(255, 226, 77, 0.22); }
+    .histogram-filter[data-histogram-year="2025"] { background: rgba(255, 226, 77, 0.50); }
+    .histogram-filter[data-histogram-year="2026"] { background: rgba(255, 226, 77, 0.82); }
     .histogram-filter.active {
-      background: rgba(255, 226, 77, 0.78);
-      color: var(--ink);
-      box-shadow: inset 0 0 0 1px rgba(120, 98, 22, 0.12);
+      box-shadow: inset 0 0 0 2px var(--pencil), 0 3px 8px rgba(21, 37, 54, 0.10);
     }
     .distance-chart {
       display: block;
@@ -551,10 +552,14 @@
       font-size: 24px;
       font-weight: 850;
     }
+    .chart-end-highlight {
+      fill: var(--highlighter-strong);
+      opacity: 0.84;
+    }
     .chart-end-label {
       fill: var(--ink);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 25px;
+      font-size: 34px;
       font-weight: 900;
     }
     .chart-note {
@@ -1315,6 +1320,14 @@
       }
     }
 
+    function chartEndLabel(cx, firstBaselineY, lines, width = 142) {
+      const height = 76;
+      const top = firstBaselineY - 36;
+      const x = cx - width / 2;
+      return `<rect class="chart-end-highlight" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${width.toFixed(1)}" height="${height}" rx="14" transform="rotate(-1 ${cx.toFixed(1)} ${(top + height / 2).toFixed(1)})"></rect>
+        <text class="chart-end-label" x="${cx.toFixed(1)}" y="${firstBaselineY.toFixed(1)}" text-anchor="middle">${lines.map((line, index) => `<tspan x="${cx.toFixed(1)}"${index ? ' dy="34"' : ""}>${line}</tspan>`).join("")}</text>`;
+    }
+
     function renderDistanceChart() {
       const svg = document.getElementById("distance-chart");
       if (!svg) return;
@@ -1357,9 +1370,9 @@
         <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        <text class="chart-end-label" x="${(x(last.date) + 22).toFixed(1)}" y="${(y(last.cumulative) - 30).toFixed(1)}" text-anchor="middle"><tspan x="${(x(last.date) + 22).toFixed(1)}">2026</tspan><tspan x="${(x(last.date) + 22).toFixed(1)}" dy="26">${current.total}km</tspan></text>
-        <text class="chart-end-label" x="${(x(comparisonLast.date) + 22).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}">2025</tspan><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}" dy="26">${comparison.total}km</tspan></text>
-        <text class="chart-end-label" x="${(x(comparison2024Last.date) + 22).toFixed(1)}" y="${(y(comparison2024Last.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}">2024</tspan><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}" dy="26">${comparison2024.total}km</tspan></text>
+        ${chartEndLabel(x(last.date) + 28, y(last.cumulative) - 30, ["2026", `${current.total}km`])}
+        ${chartEndLabel(x(comparisonLast.date) + 28, y(comparisonLast.cumulative) + 24, ["2025", `${comparison.total}km`])}
+        ${chartEndLabel(x(comparison2024Last.date) + 28, y(comparison2024Last.cumulative) + 24, ["2024", `${comparison2024.total}km`])}
       `;
     }
 
@@ -1396,7 +1409,7 @@
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">metres climbed</text>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        <text class="chart-end-label" x="${(x(last.date) + 34).toFixed(1)}" y="${(y(last.cumulative) - 22).toFixed(1)}" text-anchor="middle"><tspan x="${(x(last.date) + 34).toFixed(1)}">2026</tspan><tspan x="${(x(last.date) + 34).toFixed(1)}" dy="26">${Math.round(current.total).toLocaleString("en-GB")}m</tspan></text>
+        ${chartEndLabel(x(last.date) + 42, y(last.cumulative) - 22, ["2026", `${Math.round(current.total).toLocaleString("en-GB")}m`], 166)}
       `;
     }
 
