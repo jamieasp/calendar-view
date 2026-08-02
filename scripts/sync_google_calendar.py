@@ -39,7 +39,7 @@ SOURCE_URL = "https://jamieasp.github.io/calendar-view/"
 SOURCE_NAME = "calendar-view"
 DEFAULT_CALENDAR_ID = "primary"
 
-SYNC_STATUSES = {"trip", "upcoming", "completed", "interesting", "cancelled"}
+SYNC_STATUSES = {"trip", "upcoming", "completed", "interesting", "cancelled", "school"}
 SKIP_STATUSES = {"injury"}
 
 
