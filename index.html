@@ -495,10 +495,16 @@
   </main>
   <script>
     const year = 2026;
+    const calendarStartYear = 2026;
+    const calendarStartMonth = 0;
+    const monthsToRender = 16;
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const today = new Date();
-    const isCurrentYear = today.getFullYear() === year;
+    const displayMonths = Array.from({ length: monthsToRender }, (_, index) => {
+      const monthIndex = calendarStartMonth + index;
+      return { year: calendarStartYear + Math.floor(monthIndex / 12), month: monthIndex % 12 };
+    });
     const calendar = document.getElementById("calendar");
     const runDistances = {
           "2026-01-11": 11,
@@ -783,6 +789,7 @@
       { syncId: "malaga-dec-2026", start: "2026-12-13", status: "trip", title: "Malaga?", listTitle: "Malaga?", meta: "" },
       { syncId: "bdays-dec-2026", start: "2026-12-22", end: "2026-12-23", status: "trip", title: "Bdays", listTitle: "Bdays", meta: "22–23 Dec" },
       { syncId: "xmas-2026", start: "2026-12-25", status: "trip", title: "Xmas", listTitle: "Xmas", meta: "" },
+      { syncId: "miut-madeira-2027", start: "2027-04-24", end: "2027-04-25", status: "interesting", race: true, title: "MIUT Madeira", listTitle: "MIUT Madeira", meta: "24–25 Apr 2027" },
     ];
 
     function isRaceEvent(event) {
@@ -822,8 +829,8 @@
       const daysLeftInEvent = daysBetween(iso, end);
       return Math.max(1, Math.min(daysLeftInWeek, daysLeftInEvent));
     }
-    function monthRunTotal(month) {
-      const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+    function monthRunTotal(totalYear, month) {
+      const prefix = `${totalYear}-${String(month + 1).padStart(2, "0")}-`;
       return Object.entries(runDistances)
         .filter(([iso]) => iso.startsWith(prefix))
         .reduce((sum, [, km]) => sum + Number(km || 0), 0);
@@ -1027,47 +1034,48 @@
     }
 
     function weekIndex(date) {
-      const yearStart = new Date(`${year}-01-01T12:00:00`);
-      const leading = mondayFirstOffset(yearStart);
-      return Math.floor((leading + daysBetween(`${year}-01-01`, isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
+      const calendarStart = new Date(calendarStartYear, calendarStartMonth, 1, 12);
+      const leading = mondayFirstOffset(calendarStart);
+      return Math.floor((leading + daysBetween(isoDate(calendarStartYear, calendarStartMonth, 1), isoDate(date.getFullYear(), date.getMonth(), date.getDate())) - 1) / 7);
     }
     function renderMonthLabels() {
       calendar.querySelectorAll(".month-label").forEach(label => label.remove());
       const calendarTop = calendar.getBoundingClientRect().top;
       const rowGap = parseFloat(getComputedStyle(calendar).rowGap) || 0;
-      for (let month = 0; month < 12; month++) {
-        const first = new Date(year, month, 1, 12);
-        const last = new Date(year, month + 1, 0, 12);
-        const firstIso = isoDate(year, month, 1);
-        const lastIso = isoDate(year, month, last.getDate());
+      displayMonths.forEach(({ year: labelYear, month }, index) => {
+        const first = new Date(labelYear, month, 1, 12);
+        const last = new Date(labelYear, month + 1, 0, 12);
+        const firstIso = isoDate(labelYear, month, 1);
+        const lastIso = isoDate(labelYear, month, last.getDate());
         const firstCell = calendar.querySelector(`[data-iso="${firstIso}"]`);
         const lastCell = calendar.querySelector(`[data-iso="${lastIso}"]`);
-        if (!firstCell || !lastCell) continue;
+        if (!firstCell || !lastCell) return;
 
         const firstRect = firstCell.getBoundingClientRect();
         const lastRect = lastCell.getBoundingClientRect();
         const firstCellTop = firstRect.top - calendarTop;
         const lastCellTop = lastRect.top - calendarTop;
-        const startsAfterRowGap = month > 0 && mondayFirstOffset(first) === 0;
-        const endsBeforeRowGap = month < 11 && mondayFirstOffset(last) === 6;
-        const top = month === 0
+        const startsAfterRowGap = index > 0 && mondayFirstOffset(first) === 0;
+        const endsBeforeRowGap = index < displayMonths.length - 1 && mondayFirstOffset(last) === 6;
+        const top = index === 0
           ? firstCellTop
           : firstCellTop + (mondayFirstOffset(first) / 7) * firstRect.height - (startsAfterRowGap ? rowGap / 2 : 0);
-        const bottom = month === 11
+        const bottom = index === displayMonths.length - 1
           ? lastCellTop + lastRect.height
           : lastCellTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height + (endsBeforeRowGap ? rowGap / 2 : 0);
-        const monthTotal = monthRunTotal(month);
-        const hasMonthStarted = !isCurrentYear || month <= today.getMonth();
+        const monthTotal = monthRunTotal(labelYear, month);
+        const hasMonthStarted = new Date(labelYear, month, 1, 12) <= new Date(today.getFullYear(), today.getMonth(), 1, 12);
         const monthTotalLabel = hasMonthStarted ? ` ${monthTotal}<span class="unit">km</span>` : "";
+        const monthTitle = `${monthNames[month]}${labelYear !== calendarStartYear ? ` ${labelYear}` : ""}`;
 
         const label = document.createElement("div");
         label.className = "month-label";
-        label.id = `month-${month + 1}`;
+        label.id = `month-${labelYear}-${month + 1}`;
         label.style.top = `${top.toFixed(1)}px`;
         label.style.height = `${Math.max(1, bottom - top).toFixed(1)}px`;
-        label.innerHTML = `<span class="month-label-text">${monthNames[month]}<span class="month-total">${monthTotalLabel}</span></span>`;
+        label.innerHTML = `<span class="month-label-text">${monthTitle}<span class="month-total">${monthTotalLabel}</span></span>`;
         calendar.appendChild(label);
-      }
+      });
     }
     function renderCalendar() {
       calendar.innerHTML = "";
@@ -1080,7 +1088,9 @@
         calendar.appendChild(cell);
       }
 
-      const first = new Date(year, 0, 1, 12);
+      const firstMonth = displayMonths[0];
+      const lastMonth = displayMonths[displayMonths.length - 1];
+      const first = new Date(firstMonth.year, firstMonth.month, 1, 12);
       for (let i = 0; i < mondayFirstOffset(first); i++) {
         const blank = document.createElement("div");
         blank.className = "day empty";
@@ -1089,7 +1099,7 @@
         blank.style.gridRow = "2";
         calendar.appendChild(blank);
       }
-      const last = new Date(year, 11, 31, 12);
+      const last = new Date(lastMonth.year, lastMonth.month + 1, 0, 12);
       const trailing = 6 - mondayFirstOffset(last);
       for (let i = 0; i < trailing; i++) {
         const blank = document.createElement("div");
@@ -1100,17 +1110,17 @@
         calendar.appendChild(blank);
       }
 
-      for (let month = 0; month < 12; month++) {
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+      displayMonths.forEach(({ year: renderYear, month }) => {
+        const daysInMonth = new Date(renderYear, month + 1, 0).getDate();
         for (let day = 1; day <= daysInMonth; day++) {
-          const date = new Date(year, month, day, 12);
-          const iso = isoDate(year, month, day);
-          const isToday = isCurrentYear && today.getMonth() === month && today.getDate() === day;
+          const date = new Date(renderYear, month, day, 12);
+          const iso = isoDate(renderYear, month, day);
+          const isToday = today.getFullYear() === renderYear && today.getMonth() === month && today.getDate() === day;
           const dayEvents = eventsForDate(iso);
           const runDistance = runDistances[iso];
           const cell = document.createElement("div");
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          const isPast = isCurrentYear && date < new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+          const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
           cell.className = `day${isWeekend ? " weekend" : ""}${isPast ? " past" : ""}${isToday ? " today" : ""}`;
           cell.style.gridColumn = String(mondayFirstOffset(date) + 2);
           cell.style.gridRow = String(weekIndex(date) + 2);
@@ -1132,7 +1142,7 @@
           const runLabel = runDistance ? `<span class="run-distance">${runDistance}<span class="unit">km</span></span>` : "";
           const stretchStreak = stretchStreaks[iso];
           const nextDate = new Date(year, month, day + 1, 12);
-          const nextIso = nextDate.getFullYear() === year ? isoDate(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate()) : null;
+          const nextIso = isoDate(nextDate.getFullYear(), nextDate.getMonth(), nextDate.getDate());
           const isFinalStretchDay = stretchStreak && !stretchStreaks[nextIso];
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
           const absStreak = absStreaks[iso];
@@ -1141,7 +1151,7 @@
           cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
-      }
+      });
       renderMonthLabels();
     }
 
@@ -1154,8 +1164,7 @@
     renderHealthCharts();
 
     function currentDayEl() {
-      if (!isCurrentYear) return null;
-      const iso = isoDate(year, today.getMonth(), today.getDate());
+      const iso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
       return document.querySelector(`.day.today[data-iso="${iso}"]`);
     }
     function scrollToToday(options = { behavior: "smooth" }) {
@@ -1177,7 +1186,7 @@
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
 
-    if (isCurrentYear) {
+    if (currentDayEl()) {
       window.addEventListener("load", () => {
         scrollToToday({ behavior: "auto" });
       });
