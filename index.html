@@ -525,6 +525,7 @@
     .heatmap-cell.level-2 { fill: rgba(255, 210, 49, 0.82); }
     .heatmap-cell.level-3 { fill: rgba(222, 158, 0, 0.90); }
     .heatmap-cell.level-4 { fill: rgba(143, 91, 0, 0.96); }
+    .heatmap-cell.stretch-done { fill: rgba(255, 210, 49, 0.88); }
     .distance-chart {
       display: block;
       width: 100%;
@@ -724,6 +725,10 @@
         <button type="button" class="heatmap-filter active" data-elevation-heatmap-year="2026">2026</button>
       </div>
       <svg id="elevation-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style daily running elevation gain heatmap"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Stretch heatmap</h2>
+      </div>
+      <svg id="stretch-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style stretch consistency heatmap"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
@@ -1754,8 +1759,8 @@
         const week = Math.floor(index / 7);
         const weekday = index % 7;
         const value = Number(values[iso] || 0);
-        const cls = `heatmap-cell level-${level(value)}`;
-        const valueLabel = value ? `${iso}: ${value.toLocaleString("en-GB")}${unit}` : `${iso}: ${emptyLabel}`;
+        const cls = options.classForValue ? options.classForValue(value, iso) : `heatmap-cell level-${level(value)}`;
+        const valueLabel = options.labelForValue ? options.labelForValue(value, iso) : (value ? `${iso}: ${value.toLocaleString("en-GB")}${unit}` : `${iso}: ${emptyLabel}`);
         cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${valueLabel}</title></rect>`);
       }
       svg.innerHTML = `
@@ -1772,6 +1777,12 @@
     function renderElevationHeatmap() {
       const selectedYear = Number(elevationHeatmapYearFilter || year);
       renderYearHeatmap("elevation-heatmap", selectedYear, runElevationSourceForYear(selectedYear), { thresholds: [100, 300, 800], unit: "m", emptyLabel: "no climb" });
+    }
+    function renderStretchHeatmap() {
+      renderYearHeatmap("stretch-heatmap", year, stretchStreaks, {
+        classForValue: value => value ? "heatmap-cell stretch-done" : "heatmap-cell level-0",
+        labelForValue: (value, iso) => value ? `${iso}: stretched` : `${iso}: no stretch logged`,
+      });
     }
 
     function weekIndex(date, firstVisibleMonth = visibleDisplayMonths()[0]) {
@@ -1932,6 +1943,7 @@
     renderRunDensityChart();
     renderDistanceHeatmap();
     renderElevationHeatmap();
+    renderStretchHeatmap();
     renderHealthCharts();
 
     function currentDayEl() {
