@@ -1,10 +1,9 @@
-const CACHE_NAME = 'calendar-view-v1';
+const CACHE_NAME = 'calendar-view-v2-clawjcal';
 const ASSETS = [
   '/calendar-view/',
   '/calendar-view/index.html',
   '/calendar-view/manifest.webmanifest',
   '/calendar-view/health-data.json',
-  '/calendar-view/favicon.svg',
   '/calendar-view/icon-192.png',
   '/calendar-view/icon-512.png',
   '/calendar-view/maskable-512.png',
