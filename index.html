@@ -462,6 +462,7 @@
     }
     .chart-end-label {
       fill: var(--ink);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
       font-size: 25px;
       font-weight: 900;
     }
@@ -1171,9 +1172,9 @@
         <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        <text class="chart-end-label" x="${(x(last.date) + 18).toFixed(1)}" y="${(y(last.cumulative) - 14).toFixed(1)}">2026 · ${current.total}km</text>
-        <text class="chart-end-label" x="${(x(comparisonLast.date) + 18).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 34).toFixed(1)}">2025 · ${comparison.total}km</text>
-        <text class="chart-end-label" x="${(x(comparison2024Last.date) + 18).toFixed(1)}" y="${(y(comparison2024Last.cumulative) + 34).toFixed(1)}">2024 · ${comparison2024.total}km</text>
+        <text class="chart-end-label" x="${(x(last.date) + 22).toFixed(1)}" y="${(y(last.cumulative) - 30).toFixed(1)}" text-anchor="middle"><tspan x="${(x(last.date) + 22).toFixed(1)}">2026</tspan><tspan x="${(x(last.date) + 22).toFixed(1)}" dy="26">${current.total}km</tspan></text>
+        <text class="chart-end-label" x="${(x(comparisonLast.date) + 22).toFixed(1)}" y="${(y(comparisonLast.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}">2025</tspan><tspan x="${(x(comparisonLast.date) + 22).toFixed(1)}" dy="26">${comparison.total}km</tspan></text>
+        <text class="chart-end-label" x="${(x(comparison2024Last.date) + 22).toFixed(1)}" y="${(y(comparison2024Last.cumulative) + 18).toFixed(1)}" text-anchor="middle"><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}">2024</tspan><tspan x="${(x(comparison2024Last.date) + 22).toFixed(1)}" dy="26">${comparison2024.total}km</tspan></text>
       `;
     }
 
