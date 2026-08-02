@@ -554,7 +554,7 @@
     }
     .chart-end-highlight {
       fill: var(--highlighter-strong);
-      opacity: 0.84;
+      opacity: 0.72;
     }
     .chart-end-label {
       fill: var(--ink);
@@ -608,7 +608,7 @@
     .health-title { fill: var(--ink); font-size: 38px; font-weight: 900; }
     .health-axis-label { fill: var(--muted); font-size: 24px; font-weight: 850; }
     .health-event-highlight,
-    .health-percentile-bg { fill: var(--highlighter-strong); opacity: 0.82; }
+    .health-percentile-bg { fill: var(--highlighter-strong); opacity: 0.72; }
     .health-event-label,
     .health-percentile,
     .health-current-label {
@@ -1274,10 +1274,10 @@
           const markerDate = dateFromIso(marker.date);
           const labelX = x(markerDate) + 8;
           const labelY = margin.top + (1 - marker.yoff) * 70;
-          const labelWidth = Math.max(88, marker.label.length * 19 + 22);
+          const labelWidth = Math.max(74, marker.label.length * 18);
           return `<line class="health-event-line" x1="${x(markerDate).toFixed(1)}" y1="${margin.top}" x2="${x(markerDate).toFixed(1)}" y2="${height - margin.bottom}" stroke="${marker.color}"></line>
-            <rect class="health-event-highlight" x="${labelX.toFixed(1)}" y="${(labelY - 30).toFixed(1)}" width="${labelWidth.toFixed(1)}" height="40" rx="10" transform="rotate(-1.2 ${labelX.toFixed(1)} ${(labelY - 10).toFixed(1)})"></rect>
-            <text class="health-event-label" x="${(labelX + 10).toFixed(1)}" y="${labelY.toFixed(1)}">${marker.label}</text>`;
+            <rect class="health-event-highlight" x="${(labelX + 2).toFixed(1)}" y="${(labelY - 27).toFixed(1)}" width="${labelWidth.toFixed(1)}" height="26" rx="5" transform="rotate(-1.6 ${(labelX + labelWidth / 2).toFixed(1)} ${(labelY - 14).toFixed(1)})"></rect>
+            <text class="health-event-label" x="${(labelX + 8).toFixed(1)}" y="${labelY.toFixed(1)}">${marker.label}</text>`;
         }).join("");
       const rug = panel.kind === "RHR" ? "" : values.map((value, index) => {
         const jitter = Math.max(yr * 0.018, 0.28) * Math.sin(index * 12.9898) * 0.85;
@@ -1303,7 +1303,7 @@
         ${longRuns}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
-        <rect class="health-percentile-bg" x="${width - margin.right - 104}" y="${margin.top + 3}" width="98" height="48" rx="12" transform="rotate(1.2 ${width - margin.right - 55} ${margin.top + 27})"></rect>
+        <rect class="health-percentile-bg" x="${width - margin.right - 93}" y="${margin.top + 13}" width="76" height="28" rx="5" transform="rotate(1.4 ${width - margin.right - 55} ${margin.top + 27})"></rect>
         <text class="health-percentile" x="${width - margin.right - 55}" y="${margin.top + 39}" text-anchor="middle">${pct}</text>
         <text class="health-current-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
       </svg></article>`;
@@ -1321,12 +1321,15 @@
       }
     }
 
-    function chartEndLabel(cx, firstBaselineY, lines, width = 142) {
-      const height = 76;
-      const top = firstBaselineY - 36;
-      const x = cx - width / 2;
-      return `<rect class="chart-end-highlight" x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${width.toFixed(1)}" height="${height}" rx="14" transform="rotate(-1 ${cx.toFixed(1)} ${(top + height / 2).toFixed(1)})"></rect>
-        <text class="chart-end-label" x="${cx.toFixed(1)}" y="${firstBaselineY.toFixed(1)}" text-anchor="middle">${lines.map((line, index) => `<tspan x="${cx.toFixed(1)}"${index ? ' dy="34"' : ""}>${line}</tspan>`).join("")}</text>`;
+    function chartEndLabel(cx, firstBaselineY, lines) {
+      const highlights = lines.map((line, index) => {
+        const baseline = firstBaselineY + index * 34;
+        const width = Math.max(58, String(line).length * 17);
+        const x = cx - width / 2;
+        const angle = index % 2 ? 1.1 : -1.4;
+        return `<rect class="chart-end-highlight" x="${x.toFixed(1)}" y="${(baseline - 27).toFixed(1)}" width="${width.toFixed(1)}" height="25" rx="5" transform="rotate(${angle} ${cx.toFixed(1)} ${(baseline - 14).toFixed(1)})"></rect>`;
+      }).join("");
+      return `${highlights}<text class="chart-end-label" x="${cx.toFixed(1)}" y="${firstBaselineY.toFixed(1)}" text-anchor="middle">${lines.map((line, index) => `<tspan x="${cx.toFixed(1)}"${index ? ' dy="34"' : ""}>${line}</tspan>`).join("")}</text>`;
     }
 
     function renderDistanceChart() {
@@ -1410,7 +1413,7 @@
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">metres climbed</text>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
-        ${chartEndLabel(x(last.date) + 42, y(last.cumulative) - 22, ["2026", `${Math.round(current.total).toLocaleString("en-GB")}m`], 166)}
+        ${chartEndLabel(x(last.date) + 42, y(last.cumulative) - 22, ["2026", `${Math.round(current.total).toLocaleString("en-GB")}m`])}
       `;
     }
 
