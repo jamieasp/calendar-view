@@ -3,18 +3,6 @@
   "start": "2025-11-01",
   "eventMarkers": [
     {
-      "date": "2026-03-09",
-      "label": "TRT",
-      "color": "#6a1b9a",
-      "yoff": 0.93
-    },
-    {
-      "date": "2026-03-19",
-      "label": "Virus",
-      "color": "#333333",
-      "yoff": 0.86
-    },
-    {
       "date": "2026-05-27",
       "label": "Turmeric",
       "color": "#c47f00",
