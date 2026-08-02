@@ -633,8 +633,6 @@
     .health-latest-line { stroke: #152536; stroke-width: 2.9; stroke-dasharray: 3 6; opacity: 0.55; }
     .health-jan-band { fill: var(--today); opacity: 0.22; }
     .health-event-line { stroke-width: 3; stroke-dasharray: 2 6; opacity: 0.9; }
-    .health-run-icon { stroke: #111; fill: none; stroke-width: 2.1; stroke-linecap: round; opacity: 0.9; }
-    .health-run-head { fill: #111; opacity: 0.9; }
     .health-rug { stroke: var(--today); stroke-width: 2; opacity: 0.70; stroke-linecap: round; }
     .health-rug-latest { stroke: #152536; stroke-width: 4.2; opacity: 0.94; stroke-linecap: round; }
     .health-title { fill: var(--ink); font-size: 38px; font-weight: 900; }
@@ -1373,12 +1371,6 @@
       }
       return dates;
     }
-    function healthRunIcon(x, y) {
-      return `<g class="health-run-icon" transform="translate(${(x - 7).toFixed(1)} ${(y - 14).toFixed(1)})">
-        <circle class="health-run-head" cx="7" cy="3" r="2.1"></circle>
-        <path d="M7 5.5 L6 8.4 M6 7.2 L3.3 6.2 M6 7.2 L9.4 6.6 M6 8.4 L3.8 12.2 M6 8.4 L9.8 12.0"></path>
-      </g>`;
-    }
     function niceNumber(value, round = false) {
       if (!Number.isFinite(value) || value <= 0) return 1;
       const exponent = Math.floor(Math.log10(value));
@@ -1451,12 +1443,6 @@
         janBand = `<rect class="health-jan-band" x="${margin.left}" y="${y(avg + sd).toFixed(1)}" width="${plotW}" height="${Math.max(0, y(avg - sd) - y(avg + sd)).toFixed(1)}"></rect>`;
       }
       const latest = points[points.length - 1];
-      const iconY = y(ymin - yr * 0.055);
-      const longRuns = data.longRunDates
-        .map(dateFromIso)
-        .filter(date => date >= start && date <= end)
-        .map(date => healthRunIcon(x(date), iconY))
-        .join("");
       const events = data.eventMarkers
         .filter(marker => dateFromIso(marker.date) >= start && dateFromIso(marker.date) <= end)
         .map(marker => {
@@ -1488,7 +1474,6 @@
         <line class="health-latest-line" x1="${margin.left}" y1="${y(latest.value).toFixed(1)}" x2="${width - margin.right}" y2="${y(latest.value).toFixed(1)}"></line>
         ${points.map(point => `<circle class="health-daily-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="4.6"></circle>`).join("")}
         ${events}
-        ${longRuns}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
         <rect class="health-percentile-bg" x="${width - margin.right - 93}" y="${margin.top + 13}" width="76" height="28" rx="5" transform="rotate(1.4 ${width - margin.right - 55} ${margin.top + 27})"></rect>
