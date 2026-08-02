@@ -123,8 +123,8 @@
       transform: translateX(-50%);
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      padding: 7px;
+      gap: 5px;
+      padding: 5px;
       border: 1px solid rgba(120, 98, 22, 0.16);
       border-radius: 22px;
       background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255, 226, 77, 0.40));
@@ -139,17 +139,15 @@
       background: transparent;
       color: var(--muted);
       display: grid;
-      gap: 2px;
       place-items: center;
-      min-height: 52px;
-      padding: 6px 4px 5px;
+      min-height: 38px;
+      padding: 7px 4px 8px;
       font: inherit;
       font-size: 0.74rem;
       font-weight: 900;
       letter-spacing: -0.02em;
       cursor: pointer;
     }
-    .bottom-tab .material-symbols-outlined { font-size: 1.42rem; }
     .bottom-tab.active {
       color: var(--ink);
       background: rgba(255, 226, 77, 0.72);
@@ -671,9 +669,9 @@
     </section>
   </main>
   <nav class="bottom-tabs" aria-label="Primary sections">
-    <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar"><span class="material-symbols-outlined" aria-hidden="true">calendar_month</span><span>Calendar</span></button>
-    <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts"><span class="material-symbols-outlined" aria-hidden="true">query_stats</span><span>Charts</span></button>
-    <button type="button" class="bottom-tab" data-tab="races" aria-label="Races"><span class="material-symbols-outlined" aria-hidden="true">flag</span><span>Races</span></button>
+    <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar">Calendar</button>
+    <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts">Charts</button>
+    <button type="button" class="bottom-tab" data-tab="races" aria-label="Races">Races</button>
   </nav>
   <script>
     const year = 2026;
