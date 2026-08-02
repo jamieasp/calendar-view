@@ -102,6 +102,22 @@
     .header-button:hover { background: rgba(255, 247, 220, 0.62); }
     .header-button:active { transform: translateY(1px); }
     .sub { color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; }
+    .expand-years {
+      appearance: none;
+      width: 100%;
+      margin: 18px 0 0;
+      border: 1px solid #d9d0c2;
+      border-radius: 16px;
+      background: rgba(255, 247, 220, 0.58);
+      color: var(--ink);
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      box-shadow: 0 5px 18px rgba(50, 40, 25, 0.06);
+    }
+    .expand-years:active { transform: translateY(1px); }
     .year-grid {
       position: relative;
       display: grid;
@@ -185,9 +201,12 @@
       margin: 0;
     }
     .stretch-streak {
+      position: absolute;
+      left: 4px;
+      bottom: 3px;
       color: var(--pencil);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 0.84rem;
+      font-size: 0.86rem;
       font-weight: 900;
       line-height: 1;
       white-space: nowrap;
@@ -493,6 +512,7 @@
       </nav>
     </header>
     <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+    <button type="button" class="expand-years" data-action="toggle-2027" aria-expanded="false">Show 2027</button>
     <section class="health-charts" aria-labelledby="health-charts-title">
       <h2 id="health-charts-title">Vitals</h2>
       <div id="health-charts"></div>
@@ -517,6 +537,7 @@
     const calendarStartYear = 2026;
     const calendarStartMonth = 0;
     const monthsToRender = 18;
+    let show2027 = false;
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const today = new Date();
@@ -524,6 +545,9 @@
       const monthIndex = calendarStartMonth + index;
       return { year: calendarStartYear + Math.floor(monthIndex / 12), month: monthIndex % 12 };
     });
+    function visibleDisplayMonths() {
+      return show2027 ? displayMonths : displayMonths.filter(({ year }) => year === calendarStartYear);
+    }
     const calendar = document.getElementById("calendar");
     const runDistances = {
           "2026-01-11": 11,
@@ -1082,7 +1106,8 @@
       calendar.querySelectorAll(".month-label").forEach(label => label.remove());
       const calendarTop = calendar.getBoundingClientRect().top;
       const rowGap = parseFloat(getComputedStyle(calendar).rowGap) || 0;
-      displayMonths.forEach(({ year: labelYear, month }, index) => {
+      const visibleMonths = visibleDisplayMonths();
+      visibleMonths.forEach(({ year: labelYear, month }, index) => {
         const first = new Date(labelYear, month, 1, 12);
         const last = new Date(labelYear, month + 1, 0, 12);
         const firstIso = isoDate(labelYear, month, 1);
@@ -1096,11 +1121,11 @@
         const firstCellTop = firstRect.top - calendarTop;
         const lastCellTop = lastRect.top - calendarTop;
         const startsAfterRowGap = index > 0 && mondayFirstOffset(first) === 0;
-        const endsBeforeRowGap = index < displayMonths.length - 1 && mondayFirstOffset(last) === 6;
+        const endsBeforeRowGap = index < visibleMonths.length - 1 && mondayFirstOffset(last) === 6;
         const top = index === 0
           ? firstCellTop
           : firstCellTop + (mondayFirstOffset(first) / 7) * firstRect.height - (startsAfterRowGap ? rowGap / 2 : 0);
-        const bottom = index === displayMonths.length - 1
+        const bottom = index === visibleMonths.length - 1
           ? lastCellTop + lastRect.height
           : lastCellTop + ((mondayFirstOffset(last) + 1) / 7) * lastRect.height + (endsBeforeRowGap ? rowGap / 2 : 0);
         const monthTotal = monthRunTotal(labelYear, month);
@@ -1128,8 +1153,9 @@
         calendar.appendChild(cell);
       }
 
-      const firstMonth = displayMonths[0];
-      const lastMonth = displayMonths[displayMonths.length - 1];
+      const visibleMonths = visibleDisplayMonths();
+      const firstMonth = visibleMonths[0];
+      const lastMonth = visibleMonths[visibleMonths.length - 1];
       const first = new Date(firstMonth.year, firstMonth.month, 1, 12);
       for (let i = 0; i < mondayFirstOffset(first); i++) {
         const blank = document.createElement("div");
@@ -1150,7 +1176,7 @@
         calendar.appendChild(blank);
       }
 
-      displayMonths.forEach(({ year: renderYear, month }) => {
+      visibleMonths.forEach(({ year: renderYear, month }) => {
         const daysInMonth = new Date(renderYear, month + 1, 0).getDate();
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(renderYear, month, day, 12);
@@ -1188,7 +1214,7 @@
           const absStreak = absStreaks[iso];
           const isFinalAbsDay = absStreak && !absStreaks[nextIso];
           const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${isFinalAbsDay ? absStreak : ""}</span>` : "";
-          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span>${stretchLabel}</div><div class="event-stack">${stack}</div>${runLabel}${absLabel}`;
+          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span></div><div class="event-stack">${stack}</div>${runLabel}${stretchLabel}${absLabel}`;
           calendar.appendChild(cell);
         }
       });
@@ -1215,6 +1241,15 @@
     }
     function scrollToLists() {
       document.querySelector(".races-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function toggle2027() {
+      show2027 = !show2027;
+      const button = document.querySelector('[data-action="toggle-2027"]');
+      if (button) {
+        button.textContent = show2027 ? "Hide 2027" : "Show 2027";
+        button.setAttribute("aria-expanded", String(show2027));
+      }
+      renderCalendar();
     }
     async function hardRefresh() {
       if ("serviceWorker" in navigator) {
@@ -1248,6 +1283,7 @@
     document.querySelector('[data-action="today"]')?.addEventListener("click", scrollToToday);
     document.querySelector('[data-action="chart"]')?.addEventListener("click", scrollToChart);
     document.querySelector('[data-action="list"]')?.addEventListener("click", scrollToLists);
+    document.querySelector('[data-action="toggle-2027"]')?.addEventListener("click", toggle2027);
     document.querySelector('[data-action="copy-url"]')?.addEventListener("click", () => { copyCalendarUrl().catch(() => {}); });
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
 
