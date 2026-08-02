@@ -714,7 +714,16 @@
         <button type="button" class="heatmap-filter" data-heatmap-year="2025">2025</button>
         <button type="button" class="heatmap-filter active" data-heatmap-year="2026">2026</button>
       </div>
-      <svg id="distance-heatmap" class="distance-chart" viewBox="0 0 1500 360" role="img" aria-label="GitHub-style daily running distance heatmap"></svg>
+      <svg id="distance-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style daily running distance heatmap"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Elevation heatmap</h2>
+      </div>
+      <div class="heatmap-filters" aria-label="Elevation heatmap year">
+        <button type="button" class="heatmap-filter" data-elevation-heatmap-year="2024">2024</button>
+        <button type="button" class="heatmap-filter" data-elevation-heatmap-year="2025">2025</button>
+        <button type="button" class="heatmap-filter active" data-elevation-heatmap-year="2026">2026</button>
+      </div>
+      <svg id="elevation-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style daily running elevation gain heatmap"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
@@ -758,6 +767,7 @@
     const calendar = document.getElementById("calendar");
     let histogramYearFilter = "all";
     let heatmapYearFilter = String(year);
+    let elevationHeatmapYearFilter = String(year);
     const runDistances = {
           "2024-07-17": 8,
           "2024-07-20": 25,
@@ -1694,13 +1704,16 @@
       if (selectedYear === 2025) return comparisonRunDistances;
       return runDistances;
     }
+    function runElevationSourceForYear(selectedYear) {
+      if (selectedYear === 2024) return comparisonRunElevations2024;
+      if (selectedYear === 2025) return comparisonRunElevations;
+      return runElevations;
+    }
 
-    function renderDistanceHeatmap() {
-      const svg = document.getElementById("distance-heatmap");
+    function renderYearHeatmap(svgId, selectedYear, values, options = {}) {
+      const svg = document.getElementById(svgId);
       if (!svg) return;
 
-      const selectedYear = Number(heatmapYearFilter || year);
-      const distances = runDistanceSourceForYear(selectedYear);
       const width = 1500;
       const height = 430;
       const margin = { top: 60, right: 72, bottom: 28, left: 78 };
@@ -1716,11 +1729,14 @@
       const plotW = weeks * colPitch;
       const x0 = margin.left + Math.max(0, (width - margin.left - margin.right - plotW) / 2);
       const y0 = margin.top;
-      const level = km => {
-        if (!km) return 0;
-        if (km < 5) return 1;
-        if (km < 10) return 2;
-        if (km < 20) return 3;
+      const thresholds = options.thresholds || [5, 10, 20];
+      const unit = options.unit || "";
+      const emptyLabel = options.emptyLabel || "no run";
+      const level = value => {
+        if (!value) return 0;
+        if (value < thresholds[0]) return 1;
+        if (value < thresholds[1]) return 2;
+        if (value < thresholds[2]) return 3;
         return 4;
       };
       const monthLabels = [];
@@ -1740,16 +1756,25 @@
         const index = leading + dayIndex;
         const week = Math.floor(index / 7);
         const weekday = index % 7;
-        const km = Number(distances[iso] || 0);
-        const cls = `heatmap-cell level-${level(km)}`;
-        const label = km ? `${iso}: ${km}km` : `${iso}: no run`;
-        cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${label}</title></rect>`);
+        const value = Number(values[iso] || 0);
+        const cls = `heatmap-cell level-${level(value)}`;
+        const valueLabel = value ? `${iso}: ${value.toLocaleString("en-GB")}${unit}` : `${iso}: ${emptyLabel}`;
+        cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${valueLabel}</title></rect>`);
       }
       svg.innerHTML = `
         ${monthLabels.join("")}
         ${dayLabels}
         ${cells.join("")}
       `;
+    }
+
+    function renderDistanceHeatmap() {
+      const selectedYear = Number(heatmapYearFilter || year);
+      renderYearHeatmap("distance-heatmap", selectedYear, runDistanceSourceForYear(selectedYear), { thresholds: [5, 10, 20], unit: "km", emptyLabel: "no run" });
+    }
+    function renderElevationHeatmap() {
+      const selectedYear = Number(elevationHeatmapYearFilter || year);
+      renderYearHeatmap("elevation-heatmap", selectedYear, runElevationSourceForYear(selectedYear), { thresholds: [100, 300, 800], unit: "m", emptyLabel: "no climb" });
     }
 
     function weekIndex(date, firstVisibleMonth = visibleDisplayMonths()[0]) {
@@ -1909,6 +1934,7 @@
     renderElevationChart();
     renderRunDensityChart();
     renderDistanceHeatmap();
+    renderElevationHeatmap();
     renderHealthCharts();
 
     function currentDayEl() {
@@ -2002,11 +2028,18 @@
         renderRunDensityChart();
       });
     });
-    document.querySelectorAll(".heatmap-filter").forEach(button => {
+    document.querySelectorAll("[data-heatmap-year]").forEach(button => {
       button.addEventListener("click", () => {
         heatmapYearFilter = button.dataset.heatmapYear || String(year);
-        document.querySelectorAll(".heatmap-filter").forEach(filter => filter.classList.toggle("active", filter === button));
+        document.querySelectorAll("[data-heatmap-year]").forEach(filter => filter.classList.toggle("active", filter === button));
         renderDistanceHeatmap();
+      });
+    });
+    document.querySelectorAll("[data-elevation-heatmap-year]").forEach(button => {
+      button.addEventListener("click", () => {
+        elevationHeatmapYearFilter = button.dataset.elevationHeatmapYear || String(year);
+        document.querySelectorAll("[data-elevation-heatmap-year]").forEach(filter => filter.classList.toggle("active", filter === button));
+        renderElevationHeatmap();
       });
     });
     document.querySelector('[data-action="toggle-earlier"]')?.addEventListener("click", toggleEarlier);
