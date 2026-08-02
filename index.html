@@ -1001,6 +1001,39 @@
         <path d="M7 5.5 L6 8.4 M6 7.2 L3.3 6.2 M6 7.2 L9.4 6.6 M6 8.4 L3.8 12.2 M6 8.4 L9.8 12.0"></path>
       </g>`;
     }
+    function niceNumber(value, round = false) {
+      if (!Number.isFinite(value) || value <= 0) return 1;
+      const exponent = Math.floor(Math.log10(value));
+      const fraction = value / Math.pow(10, exponent);
+      const niceFraction = round
+        ? (fraction < 1.5 ? 1 : fraction < 3 ? 2 : fraction < 7 ? 5 : 10)
+        : (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10);
+      return niceFraction * Math.pow(10, exponent);
+    }
+    function niceTicks(min, max, targetCount = 5) {
+      if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
+      if (min === max) {
+        const step = niceNumber(Math.abs(min) || 1, true);
+        min -= step;
+        max += step;
+      }
+      const span = niceNumber(max - min, false);
+      const step = niceNumber(span / Math.max(1, targetCount - 1), true);
+      const niceMin = Math.floor(min / step) * step;
+      const niceMax = Math.ceil(max / step) * step;
+      const ticks = [];
+      const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+      for (let value = niceMin; value <= niceMax + step * 0.5; value += step) {
+        ticks.push(Number(value.toFixed(decimals + 1)));
+      }
+      return ticks;
+    }
+    function tickPrecision(ticks) {
+      const step = Math.abs((ticks[1] ?? ticks[0] + 1) - ticks[0]);
+      if (step >= 1) return 0;
+      if (step >= 0.1) return 1;
+      return 2;
+    }
     function renderHealthPanel(panel, data) {
       const width = 1500;
       const height = 620;
@@ -1019,10 +1052,13 @@
       const end = points[points.length - 1].date;
       const spanDays = Math.max(1, Math.round((end - start) / 86400000));
       const x = date => margin.left + ((date - start) / 86400000 / spanDays) * plotW;
-      const y = value => margin.top + plotH - ((value - yDomainMin) / (yDomainMax - yDomainMin)) * plotH;
+      const yTicks = niceTicks(yDomainMin, yDomainMax, 5);
+      const yNiceMin = yTicks[0];
+      const yNiceMax = yTicks[yTicks.length - 1];
+      const yPrecision = Math.max(tickPrecision(yTicks), panel.kind === "RHR" ? 0 : 1);
+      const y = value => margin.top + plotH - ((value - yNiceMin) / (yNiceMax - yNiceMin)) * plotH;
       const ma3 = centeredMA(values, 3).map((value, index) => ({ date: points[index].date, value }));
       const ma7 = centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
-      const yTicks = Array.from({ length: 5 }, (_, index) => yDomainMin + ((yDomainMax - yDomainMin) * index / 4));
       const monthTicks = [];
       const monthCursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
       while (monthCursor <= end) {
@@ -1060,7 +1096,7 @@
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
         ${janBand}
         ${mondayDates(start, end).map(date => `<line class="health-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}"></line>`).join("")}
-        ${yTicks.map(tick => `<line class="health-y-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="health-axis-label" x="${margin.left - 14}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick.toFixed(panel.kind === "RHR" ? 0 : 1)}</text>`).join("")}
+        ${yTicks.map(tick => `<line class="health-y-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="health-axis-label" x="${margin.left - 14}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick.toFixed(yPrecision)}</text>`).join("")}
         ${monthTicks.map(date => `<text class="health-axis-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="health-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="health-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
@@ -1109,13 +1145,14 @@
       const comparison2024 = cumulativeSeries(comparisonRunDistances2024, year - 2);
       if (!current.points.length) return;
 
-      const yMax = Math.max(50, Math.ceil(Math.max(current.total, comparison.total, comparison2024.total) / 50) * 50);
+      const rawYMax = Math.max(50, current.total, comparison.total, comparison2024.total);
+      const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
+      const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
       const x = date => margin.left + (dayOfYear(date) / totalDays) * plotW;
       const y = value => margin.top + plotH - (value / yMax) * plotH;
       const linePath = points => points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
-      const yTicks = Array.from({ length: 5 }, (_, i) => Math.round((yMax / 4) * i));
       const itbsStart = new Date(`${year}-02-22T12:00:00`);
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
       const last = current.points[current.points.length - 1];
@@ -1165,17 +1202,18 @@
         buckets[bucket].count += 1;
       });
       const maxCount = Math.max(1, ...buckets.map(bucket => bucket.count));
+      const yTicks = niceTicks(0, maxCount, 5).filter(tick => tick >= 0);
+      const yMax = yTicks[yTicks.length - 1];
       const x = value => margin.left + (value / domainMax) * plotW;
-      const y = count => margin.top + plotH - (count / maxCount) * plotH;
+      const y = count => margin.top + plotH - (count / yMax) * plotH;
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax / 5) + 1 }, (_, index) => index * 5);
-      const yTicks = Array.from({ length: Math.min(5, maxCount) }, (_, index) => Math.round((maxCount / Math.max(1, Math.min(5, maxCount) - 1)) * index));
       const latest = dailyDistances[dailyDistances.length - 1];
       const latestBucketIndex = Math.min(domainMax, Math.max(0, Math.floor(latest.km)));
       const avg = dailyDistances.reduce((sum, day) => sum + day.km, 0) / dailyDistances.length;
       const barGap = 3;
       const barWidth = Math.max(2, (plotW / (domainMax + 1)) - barGap);
-      const unitHeight = plotH / maxCount;
+      const unitHeight = plotH / yMax;
       const bars = buckets.map(bucket => {
         if (!bucket.count) return "";
         const bx = x(bucket.km) + barGap / 2;
