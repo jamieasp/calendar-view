@@ -489,12 +489,45 @@
       font-weight: 900;
       cursor: pointer;
     }
-    .histogram-filter[data-histogram-year="2024"] { background: rgba(255, 226, 77, 0.22); }
-    .histogram-filter[data-histogram-year="2025"] { background: rgba(255, 226, 77, 0.50); }
-    .histogram-filter[data-histogram-year="2026"] { background: rgba(255, 226, 77, 0.82); }
-    .histogram-filter.active {
+    .histogram-filter[data-histogram-year="2024"],
+    .heatmap-filter[data-heatmap-year="2024"] { background: rgba(255, 226, 77, 0.22); }
+    .histogram-filter[data-histogram-year="2025"],
+    .heatmap-filter[data-heatmap-year="2025"] { background: rgba(255, 226, 77, 0.50); }
+    .histogram-filter[data-histogram-year="2026"],
+    .heatmap-filter[data-heatmap-year="2026"] { background: rgba(255, 226, 77, 0.82); }
+    .histogram-filter.active,
+    .heatmap-filter.active {
       box-shadow: inset 0 0 0 2px var(--pencil), 0 3px 8px rgba(21, 37, 54, 0.10);
     }
+    .heatmap-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 12px 0 4px;
+    }
+    .heatmap-filter {
+      appearance: none;
+      border: 1px solid rgba(120, 98, 22, 0.26);
+      border-radius: 999px;
+      background: white;
+      color: var(--ink);
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .heatmap-cell {
+      stroke: rgba(120, 98, 22, 0.22);
+      stroke-width: 1.1;
+      vector-effect: non-scaling-stroke;
+    }
+    .heatmap-cell.level-0 { fill: rgba(255, 255, 255, 0.74); }
+    .heatmap-cell.level-1 { fill: rgba(255, 226, 77, 0.22); }
+    .heatmap-cell.level-2 { fill: rgba(255, 226, 77, 0.42); }
+    .heatmap-cell.level-3 { fill: rgba(255, 226, 77, 0.64); }
+    .heatmap-cell.level-4 { fill: rgba(255, 226, 77, 0.86); }
+    .heatmap-cell.latest { fill: #152536; stroke: var(--pencil); stroke-width: 1.8; }
     .distance-chart {
       display: block;
       width: 100%;
@@ -596,8 +629,7 @@
     }
     .health-daily-dot { fill: #6f8fad; opacity: 0.38; }
     .health-latest-dot { fill: #152536; stroke: white; stroke-width: 2.2; opacity: 0.98; }
-    .health-ma3 { fill: none; stroke: #d46a00; stroke-width: 3.5; opacity: 0.95; stroke-linejoin: round; stroke-linecap: round; }
-    .health-ma7 { fill: none; stroke: #0b65c2; stroke-width: 4.8; stroke-linejoin: round; stroke-linecap: round; }
+    .health-ma7 { fill: none; stroke: var(--ink); stroke-width: 5.2; stroke-linejoin: round; stroke-linecap: round; }
     .health-latest-line { stroke: #152536; stroke-width: 2.9; stroke-dasharray: 3 6; opacity: 0.55; }
     .health-jan-band { fill: var(--today); opacity: 0.22; }
     .health-event-line { stroke-width: 3; stroke-dasharray: 2 6; opacity: 0.9; }
@@ -679,6 +711,15 @@
         <button type="button" class="histogram-filter" data-histogram-year="2026">2026</button>
       </div>
       <svg id="run-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of daily running distances with latest day marked"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Distance heatmap</h2>
+      </div>
+      <div class="heatmap-filters" aria-label="Distance heatmap year">
+        <button type="button" class="heatmap-filter" data-heatmap-year="2024">2024</button>
+        <button type="button" class="heatmap-filter" data-heatmap-year="2025">2025</button>
+        <button type="button" class="heatmap-filter active" data-heatmap-year="2026">2026</button>
+      </div>
+      <svg id="distance-heatmap" class="distance-chart" viewBox="0 0 1500 360" role="img" aria-label="GitHub-style daily running distance heatmap"></svg>
     </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
@@ -721,6 +762,7 @@
     }
     const calendar = document.getElementById("calendar");
     let histogramYearFilter = "all";
+    let heatmapYearFilter = String(year);
     const runDistances = {
           "2026-01-11": 11,
           "2026-01-14": 2,
@@ -779,6 +821,7 @@
     };
 
     const runElevations = {
+          "2026-01-07": 53,
           "2026-01-11": 8,
           "2026-01-14": 5,
           "2026-01-16": 113,
@@ -832,6 +875,152 @@
           "2026-07-27": 257,
           "2026-07-30": 36,
           "2026-08-02": 534
+    };
+
+    const comparisonRunElevations = {
+          "2025-01-03": 275,
+          "2025-01-05": 253,
+          "2025-01-08": 52,
+          "2025-01-09": 251,
+          "2025-01-12": 280,
+          "2025-01-15": 106,
+          "2025-01-17": 246,
+          "2025-01-18": 419,
+          "2025-01-22": 249,
+          "2025-01-26": 126,
+          "2025-01-27": 15,
+          "2025-02-06": 120,
+          "2025-02-12": 15,
+          "2025-02-17": 119,
+          "2025-02-19": 31,
+          "2025-02-26": 30,
+          "2025-03-04": 82,
+          "2025-03-05": 89,
+          "2025-03-26": 208,
+          "2025-04-15": 213,
+          "2025-04-19": 85,
+          "2025-04-23": 210,
+          "2025-04-29": 12,
+          "2025-04-30": 211,
+          "2025-05-04": 437,
+          "2025-05-10": 379,
+          "2025-05-12": 100,
+          "2025-05-14": 20,
+          "2025-05-19": 210,
+          "2025-05-20": 206,
+          "2025-05-22": 202,
+          "2025-05-27": 204,
+          "2025-05-29": 353,
+          "2025-06-01": 69,
+          "2025-06-06": 70,
+          "2025-06-09": 226,
+          "2025-06-12": 60,
+          "2025-06-13": 68,
+          "2025-06-18": 362,
+          "2025-07-10": 497,
+          "2025-07-14": 200,
+          "2025-07-16": 204,
+          "2025-07-17": 16,
+          "2025-07-18": 558,
+          "2025-07-21": 208,
+          "2025-07-26": 139,
+          "2025-07-27": 146,
+          "2025-07-30": 221,
+          "2025-07-31": 72,
+          "2025-08-01": 569,
+          "2025-08-03": 624,
+          "2025-08-15": 203,
+          "2025-08-16": 525,
+          "2025-08-19": 226,
+          "2025-08-20": 196,
+          "2025-08-24": 1322,
+          "2025-08-27": 11,
+          "2025-08-30": 848,
+          "2025-09-04": 989,
+          "2025-09-07": 1241,
+          "2025-09-10": 54,
+          "2025-09-13": 104,
+          "2025-09-18": 245,
+          "2025-09-22": 222,
+          "2025-09-24": 431,
+          "2025-09-26": 390,
+          "2025-09-27": 861,
+          "2025-10-09": 226,
+          "2025-10-12": 1166,
+          "2025-10-17": 678,
+          "2025-10-19": 1254,
+          "2025-10-24": 880,
+          "2025-10-28": 42,
+          "2025-11-01": 122,
+          "2025-11-08": 1406,
+          "2025-11-12": 656,
+          "2025-11-15": 964,
+          "2025-11-26": 60,
+          "2025-11-28": 232,
+          "2025-12-02": 118,
+          "2025-12-04": 112,
+          "2025-12-07": 125,
+          "2025-12-10": 127,
+          "2025-12-12": 254,
+          "2025-12-17": 5,
+          "2025-12-18": 82,
+          "2025-12-20": 107,
+          "2025-12-23": 409,
+          "2025-12-27": 35
+    };
+
+    const comparisonRunElevations2024 = {
+          "2024-03-19": 44,
+          "2024-04-17": 76,
+          "2024-04-20": 61,
+          "2024-04-23": 223,
+          "2024-04-24": 187,
+          "2024-05-01": 158,
+          "2024-05-02": 35,
+          "2024-05-07": 238,
+          "2024-05-17": 19,
+          "2024-05-22": 98,
+          "2024-05-29": 422,
+          "2024-05-31": 163,
+          "2024-06-05": 72,
+          "2024-06-06": 17,
+          "2024-06-12": 65,
+          "2024-06-13": 235,
+          "2024-06-19": 166,
+          "2024-06-23": 20,
+          "2024-06-26": 193,
+          "2024-07-03": 46,
+          "2024-07-09": 41,
+          "2024-07-13": 477,
+          "2024-07-17": 3094,
+          "2024-07-20": 4998,
+          "2024-07-27": 1233,
+          "2024-08-02": 220,
+          "2024-08-07": 87,
+          "2024-08-12": 226,
+          "2024-08-18": 950,
+          "2024-08-21": 67,
+          "2024-08-25": 755,
+          "2024-08-30": 333,
+          "2024-08-31": 1187,
+          "2024-09-04": 293,
+          "2024-09-09": 1513,
+          "2024-09-11": 241,
+          "2024-09-12": 408,
+          "2024-09-21": 1179,
+          "2024-10-06": 395,
+          "2024-10-18": 15,
+          "2024-10-23": 127,
+          "2024-10-27": 605,
+          "2024-10-30": 64,
+          "2024-10-31": 241,
+          "2024-11-03": 354,
+          "2024-11-05": 247,
+          "2024-11-08": 351,
+          "2024-11-13": 13,
+          "2024-11-23": 3,
+          "2024-12-22": 261,
+          "2024-12-28": 34
     };
 
     const stretchStreaks = {
@@ -1235,7 +1424,7 @@
       const ymin = Math.min(...values);
       const ymax = Math.max(...values);
       const yr = ymax - ymin || 1;
-      const yPad = yr * 0.06;
+      const yPad = yr * (panel.kind === "HRV" ? 0.06 : 0.025);
       const yDomainMin = ymin - yPad;
       const yDomainMax = ymax + yPad;
       const start = points[0].date;
@@ -1247,7 +1436,6 @@
       const yNiceMax = yTicks[yTicks.length - 1];
       const yPrecision = Math.max(tickPrecision(yTicks), panel.kind === "RHR" ? 0 : 1);
       const y = value => margin.top + plotH - ((value - yNiceMin) / (yNiceMax - yNiceMin)) * plotH;
-      const ma3 = centeredMA(values, 3).map((value, index) => ({ date: points[index].date, value }));
       const ma7 = centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
       const monthTicks = [];
       const monthCursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
@@ -1296,7 +1484,6 @@
         <line class="health-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="health-title" x="${margin.left}" y="46">${panel.title}</text>
         <text class="health-axis-label" x="22" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 22 ${margin.top + plotH / 2})">${panel.ylabel}</text>
-        <path class="health-ma3" d="${svgPath(ma3, x, y)}"></path>
         <path class="health-ma7" d="${svgPath(ma7, x, y)}"></path>
         <line class="health-latest-line" x1="${margin.left}" y1="${y(latest.value).toFixed(1)}" x2="${width - margin.right}" y2="${y(latest.value).toFixed(1)}"></line>
         ${points.map(point => `<circle class="health-daily-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="4.6"></circle>`).join("")}
@@ -1386,6 +1573,8 @@
       if (!svg) return;
 
       const current = cumulativeSeries(runElevations, year);
+      const comparison = cumulativeSeries(comparisonRunElevations, year - 1);
+      const comparison2024 = cumulativeSeries(comparisonRunElevations2024, year - 2);
       if (!current.points.length) return;
 
       const width = 1500;
@@ -1396,7 +1585,7 @@
       const yearStart = new Date(`${year}-01-01T12:00:00`);
       const yearEnd = new Date(`${year}-12-31T12:00:00`);
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
-      const rawYMax = Math.max(1000, current.total);
+      const rawYMax = Math.max(1000, current.total, comparison.total, comparison2024.total);
       const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
@@ -1405,6 +1594,8 @@
       const linePath = points => points.map((point, i) => `${i ? "L" : "M"}${x(point.date).toFixed(1)},${y(point.cumulative).toFixed(1)}`).join(" ");
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
       const last = current.points[current.points.length - 1];
+      const comparisonLast = comparison.points[comparison.points.length - 1];
+      const comparison2024Last = comparison2024.points[comparison2024.points.length - 1];
 
       svg.innerHTML = `
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
@@ -1412,9 +1603,13 @@
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">metres climbed</text>
+        <path class="chart-line comparison-2024" d="${linePath(comparison2024.points)}"></path>
+        <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
         <circle class="chart-dot" cx="${x(last.date).toFixed(1)}" cy="${y(last.cumulative).toFixed(1)}" r="5.5"></circle>
         ${chartEndLabel(x(last.date) + 42, y(last.cumulative) - 22, ["2026", `${Math.round(current.total).toLocaleString("en-GB")}m`])}
+        ${chartEndLabel(x(comparisonLast.date) + 42, y(comparisonLast.cumulative) + 28, ["2025", `${Math.round(comparison.total).toLocaleString("en-GB")}m`])}
+        ${chartEndLabel(x(comparison2024Last.date) + 42, y(comparison2024Last.cumulative) + 28, ["2024", `${Math.round(comparison2024.total).toLocaleString("en-GB")}m`])}
       `;
     }
 
@@ -1506,6 +1701,75 @@
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${baseline}"></line>
         <text class="chart-label" x="${width - margin.right}" y="${height - 30}" text-anchor="end">km</text>
         ${bars}
+      `;
+    }
+
+    function runDistanceSourceForYear(selectedYear) {
+      if (selectedYear === 2024) return comparisonRunDistances2024;
+      if (selectedYear === 2025) return comparisonRunDistances;
+      return runDistances;
+    }
+
+    function renderDistanceHeatmap() {
+      const svg = document.getElementById("distance-heatmap");
+      if (!svg) return;
+
+      const selectedYear = Number(heatmapYearFilter || year);
+      const distances = runDistanceSourceForYear(selectedYear);
+      const width = 1500;
+      const height = 360;
+      const margin = { top: 58, right: 72, bottom: 42, left: 78 };
+      const cell = 18;
+      const gap = 5;
+      const rowPitch = cell + gap;
+      const colPitch = cell + gap;
+      const start = new Date(`${selectedYear}-01-01T12:00:00`);
+      const end = new Date(`${selectedYear}-12-31T12:00:00`);
+      const leading = mondayFirstOffset(start);
+      const totalCells = leading + Math.round((end - start) / 86400000) + 1;
+      const weeks = Math.ceil(totalCells / 7);
+      const plotW = weeks * colPitch;
+      const x0 = margin.left + Math.max(0, (width - margin.left - margin.right - plotW) / 2);
+      const y0 = margin.top;
+      const maxKm = Math.max(1, ...Object.values(distances).map(km => Number(km || 0)));
+      const latestIso = Object.keys(runDistances).sort().at(-1);
+      const latestYear = latestIso ? Number(latestIso.slice(0, 4)) : null;
+      const level = km => {
+        if (!km) return 0;
+        if (km < 5) return 1;
+        if (km < 10) return 2;
+        if (km < 20) return 3;
+        return 4;
+      };
+      const monthLabels = [];
+      for (let month = 0; month < 12; month++) {
+        const date = new Date(selectedYear, month, 1, 12);
+        const index = leading + Math.round((date - start) / 86400000);
+        const week = Math.floor(index / 7);
+        monthLabels.push(`<text class="chart-label" x="${(x0 + week * colPitch).toFixed(1)}" y="32" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`);
+      }
+      const dayLabels = dows.map((dow, index) => index % 2 === 0
+        ? `<text class="chart-label" x="${margin.left - 18}" y="${(y0 + index * rowPitch + 15).toFixed(1)}" text-anchor="end">${dow}</text>`
+        : ""
+      ).join("");
+      const cells = [];
+      for (let date = new Date(start), dayIndex = 0; date <= end; date.setDate(date.getDate() + 1), dayIndex++) {
+        const iso = date.toISOString().slice(0, 10);
+        const index = leading + dayIndex;
+        const week = Math.floor(index / 7);
+        const weekday = index % 7;
+        const km = Number(distances[iso] || 0);
+        const isLatest = latestYear === selectedYear && iso === latestIso;
+        const cls = isLatest ? "heatmap-cell latest" : `heatmap-cell level-${level(km)}`;
+        const label = km ? `${iso}: ${km}km` : `${iso}: no run`;
+        cells.push(`<rect class="${cls}" x="${(x0 + week * colPitch).toFixed(1)}" y="${(y0 + weekday * rowPitch).toFixed(1)}" width="${cell}" height="${cell}" rx="4"><title>${label}</title></rect>`);
+      }
+      svg.innerHTML = `
+        <text class="chart-label" x="${width - margin.right}" y="32" text-anchor="end">${selectedYear} · max ${maxKm}km</text>
+        ${monthLabels.join("")}
+        ${dayLabels}
+        ${cells.join("")}
+        <text class="chart-label" x="${width - margin.right}" y="${height - 20}" text-anchor="end">darker = longer daily run</text>
       `;
     }
 
@@ -1665,6 +1929,7 @@
     renderDistanceChart();
     renderElevationChart();
     renderRunDensityChart();
+    renderDistanceHeatmap();
     renderHealthCharts();
 
     function currentDayEl() {
@@ -1756,6 +2021,13 @@
         histogramYearFilter = button.dataset.histogramYear || "all";
         document.querySelectorAll(".histogram-filter").forEach(filter => filter.classList.toggle("active", filter === button));
         renderRunDensityChart();
+      });
+    });
+    document.querySelectorAll(".heatmap-filter").forEach(button => {
+      button.addEventListener("click", () => {
+        heatmapYearFilter = button.dataset.heatmapYear || String(year);
+        document.querySelectorAll(".heatmap-filter").forEach(filter => filter.classList.toggle("active", filter === button));
+        renderDistanceHeatmap();
       });
     });
     document.querySelector('[data-action="toggle-earlier"]')?.addEventListener("click", toggleEarlier);
