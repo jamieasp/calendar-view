@@ -1506,15 +1506,17 @@
       }
     }
 
-    function chartEndLabel(cx, firstBaselineY, lines) {
+    function chartEndLabel(labelX, firstBaselineY, lines) {
+      const highlightPadX = 7;
       const highlights = lines.map((line, index) => {
         const baseline = firstBaselineY + index * 34;
-        const width = Math.max(58, String(line).length * 17);
-        const x = cx - width / 2;
+        const width = Math.max(58, String(line).length * 17) + highlightPadX * 2;
+        const x = labelX - highlightPadX;
+        const centerX = x + width / 2;
         const angle = index % 2 ? 1.1 : -1.4;
-        return `<rect class="chart-end-highlight" x="${x.toFixed(1)}" y="${(baseline - 27).toFixed(1)}" width="${width.toFixed(1)}" height="25" rx="5" transform="rotate(${angle} ${cx.toFixed(1)} ${(baseline - 14).toFixed(1)})"></rect>`;
+        return `<rect class="chart-end-highlight" x="${x.toFixed(1)}" y="${(baseline - 27).toFixed(1)}" width="${width.toFixed(1)}" height="25" rx="5" transform="rotate(${angle} ${centerX.toFixed(1)} ${(baseline - 14).toFixed(1)})"></rect>`;
       }).join("");
-      return `${highlights}<text class="chart-end-label" x="${cx.toFixed(1)}" y="${firstBaselineY.toFixed(1)}" text-anchor="middle">${lines.map((line, index) => `<tspan x="${cx.toFixed(1)}"${index ? ' dy="34"' : ""}>${line}</tspan>`).join("")}</text>`;
+      return `${highlights}<text class="chart-end-label" x="${labelX.toFixed(1)}" y="${firstBaselineY.toFixed(1)}" text-anchor="start">${lines.map((line, index) => `<tspan x="${labelX.toFixed(1)}"${index ? ' dy="34"' : ""}>${line}</tspan>`).join("")}</text>`;
     }
 
     function renderDistanceChart() {
