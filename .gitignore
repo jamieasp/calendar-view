@@ -1,0 +1,29 @@
+# Secrets and credentials
+.secrets/
+*.token.json
+*token*.json
+*secret*.json
+client_secret*.json
+credentials.json
+service_account*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local env
+.env
+.env.*
