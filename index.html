@@ -2088,6 +2088,22 @@
     initTimers();
 
     function initTimers() {
+      let audioCtx = null;
+      function ping(final) {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const ctx = audioCtx;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.value = final ? 1046 : 880;
+          gain.gain.setValueAtTime(0.28, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (final ? 0.35 : 0.12));
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + (final ? 0.35 : 0.12));
+        } catch (e) {}
+      }
       document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
         const total = parseInt(li.dataset.seconds);
         const row = document.createElement("div");
@@ -2121,6 +2137,7 @@
             if (!live) { reset(); return; }
             live.classList.add("gone");
             remaining--;
+            if (remaining > 0 && remaining <= 3) ping(false);
             if (remaining <= 0) reset();
           }, 1000);
         });
