@@ -157,6 +157,22 @@ def load_metric_points(payload: dict, value_key: str, start: dt.date) -> list[tu
     return sorted(points)
 
 
+def load_body_fat_points(payload: dict, start: dt.date) -> list[tuple[dt.date, float]]:
+    """Parse body fat dataPoints; uses timestamp-based date; averages multiple readings per day."""
+    by_day: dict[dt.date, list[float]] = {}
+    for point in payload.get("dataPoints", []):
+        try:
+            ts = dt.datetime.fromisoformat(point["time"])
+            day = ts.date()
+            value = float(point["percentage"])
+        except Exception:
+            continue
+        if day < start:
+            continue
+        by_day.setdefault(day, []).append(value)
+    return sorted((day, sum(vals) / len(vals)) for day, vals in by_day.items())
+
+
 def build_ratio_points(rhr_points: list[tuple[dt.date, float]], hrv_points: list[tuple[dt.date, float]]) -> list[tuple[dt.date, float]]:
     rhr_by_date = dict(rhr_points)
     hrv_by_date = dict(hrv_points)
@@ -230,9 +246,11 @@ def build_health_chart_data() -> dict:
     rhr_payload = run_json(["ghealth", "data", "daily-resting-heart-rate", "list", "--from", HEALTH_START, "--limit", "500"])
     hrv_payload = run_json(["ghealth", "data", "daily-heart-rate-variability", "list", "--from", HEALTH_START, "--limit", "500"])
     exercise_payload = run_json(["ghealth", "data", "exercise", "list", "--from", HEALTH_START, "--limit", "1200"])
+    bf_payload = run_json(["ghealth", "data", "body-fat", "list", "--from", HEALTH_START, "--limit", "500"])
     rhr_points = load_metric_points(rhr_payload, "beatsPerMinute", start)
     hrv_points = load_metric_points(hrv_payload, "averageHeartRateVariabilityMilliseconds", start)
     ratio_points = build_ratio_points(rhr_points, hrv_points)
+    bf_points = load_body_fat_points(bf_payload, start)
     long_dates = parse_long_run_dates(exercise_payload, start)
 
     def panel(kind: str, title: str, ylabel: str, unit: str, points: list[tuple[dt.date, float]], lower_is_better: bool) -> dict:
@@ -258,6 +276,7 @@ def build_health_chart_data() -> dict:
             panel("RHR", "Resting Heart Rate", "RHR (bpm)", "bpm", rhr_points, True),
             panel("HRV", "Heart Rate Variability", "HRV (ms)", "ms", hrv_points, False),
             panel("RHR/HRV", "RHR / HRV", "RHR / HRV (bpm/ms)", "", ratio_points, True),
+            panel("BodyFat", "Body Fat", "Body Fat (%)", "%", bf_points, True),
         ],
     }
 

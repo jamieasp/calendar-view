@@ -626,6 +626,7 @@
       overflow: visible;
     }
     .health-daily-dot { fill: #6f8fad; opacity: 0.38; }
+    .health-sparse-dot { fill: var(--pencil); opacity: 0.80; }
     .health-latest-dot { fill: #152536; stroke: white; stroke-width: 2.2; opacity: 0.98; }
     .health-ma7 { fill: none; stroke: var(--ink); stroke-width: 5.2; stroke-linejoin: round; stroke-linecap: round; }
     .health-latest-line { stroke: #152536; stroke-width: 2.9; stroke-dasharray: 3 6; opacity: 0.55; }
@@ -1430,11 +1431,15 @@
       const ymin = Math.min(...values);
       const ymax = Math.max(...values);
       const yr = ymax - ymin || 1;
+      const isSparse = panel.kind === "BodyFat";
       const yPad = yr * (panel.kind === "HRV" ? 0.06 : 0.025);
       const yDomainMin = ymin - yPad;
       const yDomainMax = ymax + yPad;
-      const start = points[0].date;
-      const end = points[points.length - 1].date;
+      const rawStart = points[0].date;
+      const rawEnd = points[points.length - 1].date;
+      const nowDate = new Date();
+      const start = isSparse ? new Date(rawStart.getFullYear(), rawStart.getMonth(), rawStart.getDate() - 7) : rawStart;
+      const end = isSparse ? new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate() + 3) : rawEnd;
       const spanDays = Math.max(1, Math.round((end - start) / 86400000));
       const x = date => margin.left + ((date - start) / 86400000 / spanDays) * plotW;
       const yTicks = niceTicks(yDomainMin, yDomainMax, 5);
@@ -1442,7 +1447,7 @@
       const yNiceMax = yTicks[yTicks.length - 1];
       const yPrecision = Math.max(tickPrecision(yTicks), panel.kind === "RHR" ? 0 : 1);
       const y = value => margin.top + plotH - ((value - yNiceMin) / (yNiceMax - yNiceMin)) * plotH;
-      const ma7 = centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
+      const ma7 = isSparse ? [] : centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
       const monthTicks = [];
       const monthCursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
       while (monthCursor <= end) {
@@ -1468,7 +1473,7 @@
             <rect class="health-event-highlight" x="${(labelX + 2).toFixed(1)}" y="${(labelY - 27).toFixed(1)}" width="${labelWidth.toFixed(1)}" height="26" rx="5" transform="rotate(-1.6 ${(labelX + labelWidth / 2).toFixed(1)} ${(labelY - 14).toFixed(1)})"></rect>
             <text class="health-event-label" x="${(labelX + 8).toFixed(1)}" y="${labelY.toFixed(1)}">${marker.label}</text>`;
         }).join("");
-      const rug = panel.kind === "RHR" ? "" : values.map((value, index) => {
+      const rug = (panel.kind === "RHR" || isSparse) ? "" : values.map((value, index) => {
         const jitter = Math.max(yr * 0.018, 0.28) * Math.sin(index * 12.9898) * 0.85;
         const yy = y(value + jitter);
         return `<line class="health-rug" x1="${(width - margin.right + 22).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
@@ -1484,9 +1489,11 @@
         <line class="health-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="health-title" x="${margin.left}" y="46">${panel.title}</text>
         <text class="health-axis-label" x="22" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 22 ${margin.top + plotH / 2})">${panel.ylabel}</text>
-        <path class="health-ma7" d="${svgPath(ma7, x, y)}"></path>
-        <line class="health-latest-line" x1="${margin.left}" y1="${y(latest.value).toFixed(1)}" x2="${width - margin.right}" y2="${y(latest.value).toFixed(1)}"></line>
-        ${points.map(point => `<circle class="health-daily-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="4.6"></circle>`).join("")}
+        ${isSparse ? "" : `<path class="health-ma7" d="${svgPath(ma7, x, y)}"></path>`}
+        ${isSparse ? "" : `<line class="health-latest-line" x1="${margin.left}" y1="${y(latest.value).toFixed(1)}" x2="${width - margin.right}" y2="${y(latest.value).toFixed(1)}"></line>`}
+        ${isSparse
+          ? points.filter(p => p !== latest).map(point => `<circle class="health-sparse-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="6.5"></circle>`).join("")
+          : points.map(point => `<circle class="health-daily-dot" cx="${x(point.date).toFixed(1)}" cy="${y(point.value).toFixed(1)}" r="4.6"></circle>`).join("")}
         ${events}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
