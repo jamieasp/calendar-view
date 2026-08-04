@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-04T06:01:09.458840+00:00",
+  "generatedAt": "2026-08-04T07:23:30.198707+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1105,9 +1105,13 @@
         {
           "date": "2026-08-03",
           "value": 60.0
+        },
+        {
+          "date": "2026-08-04",
+          "value": 59.0
         }
       ],
-      "latestPercentile": 45.1
+      "latestPercentile": 56.8
     },
     {
       "kind": "HRV",
@@ -2211,9 +2215,13 @@
         {
           "date": "2026-08-03",
           "value": 27.2
+        },
+        {
+          "date": "2026-08-04",
+          "value": 44.65
         }
       ],
-      "latestPercentile": 7.1
+      "latestPercentile": 86.5
     },
     {
       "kind": "RHR/HRV",
@@ -3245,9 +3253,13 @@
         {
           "date": "2026-08-03",
           "value": 2.2059
+        },
+        {
+          "date": "2026-08-04",
+          "value": 1.3214
         }
       ],
-      "latestPercentile": 11.0
+      "latestPercentile": 84.8
     }
   ]
 }
