@@ -2128,7 +2128,7 @@
           }
         } catch (e) {}
       }
-      function makeTimer(li, total, isRest) {
+      function makeTimer(li, total, isRest, onComplete) {
         const row = document.createElement("div");
         row.className = "train-timer";
         if (isRest) {
@@ -2158,24 +2158,33 @@
           blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone"));
           btn.textContent = "\u25B6";
         }
-        btn.addEventListener("click", () => {
+        function tick() {
+          const live = blocksEl.querySelector(".train-timer-block:not(.gone)");
+          if (!live) { reset(); return; }
+          live.classList.add("gone");
+          remaining--;
+          const elapsed = total - remaining;
+          if (remaining > 3 && elapsed % 15 === 0) ping(false);
+          if (remaining > 0 && remaining <= 3) ping(false);
+          if (remaining <= 0) { ping(true); reset(); if (onComplete) onComplete(); }
+        }
+        function start() {
           if (timer) { reset(); return; }
           btn.textContent = "\u25A0";
-          timer = setInterval(() => {
-            const live = blocksEl.querySelector(".train-timer-block:not(.gone)");
-            if (!live) { reset(); return; }
-            live.classList.add("gone");
-            remaining--;
-            const elapsed = total - remaining;
-            if (remaining > 3 && elapsed % 15 === 0) ping(false);
-            if (remaining > 0 && remaining <= 3) ping(false);
-            if (remaining <= 0) { ping(true); reset(); }
-          }, 1000);
-        });
+          timer = setInterval(tick, 1000);
+        }
+        btn.addEventListener("click", start);
+        return { start };
       }
       document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
-        makeTimer(li, parseInt(li.dataset.seconds), false);
-        if (li.dataset.restSeconds) makeTimer(li, parseInt(li.dataset.restSeconds), true);
+        if (li.dataset.restSeconds) {
+          let restStart = null;
+          makeTimer(li, parseInt(li.dataset.seconds), false, () => { if (restStart) restStart(); });
+          const restCtrl = makeTimer(li, parseInt(li.dataset.restSeconds), true);
+          restStart = () => restCtrl.start();
+        } else {
+          makeTimer(li, parseInt(li.dataset.seconds), false);
+        }
       });
     }
 
