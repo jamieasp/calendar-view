@@ -2093,15 +2093,24 @@
         try {
           if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
           const ctx = audioCtx;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.type = "sine";
-          osc.frequency.value = final ? 1046 : 880;
-          gain.gain.setValueAtTime(0.28, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (final ? 0.35 : 0.12));
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + (final ? 0.35 : 0.12));
+          const now = ctx.currentTime;
+          if (final) {
+            [[880, now, 0.28], [1046, now + 0.22, 0.36]].forEach(([freq, t, dur]) => {
+              const osc = ctx.createOscillator(); const gain = ctx.createGain();
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.type = "sine"; osc.frequency.value = freq;
+              gain.gain.setValueAtTime(0.3, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+              osc.start(t); osc.stop(t + dur);
+            });
+          } else {
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = "sine"; osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+            osc.start(now); osc.stop(now + 0.12);
+          }
         } catch (e) {}
       }
       document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
@@ -2137,8 +2146,10 @@
             if (!live) { reset(); return; }
             live.classList.add("gone");
             remaining--;
+            const elapsed = total - remaining;
+            if (remaining > 3 && elapsed % 15 === 0) ping(false);
             if (remaining > 0 && remaining <= 3) ping(false);
-            if (remaining <= 0) reset();
+            if (remaining <= 0) { ping(true); reset(); }
           }, 1000);
         });
       });
