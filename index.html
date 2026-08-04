@@ -122,7 +122,7 @@
       width: min(calc(100% - 24px), 406px);
       transform: translateX(-50%);
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 5px;
       padding: 5px;
       border: 1px solid rgba(120, 98, 22, 0.16);
@@ -446,6 +446,72 @@
       font-weight: 800;
     }
 
+    .train-section {
+      margin-top: 56px;
+      padding-top: 8px;
+      scroll-margin-top: 112px;
+    }
+    .train-section h2 {
+      display: inline;
+      background: linear-gradient(100deg, transparent 0, var(--highlighter-strong) 4% 96%, transparent 100%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      padding: 0 0.08em;
+      margin: 0 0 6px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .train-meta {
+      margin: 14px 0 22px;
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 0.9rem;
+    }
+    .train-block {
+      border: 1px solid #eadfce;
+      border-radius: 14px;
+      padding: 14px 16px 10px;
+      background: rgba(255,255,255,0.62);
+      margin-bottom: 12px;
+    }
+    .train-block-title {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .train-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+    .train-list li {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .train-exercise {
+      font-weight: 850;
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+    }
+    .train-sets {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+    .train-link {
+      color: var(--ink);
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 3px;
+    }
+    .train-link:hover { opacity: 0.7; }
     .chart-section {
       margin-top: 64px;
       padding-top: 12px;
@@ -739,11 +805,39 @@
       <h2 id="considered-races-title">Considered races</h2>
       <ul id="considered-races" class="race-list"></ul>
     </section>
+    <section class="train-section" aria-labelledby="train-title">
+      <h2 id="train-title">PT Home Routine</h2>
+      <p class="train-meta">2× per week minimum &middot; 25&ndash;30 min</p>
+      <div class="train-block">
+        <h3 class="train-block-title">🔥 Warm up</h3>
+        <ul class="train-list">
+          <li><span class="train-exercise">Single leg stand on cushion</span><span class="train-sets">30s each side &middot; look left &amp; right</span></li>
+          <li><span class="train-exercise"><a href="https://youtu.be/VYItAZ1sLhA" target="_blank" class="train-link">Hip Tucks</a></span><span class="train-sets">2&times;10 each side</span></li>
+        </ul>
+      </div>
+      <div class="train-block">
+        <h3 class="train-block-title">💪 Block 1</h3>
+        <ul class="train-list">
+          <li><span class="train-exercise"><a href="https://youtu.be/39vuP5xozsI" target="_blank" class="train-link">Clamshells</a></span><span class="train-sets">2&times;15&ndash;20 &middot; med/heavy band &middot; burn the outer glute</span></li>
+          <li><span class="train-exercise"><a href="https://youtu.be/LEo2tzciV6g" target="_blank" class="train-link">Banded eversion</a></span><span class="train-sets">2&times;1 min &middot; affected side &middot; light/med band</span></li>
+          <li><span class="train-exercise"><a href="https://youtu.be/PAD7sMmIgts" target="_blank" class="train-link">Side plank + leg lift</a></span><span class="train-sets">2&times;20&ndash;30s each side</span></li>
+          <li><span class="train-exercise"><a href="https://youtu.be/HNa-n4xq8ro" target="_blank" class="train-link">Tibialis anterior raises</a></span><span class="train-sets">3&times;20&ndash;25 &middot; heavy band &middot; each side</span></li>
+        </ul>
+      </div>
+      <div class="train-block">
+        <h3 class="train-block-title">🧘 Stretches</h3>
+        <ul class="train-list">
+          <li><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
+          <li><span class="train-exercise"><a href="https://youtu.be/t4Zz6-aG8Iw" target="_blank" class="train-link">Deer / 90-90 hip stretch</a></span><span class="train-sets">90s each side &times;1</span></li>
+        </ul>
+      </div>
+    </section>
   </main>
   <nav class="bottom-tabs" aria-label="Primary sections">
     <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar">Calendar</button>
     <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts">Charts</button>
     <button type="button" class="bottom-tab" data-tab="races" aria-label="Races">Races</button>
+    <button type="button" class="bottom-tab" data-tab="train" aria-label="Train">Train</button>
   </nav>
   <script>
     const year = 2026;
@@ -1982,6 +2076,10 @@
       document.querySelector(".races-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       setActiveTab("races");
     }
+    function scrollToTrain() {
+      document.querySelector(".train-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTab("train");
+    }
     function toggleEarlier() {
       showEarlier = !showEarlier;
       const button = document.querySelector('[data-action="toggle-earlier"]');
@@ -2040,6 +2138,7 @@
         if (button.dataset.tab === "calendar") scrollToCalendar();
         if (button.dataset.tab === "charts") scrollToChart();
         if (button.dataset.tab === "races") scrollToLists();
+        if (button.dataset.tab === "train") scrollToTrain();
       });
     });
     document.querySelectorAll(".histogram-filter").forEach(button => {
