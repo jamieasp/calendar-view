@@ -512,6 +512,40 @@
       text-underline-offset: 3px;
     }
     .train-link:hover { opacity: 0.7; }
+    .train-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 7px;
+    }
+    .train-timer-blocks {
+      flex: 1;
+      display: flex;
+      gap: 1px;
+      height: 8px;
+    }
+    .train-timer-block {
+      flex: 1;
+      height: 100%;
+      border-radius: 2px;
+      background: var(--today);
+      transition: opacity 0.15s;
+    }
+    .train-timer-block.gone { opacity: 0; }
+    .train-timer-btn {
+      appearance: none;
+      border: 1px solid rgba(120, 98, 22, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 247, 220, 0.72);
+      color: var(--ink);
+      font-size: 0.72rem;
+      font-weight: 900;
+      padding: 2px 9px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .train-timer-btn:active { transform: translateY(1px); }
     .chart-section {
       margin-top: 64px;
       padding-top: 12px;
@@ -811,7 +845,7 @@
       <div class="train-block">
         <h3 class="train-block-title">🔥 Warm up</h3>
         <ul class="train-list">
-          <li><span class="train-exercise">Single leg stand on cushion</span><span class="train-sets">30s each side &middot; look left &amp; right</span></li>
+          <li data-seconds="30"><span class="train-exercise">Single leg stand on cushion</span><span class="train-sets">30s each side &middot; look left &amp; right</span></li>
           <li><span class="train-exercise"><a href="https://youtu.be/VYItAZ1sLhA" target="_blank" class="train-link">Hip Tucks</a></span><span class="train-sets">2&times;10 each side</span></li>
         </ul>
       </div>
@@ -819,16 +853,16 @@
         <h3 class="train-block-title">💪 Block 1</h3>
         <ul class="train-list">
           <li><span class="train-exercise"><a href="https://youtu.be/39vuP5xozsI" target="_blank" class="train-link">Clamshells</a></span><span class="train-sets">2&times;15&ndash;20 &middot; med/heavy band &middot; burn the outer glute</span></li>
-          <li><span class="train-exercise"><a href="https://youtu.be/LEo2tzciV6g" target="_blank" class="train-link">Banded eversion</a></span><span class="train-sets">2&times;1 min &middot; affected side &middot; light/med band</span></li>
-          <li><span class="train-exercise"><a href="https://youtu.be/PAD7sMmIgts" target="_blank" class="train-link">Side plank + leg lift</a></span><span class="train-sets">2&times;20&ndash;30s each side</span></li>
+          <li data-seconds="60"><span class="train-exercise"><a href="https://youtu.be/LEo2tzciV6g" target="_blank" class="train-link">Banded eversion</a></span><span class="train-sets">2&times;1 min &middot; affected side &middot; light/med band</span></li>
+          <li data-seconds="30"><span class="train-exercise"><a href="https://youtu.be/PAD7sMmIgts" target="_blank" class="train-link">Side plank + leg lift</a></span><span class="train-sets">2&times;20&ndash;30s each side</span></li>
           <li><span class="train-exercise"><a href="https://youtu.be/HNa-n4xq8ro" target="_blank" class="train-link">Tibialis anterior raises</a></span><span class="train-sets">3&times;20&ndash;25 &middot; heavy band &middot; each side</span></li>
         </ul>
       </div>
       <div class="train-block">
         <h3 class="train-block-title">🧘 Stretches</h3>
         <ul class="train-list">
-          <li><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
-          <li><span class="train-exercise"><a href="https://youtu.be/t4Zz6-aG8Iw" target="_blank" class="train-link">Deer / 90-90 hip stretch</a></span><span class="train-sets">90s each side &times;1</span></li>
+          <li data-seconds="60"><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
+          <li data-seconds="90"><span class="train-exercise"><a href="https://youtu.be/t4Zz6-aG8Iw" target="_blank" class="train-link">Deer / 90-90 hip stretch</a></span><span class="train-sets">90s each side &times;1</span></li>
         </ul>
       </div>
     </section>
@@ -2051,6 +2085,47 @@
     renderElevationHeatmap();
     renderStretchHeatmap();
     renderHealthCharts();
+    initTimers();
+
+    function initTimers() {
+      document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
+        const total = parseInt(li.dataset.seconds);
+        const row = document.createElement("div");
+        row.className = "train-timer";
+        const blocksEl = document.createElement("div");
+        blocksEl.className = "train-timer-blocks";
+        for (let i = 0; i < total; i++) {
+          const b = document.createElement("span");
+          b.className = "train-timer-block";
+          blocksEl.appendChild(b);
+        }
+        const btn = document.createElement("button");
+        btn.className = "train-timer-btn";
+        btn.type = "button";
+        btn.textContent = "\u25B6";
+        row.appendChild(blocksEl);
+        row.appendChild(btn);
+        li.appendChild(row);
+        let timer = null;
+        let remaining = total;
+        function reset() {
+          clearInterval(timer); timer = null; remaining = total;
+          blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone"));
+          btn.textContent = "\u25B6";
+        }
+        btn.addEventListener("click", () => {
+          if (timer) { reset(); return; }
+          btn.textContent = "\u25A0";
+          timer = setInterval(() => {
+            const live = blocksEl.querySelector(".train-timer-block:not(.gone)");
+            if (!live) { reset(); return; }
+            live.classList.add("gone");
+            remaining--;
+            if (remaining <= 0) reset();
+          }, 1000);
+        });
+      });
+    }
 
     function currentDayEl() {
       const iso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
