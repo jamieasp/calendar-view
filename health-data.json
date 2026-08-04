@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T06:01:11.693184+00:00",
+  "generatedAt": "2026-08-04T06:01:09.458840+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -2210,10 +2210,10 @@
         },
         {
           "date": "2026-08-03",
-          "value": 27.1
+          "value": 27.2
         }
       ],
-      "latestPercentile": 7.0
+      "latestPercentile": 7.1
     },
     {
       "kind": "RHR/HRV",
@@ -3244,7 +3244,7 @@
         },
         {
           "date": "2026-08-03",
-          "value": 2.214
+          "value": 2.2059
         }
       ],
       "latestPercentile": 11.0
