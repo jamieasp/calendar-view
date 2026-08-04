@@ -532,6 +532,8 @@
       transition: opacity 0.15s;
     }
     .train-timer-block.gone { opacity: 0; }
+    .train-timer-block.rest { background: #8ec2db; }
+    .train-timer-label { font-size: 0.68rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; flex: 0 0 auto; width: 30px; }
     .train-timer-btn {
       appearance: none;
       border: 1px solid rgba(120, 98, 22, 0.22);
@@ -863,6 +865,19 @@
         <ul class="train-list">
           <li data-seconds="60"><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
           <li data-seconds="90"><span class="train-exercise"><a href="https://youtu.be/t4Zz6-aG8Iw" target="_blank" class="train-link">Deer / 90-90 hip stretch</a></span><span class="train-sets">90s each side &times;1</span></li>
+        </ul>
+      </div>
+    </section>
+    <section class="train-section" aria-labelledby="abs-title">
+      <h2 id="abs-title">Abs</h2>
+      <p class="train-meta">60s work &middot; 30s rest</p>
+      <div class="train-block">
+        <ul class="train-list">
+          <li data-seconds="60" data-rest-seconds="30"><span class="train-exercise">Reverse Frog Swipes</span><span class="train-sets">60s &middot; 30s rest</span></li>
+          <li data-seconds="60" data-rest-seconds="30"><span class="train-exercise">Hip Drop Knee Drives</span><span class="train-sets">60s &middot; 30s rest</span></li>
+          <li data-seconds="60" data-rest-seconds="30"><span class="train-exercise">V-Up Leg Hugs</span><span class="train-sets">60s &middot; 30s rest</span></li>
+          <li data-seconds="60" data-rest-seconds="30"><span class="train-exercise">Sledgehammers</span><span class="train-sets">60s &middot; 30s rest</span></li>
+          <li data-seconds="60" data-rest-seconds="30"><span class="train-exercise">Rollups</span><span class="train-sets">60s &middot; 30s rest</span></li>
         </ul>
       </div>
     </section>
@@ -2113,15 +2128,20 @@
           }
         } catch (e) {}
       }
-      document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
-        const total = parseInt(li.dataset.seconds);
+      function makeTimer(li, total, isRest) {
         const row = document.createElement("div");
         row.className = "train-timer";
+        if (isRest) {
+          const lbl = document.createElement("span");
+          lbl.className = "train-timer-label";
+          lbl.textContent = "Rest";
+          row.appendChild(lbl);
+        }
         const blocksEl = document.createElement("div");
         blocksEl.className = "train-timer-blocks";
         for (let i = 0; i < total; i++) {
           const b = document.createElement("span");
-          b.className = "train-timer-block";
+          b.className = isRest ? "train-timer-block rest" : "train-timer-block";
           blocksEl.appendChild(b);
         }
         const btn = document.createElement("button");
@@ -2152,6 +2172,10 @@
             if (remaining <= 0) { ping(true); reset(); }
           }, 1000);
         });
+      }
+      document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
+        makeTimer(li, parseInt(li.dataset.seconds), false);
+        if (li.dataset.restSeconds) makeTimer(li, parseInt(li.dataset.restSeconds), true);
       });
     }
 
