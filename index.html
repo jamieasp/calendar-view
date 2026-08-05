@@ -984,12 +984,7 @@
     <section class="fartlek-section" aria-labelledby="fartlek-title">
       <h2 id="fartlek-title">Fartlek</h2>
       <p class="fartlek-meta">Random bursts &middot; voice + beep cues &middot; works screen-off</p>
-      <div class="fartlek-card">
-        <div class="fartlek-status" id="fartlek-status">Ready to run</div>
-        <div class="fartlek-countdown" id="fartlek-countdown">&nbsp;</div>
-        <div class="fartlek-stats" id="fartlek-stats">&nbsp;</div>
-        <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
-      </div>
+      <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
     </section>
   </main>
   <nav class="bottom-tabs" aria-label="Primary sections">
@@ -2313,9 +2308,6 @@
       let tickInterval = null;
 
       const btn = document.getElementById('fartlek-btn');
-      const statusEl = document.getElementById('fartlek-status');
-      const cdEl = document.getElementById('fartlek-countdown');
-      const statsEl = document.getElementById('fartlek-stats');
       if (!btn) return;
 
       function getCtx() {
@@ -2432,16 +2424,9 @@
         return m + ':' + String(sec).padStart(2, '0');
       }
 
-      function updateStats() {
-        statsEl.textContent = fmt(elapsedSec) + ' elapsed \u00b7 ' + burstCount + ' burst' + (burstCount !== 1 ? 's' : '');
-      }
-
       function startEasy() {
         phase = 'easy';
         ticksLeft = randomEasyDur();
-        statusEl.textContent = 'Easy running';
-        statusEl.style.color = '';
-        cdEl.textContent = 'next burst: ' + fmt(ticksLeft);
       }
 
       function startBurst() {
@@ -2450,12 +2435,7 @@
         const { type, duration } = randomBurst();
         ticksLeft = duration;
         burstStartBeep(type);
-        // Delay speech ~600ms so Web Audio beeps finish before TTS starts (Android audio conflict)
         setTimeout(() => speak(type + ' for ' + duration + ' seconds'), 600);
-        statusEl.textContent = type.toUpperCase();
-        statusEl.style.color = BURST_COLORS[type];
-        cdEl.textContent = ticksLeft + 's';
-        updateStats();
       }
 
       function tick() {
@@ -2464,14 +2444,9 @@
         if (blipTick >= 30) { blipTick = 0; blip(); }
         ticksLeft--;
         if (phase === 'easy') {
-          if (ticksLeft > 0) {
-            cdEl.textContent = 'next burst: ' + fmt(ticksLeft);
-          } else {
-            startBurst(); return;
-          }
+          if (ticksLeft <= 0) { startBurst(); return; }
         } else {
           if (ticksLeft > 0) {
-            cdEl.textContent = ticksLeft + 's';
             if (ticksLeft <= 3) countdownBeep();
           } else {
             burstEndBeep();
@@ -2479,7 +2454,6 @@
             startEasy();
           }
         }
-        updateStats();
       }
 
       function start() {
@@ -2514,9 +2488,6 @@
         statusEl.textContent = 'Ready to run';
         statusEl.style.color = '';
         cdEl.textContent = '\u00a0';
-        statsEl.textContent = burstCount > 0
-          ? 'Last: ' + burstCount + ' burst' + (burstCount !== 1 ? 's' : '') + ' \u00b7 ' + fmt(elapsedSec)
-          : '\u00a0';
         btn.textContent = '\u25b6 Start';
         btn.classList.remove('running');
       }
