@@ -122,7 +122,7 @@
       width: min(calc(100% - 24px), 406px);
       transform: translateX(-50%);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 5px;
       padding: 5px;
       border: 1px solid rgba(120, 98, 22, 0.16);
@@ -143,7 +143,7 @@
       min-height: 38px;
       padding: 7px 4px 8px;
       font: inherit;
-      font-size: 0.74rem;
+      font-size: 0.65rem;
       font-weight: 900;
       letter-spacing: -0.02em;
       cursor: pointer;
@@ -768,6 +768,88 @@
     .health-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.16; }
     .health-y-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.25; }
     .health-axis { stroke: #ded6c8; stroke-width: 1.3; }
+    .fartlek-section {
+      margin-top: 56px;
+      padding-top: 8px;
+      scroll-margin-top: 112px;
+    }
+    .fartlek-section h2 {
+      display: inline;
+      background: linear-gradient(100deg, transparent 0, var(--highlighter-strong) 4% 96%, transparent 100%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      padding: 0 0.08em;
+      margin: 0 0 6px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .fartlek-meta {
+      margin: 14px 0 22px;
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 0.9rem;
+    }
+    .fartlek-card {
+      border: 1px solid #eadfce;
+      border-radius: 18px;
+      padding: 28px 20px 24px;
+      background: rgba(255,255,255,0.62);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .fartlek-status {
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      transition: color 0.3s;
+      min-height: 1.9rem;
+    }
+    .fartlek-countdown {
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1;
+      min-height: 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fartlek-stats {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 750;
+      min-height: 1.2rem;
+    }
+    .fartlek-btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      background: var(--today);
+      color: var(--pencil);
+      font: inherit;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      padding: 14px 40px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(50, 40, 25, 0.13);
+      transition: background 0.25s, color 0.25s, transform 0.1s;
+      margin-top: 6px;
+    }
+    .fartlek-btn:active { transform: translateY(1px); }
+    .fartlek-btn.running {
+      background: #e74c3c;
+      color: white;
+      box-shadow: 0 6px 20px rgba(231, 76, 60, 0.30);
+    }
 
 
     @media (max-width: 760px) {
@@ -899,12 +981,23 @@
         </ul>
       </div>
     </section>
+    <section class="fartlek-section" aria-labelledby="fartlek-title">
+      <h2 id="fartlek-title">Fartlek</h2>
+      <p class="fartlek-meta">Random bursts &middot; voice + beep cues &middot; works screen-off</p>
+      <div class="fartlek-card">
+        <div class="fartlek-status" id="fartlek-status">Ready to run</div>
+        <div class="fartlek-countdown" id="fartlek-countdown">&nbsp;</div>
+        <div class="fartlek-stats" id="fartlek-stats">&nbsp;</div>
+        <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
+      </div>
+    </section>
   </main>
   <nav class="bottom-tabs" aria-label="Primary sections">
     <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar">Calendar</button>
     <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts">Charts</button>
     <button type="button" class="bottom-tab" data-tab="races" aria-label="Races">Races</button>
     <button type="button" class="bottom-tab" data-tab="train" aria-label="Train">Train</button>
+    <button type="button" class="bottom-tab" data-tab="fartlek" aria-label="Fartlek">Fartlek</button>
   </nav>
   <script>
     const year = 2026;
@@ -2121,6 +2214,7 @@
     renderStretchHeatmap();
     renderHealthCharts();
     initTimers();
+    initFartlek();
 
     function initTimers() {
       let audioCtx = null;
@@ -2208,6 +2302,179 @@
       });
     }
 
+    function initFartlek() {
+      let running = false;
+      let fAudioCtx = null;
+      let phase = 'easy';
+      let ticksLeft = 0;
+      let blipTick = 0;
+      let burstCount = 0;
+      let elapsedSec = 0;
+      let tickInterval = null;
+
+      const btn = document.getElementById('fartlek-btn');
+      const statusEl = document.getElementById('fartlek-status');
+      const cdEl = document.getElementById('fartlek-countdown');
+      const statsEl = document.getElementById('fartlek-stats');
+      if (!btn) return;
+
+      function getCtx() {
+        if (!fAudioCtx) fAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (fAudioCtx.state === 'suspended') fAudioCtx.resume();
+        return fAudioCtx;
+      }
+
+      function tone(freq, startT, dur, vol) {
+        try {
+          const ctx = getCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = freq;
+          g.gain.setValueAtTime(vol, now + startT);
+          g.gain.exponentialRampToValueAtTime(0.001, now + startT + dur);
+          osc.start(now + startT); osc.stop(now + startT + dur + 0.01);
+        } catch(e) {}
+      }
+
+      // Soft 30s heartbeat tick
+      function blip() { tone(550, 0, 0.09, 0.12); }
+
+      // Distinctive burst-start beeps per intensity
+      function burstStartBeep(type) {
+        if (type === 'Fast') {
+          // 3 ascending quick beeps — high energy
+          tone(880,  0,    0.13, 0.28);
+          tone(1046, 0.17, 0.13, 0.28);
+          tone(1318, 0.34, 0.20, 0.32);
+        } else if (type === 'Medium') {
+          // 2 medium beeps
+          tone(880, 0,    0.20, 0.25);
+          tone(990, 0.28, 0.25, 0.28);
+        } else {
+          // 1 longer low beep — slow and steady
+          tone(660, 0, 0.45, 0.20);
+        }
+      }
+
+      // Descending 2-beep = stop
+      function burstEndBeep() {
+        tone(880, 0,    0.18, 0.28);
+        tone(660, 0.24, 0.28, 0.24);
+      }
+
+      // Single short beep for final countdown
+      function countdownBeep() { tone(880, 0, 0.10, 0.22); }
+
+      function speak(text) {
+        try {
+          if (!window.speechSynthesis) return;
+          window.speechSynthesis.cancel();
+          const utt = new SpeechSynthesisUtterance(text);
+          utt.rate = 0.88; utt.volume = 1;
+          window.speechSynthesis.speak(utt);
+        } catch(e) {}
+      }
+
+      const BURST_TYPES = ['Fast', 'Medium', 'Slow'];
+      const BURST_SECS = {
+        Fast:   [20, 25, 30, 35, 40],
+        Medium: [45, 50, 55, 60, 70],
+        Slow:   [60, 75, 90, 100, 120],
+      };
+      const BURST_COLORS = { Fast: '#c0392b', Medium: '#d35400', Slow: '#1a9641' };
+
+      // Random easy phase: 1.5 – 4.5 min
+      function randomEasyDur() { return 90 + Math.floor(Math.random() * 181); }
+
+      function randomBurst() {
+        const type = BURST_TYPES[Math.floor(Math.random() * 3)];
+        const durs = BURST_SECS[type];
+        return { type, duration: durs[Math.floor(Math.random() * durs.length)] };
+      }
+
+      function fmt(s) {
+        const m = Math.floor(s / 60), sec = s % 60;
+        return m + ':' + String(sec).padStart(2, '0');
+      }
+
+      function updateStats() {
+        statsEl.textContent = fmt(elapsedSec) + ' elapsed \u00b7 ' + burstCount + ' burst' + (burstCount !== 1 ? 's' : '');
+      }
+
+      function startEasy() {
+        phase = 'easy';
+        ticksLeft = randomEasyDur();
+        statusEl.textContent = 'Easy running';
+        statusEl.style.color = '';
+        cdEl.textContent = 'next burst: ' + fmt(ticksLeft);
+      }
+
+      function startBurst() {
+        phase = 'burst';
+        burstCount++;
+        const { type, duration } = randomBurst();
+        ticksLeft = duration;
+        burstStartBeep(type);
+        setTimeout(() => speak(type + ' for ' + duration + ' seconds'), 380);
+        statusEl.textContent = type.toUpperCase();
+        statusEl.style.color = BURST_COLORS[type];
+        cdEl.textContent = ticksLeft + 's';
+        updateStats();
+      }
+
+      function tick() {
+        elapsedSec++;
+        blipTick++;
+        if (blipTick >= 30) { blipTick = 0; blip(); }
+        ticksLeft--;
+        if (phase === 'easy') {
+          if (ticksLeft > 0) {
+            cdEl.textContent = 'next burst: ' + fmt(ticksLeft);
+          } else {
+            startBurst(); return;
+          }
+        } else {
+          if (ticksLeft > 0) {
+            cdEl.textContent = ticksLeft + 's';
+            if (ticksLeft <= 3) countdownBeep();
+          } else {
+            burstEndBeep();
+            setTimeout(() => speak('Stop'), 260);
+            startEasy();
+          }
+        }
+        updateStats();
+      }
+
+      function start() {
+        running = true; burstCount = 0; elapsedSec = 0; blipTick = 0;
+        getCtx();   // warm up AudioContext on user gesture
+        blip();     // immediate confirm beep
+        startEasy();
+        tickInterval = setInterval(tick, 1000);
+        btn.textContent = '\u23f9 Stop';
+        btn.classList.add('running');
+      }
+
+      function stop() {
+        running = false;
+        clearInterval(tickInterval); tickInterval = null;
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e) {}
+        statusEl.textContent = 'Ready to run';
+        statusEl.style.color = '';
+        cdEl.textContent = '\u00a0';
+        statsEl.textContent = burstCount > 0
+          ? 'Last: ' + burstCount + ' burst' + (burstCount !== 1 ? 's' : '') + ' \u00b7 ' + fmt(elapsedSec)
+          : '\u00a0';
+        btn.textContent = '\u25b6 Start';
+        btn.classList.remove('running');
+      }
+
+      btn.addEventListener('click', () => { if (running) stop(); else start(); });
+    }
+
     function currentDayEl() {
       const iso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
       return document.querySelector(`.day.today[data-iso="${iso}"]`);
@@ -2235,6 +2502,10 @@
     function scrollToTrain() {
       document.querySelector(".train-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       setActiveTab("train");
+    }
+    function scrollToFartlek() {
+      document.querySelector(".fartlek-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveTab("fartlek");
     }
     function toggleEarlier() {
       showEarlier = !showEarlier;
@@ -2295,6 +2566,7 @@
         if (button.dataset.tab === "charts") scrollToChart();
         if (button.dataset.tab === "races") scrollToLists();
         if (button.dataset.tab === "train") scrollToTrain();
+        if (button.dataset.tab === "fartlek") scrollToFartlek();
       });
     });
     document.querySelectorAll(".histogram-filter").forEach(button => {
