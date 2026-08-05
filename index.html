@@ -2367,12 +2367,31 @@
       // Single short beep for final countdown
       function countdownBeep() { tone(880, 0, 0.10, 0.22); }
 
+      // iOS pauses speechSynthesis after ~30s when screen locks.
+      // Fix: keep pinging resume() while running.
+      let speechKeepAliveInterval = null;
+      function startSpeechKeepAlive() {
+        if (speechKeepAliveInterval) return;
+        speechKeepAliveInterval = setInterval(() => {
+          try {
+            if (window.speechSynthesis && !window.speechSynthesis.speaking) {
+              window.speechSynthesis.resume();
+            }
+          } catch(e) {}
+        }, 10000);
+      }
+      function stopSpeechKeepAlive() {
+        clearInterval(speechKeepAliveInterval);
+        speechKeepAliveInterval = null;
+      }
+
       function speak(text) {
         try {
           if (!window.speechSynthesis) return;
-          window.speechSynthesis.cancel();
+          window.speechSynthesis.resume(); // ensure not paused (iOS)
           const utt = new SpeechSynthesisUtterance(text);
           utt.rate = 0.88; utt.volume = 1;
+          window.speechSynthesis.cancel();
           window.speechSynthesis.speak(utt);
         } catch(e) {}
       }
@@ -2417,7 +2436,8 @@
         const { type, duration } = randomBurst();
         ticksLeft = duration;
         burstStartBeep(type);
-        setTimeout(() => speak(type + ' for ' + duration + ' seconds'), 380);
+        // Speak immediately (no setTimeout — iOS suspends speech in nested async from setInterval)
+        speak(type + ' for ' + duration + ' seconds');
         statusEl.textContent = type.toUpperCase();
         statusEl.style.color = BURST_COLORS[type];
         cdEl.textContent = ticksLeft + 's';
@@ -2441,7 +2461,7 @@
             if (ticksLeft <= 3) countdownBeep();
           } else {
             burstEndBeep();
-            setTimeout(() => speak('Stop'), 260);
+            speak('Stop');
             startEasy();
           }
         }
@@ -2451,7 +2471,11 @@
       function start() {
         running = true; burstCount = 0; elapsedSec = 0; blipTick = 0;
         getCtx();   // warm up AudioContext on user gesture
+        // Warm up speech on the same user gesture (required by iOS)
+        const warmUp = new SpeechSynthesisUtterance('');
+        try { window.speechSynthesis && window.speechSynthesis.speak(warmUp); } catch(e) {}
         blip();     // immediate confirm beep
+        startSpeechKeepAlive();
         startEasy();
         tickInterval = setInterval(tick, 1000);
         btn.textContent = '\u23f9 Stop';
@@ -2461,6 +2485,7 @@
       function stop() {
         running = false;
         clearInterval(tickInterval); tickInterval = null;
+        stopSpeechKeepAlive();
         try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e) {}
         statusEl.textContent = 'Ready to run';
         statusEl.style.color = '';
