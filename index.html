@@ -2369,38 +2369,53 @@
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
 
-      // Keep-alive: Android & iOS pause speechSynthesis in background.
-      // Call resume() every 5s to prevent it sleeping.
-      let speechKeepAliveInterval = null;
-      function startSpeechKeepAlive() {
-        if (speechKeepAliveInterval) return;
-        speechKeepAliveInterval = setInterval(() => {
-          try {
-            if (window.speechSynthesis) window.speechSynthesis.resume();
-          } catch(e) {}
-        }, 5000);
-      }
-      function stopSpeechKeepAlive() {
-        clearInterval(speechKeepAliveInterval);
-        speechKeepAliveInterval = null;
+      // Speech chain: Android Chrome suspends JS timers (setInterval) when screen
+      // is off, but TTS onend events fire from the Android system TTS service and
+      // keep going. So we run an endless loop of utterances driven purely by onend
+      // callbacks — real text when queued, near-silent '.' filler otherwise.
+      // Every speech call originates from a TTS event, never a JS timer.
+      let speechChainActive = false;
+      let pendingSpeech = null;
+
+      function pickVoice() {
+        return fVoices.find(v => v.lang.startsWith('en-GB')) ||
+               fVoices.find(v => v.lang.startsWith('en')) ||
+               fVoices[0] || null;
       }
 
-      function speak(text) {
+      function speakChainStep() {
+        if (!speechChainActive || !window.speechSynthesis) return;
         try {
-          if (!window.speechSynthesis) return;
-          loadVoices(); // refresh in case they loaded late
-          window.speechSynthesis.cancel();
-          window.speechSynthesis.resume();
-          const utt = new SpeechSynthesisUtterance(text);
-          utt.rate = 0.88; utt.volume = 1;
-          // Android requires an explicit voice; silent fail without one on many devices
-          const voice = fVoices.find(v => v.lang.startsWith('en-GB')) ||
-                        fVoices.find(v => v.lang.startsWith('en')) ||
-                        fVoices[0];
-          if (voice) utt.voice = voice;
+          loadVoices();
+          const text = pendingSpeech;
+          pendingSpeech = null;
+          const utt = new SpeechSynthesisUtterance(text || '.');
+          utt.rate = text ? 0.88 : 1.8;
+          utt.volume = text ? 1 : 0.001;
+          if (text) { const v = pickVoice(); if (v) utt.voice = v; }
+          utt.onend = speakChainStep;
+          utt.onerror = () => { if (speechChainActive) setTimeout(speakChainStep, 200); };
           window.speechSynthesis.speak(utt);
-        } catch(e) {}
+        } catch(e) {
+          if (speechChainActive) setTimeout(speakChainStep, 200);
+        }
       }
+
+      function startSpeechChain(firstText) {
+        if (!window.speechSynthesis) return;
+        speechChainActive = true;
+        pendingSpeech = firstText || null;
+        try { window.speechSynthesis.cancel(); } catch(e) {}
+        speakChainStep();
+      }
+
+      function stopSpeechChain() {
+        speechChainActive = false;
+        pendingSpeech = null;
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e) {}
+      }
+
+      function queueSpeech(text) { pendingSpeech = text; }
 
       const BURST_TYPES = ['Fast', 'Medium', 'Slow'];
       const BURST_SECS = {
@@ -2435,7 +2450,7 @@
         const { type, duration } = randomBurst();
         ticksLeft = duration;
         burstStartBeep(type);
-        setTimeout(() => speak(type + ' for ' + duration + ' seconds'), 600);
+        queueSpeech(type + ' for ' + duration + ' seconds');
       }
 
       function tick() {
@@ -2450,7 +2465,7 @@
             if (ticksLeft <= 3) countdownBeep();
           } else {
             burstEndBeep();
-            setTimeout(() => speak('Stop'), 400);
+            queueSpeech('Stop');
             startEasy();
           }
         }
@@ -2459,21 +2474,9 @@
       function start() {
         running = true; burstCount = 0; elapsedSec = 0; blipTick = 0;
         getCtx();   // warm up AudioContext on user gesture
-        // Warm up speech on same user gesture, then say "Let's go!" when engine is ready.
         loadVoices();
-        try {
-          if (window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-            const warmUp = new SpeechSynthesisUtterance('Go');
-            warmUp.volume = 0.001; // near-silent primer
-            const v = fVoices.find(v => v.lang.startsWith('en')) || fVoices[0];
-            if (v) warmUp.voice = v;
-            warmUp.onend = () => speak("Let's go!");
-            window.speechSynthesis.speak(warmUp);
-          }
-        } catch(e) {}
         blip();     // immediate confirm beep
-        startSpeechKeepAlive();
+        startSpeechChain("Let's go!"); // speech chain starts on user gesture; runs until stop
         startEasy();
         tickInterval = setInterval(tick, 1000);
         btn.textContent = '\u23f9 Stop';
@@ -2483,11 +2486,7 @@
       function stop() {
         running = false;
         clearInterval(tickInterval); tickInterval = null;
-        stopSpeechKeepAlive();
-        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch(e) {}
-        statusEl.textContent = 'Ready to run';
-        statusEl.style.color = '';
-        cdEl.textContent = '\u00a0';
+        stopSpeechChain();
         btn.textContent = '\u25b6 Start';
         btn.classList.remove('running');
       }
