@@ -2367,18 +2367,26 @@
       // Single short beep for final countdown
       function countdownBeep() { tone(880, 0, 0.10, 0.22); }
 
-      // iOS pauses speechSynthesis after ~30s when screen locks.
-      // Fix: keep pinging resume() while running.
+      // Android Chrome: voices may not be ready immediately — load them on demand.
+      let fVoices = [];
+      function loadVoices() {
+        try { fVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; } catch(e) {}
+      }
+      if (window.speechSynthesis) {
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+
+      // Keep-alive: Android & iOS pause speechSynthesis in background.
+      // Call resume() every 5s to prevent it sleeping.
       let speechKeepAliveInterval = null;
       function startSpeechKeepAlive() {
         if (speechKeepAliveInterval) return;
         speechKeepAliveInterval = setInterval(() => {
           try {
-            if (window.speechSynthesis && !window.speechSynthesis.speaking) {
-              window.speechSynthesis.resume();
-            }
+            if (window.speechSynthesis) window.speechSynthesis.resume();
           } catch(e) {}
-        }, 10000);
+        }, 5000);
       }
       function stopSpeechKeepAlive() {
         clearInterval(speechKeepAliveInterval);
@@ -2388,10 +2396,16 @@
       function speak(text) {
         try {
           if (!window.speechSynthesis) return;
-          window.speechSynthesis.resume(); // ensure not paused (iOS)
+          loadVoices(); // refresh in case they loaded late
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.resume();
           const utt = new SpeechSynthesisUtterance(text);
           utt.rate = 0.88; utt.volume = 1;
-          window.speechSynthesis.cancel();
+          // Android requires an explicit voice; silent fail without one on many devices
+          const voice = fVoices.find(v => v.lang.startsWith('en-GB')) ||
+                        fVoices.find(v => v.lang.startsWith('en')) ||
+                        fVoices[0];
+          if (voice) utt.voice = voice;
           window.speechSynthesis.speak(utt);
         } catch(e) {}
       }
@@ -2436,8 +2450,8 @@
         const { type, duration } = randomBurst();
         ticksLeft = duration;
         burstStartBeep(type);
-        // Speak immediately (no setTimeout — iOS suspends speech in nested async from setInterval)
-        speak(type + ' for ' + duration + ' seconds');
+        // Delay speech ~600ms so Web Audio beeps finish before TTS starts (Android audio conflict)
+        setTimeout(() => speak(type + ' for ' + duration + ' seconds'), 600);
         statusEl.textContent = type.toUpperCase();
         statusEl.style.color = BURST_COLORS[type];
         cdEl.textContent = ticksLeft + 's';
@@ -2461,7 +2475,7 @@
             if (ticksLeft <= 3) countdownBeep();
           } else {
             burstEndBeep();
-            speak('Stop');
+            setTimeout(() => speak('Stop'), 400);
             startEasy();
           }
         }
@@ -2471,9 +2485,19 @@
       function start() {
         running = true; burstCount = 0; elapsedSec = 0; blipTick = 0;
         getCtx();   // warm up AudioContext on user gesture
-        // Warm up speech on the same user gesture (required by iOS)
-        const warmUp = new SpeechSynthesisUtterance('');
-        try { window.speechSynthesis && window.speechSynthesis.speak(warmUp); } catch(e) {}
+        // Warm up speech on the same user gesture (required by Android/iOS).
+        // Say a real word so the audio engine actually initialises.
+        loadVoices();
+        try {
+          if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+            const warmUp = new SpeechSynthesisUtterance('Go');
+            warmUp.volume = 0.01; // near-silent but real
+            const v = fVoices.find(v => v.lang.startsWith('en')) || fVoices[0];
+            if (v) warmUp.voice = v;
+            window.speechSynthesis.speak(warmUp);
+          }
+        } catch(e) {}
         blip();     // immediate confirm beep
         startSpeechKeepAlive();
         startEasy();
