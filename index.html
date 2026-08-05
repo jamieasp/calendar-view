@@ -850,6 +850,21 @@
       color: white;
       box-shadow: 0 6px 20px rgba(231, 76, 60, 0.30);
     }
+    .fartlek-controls {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .fartlek-next {
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--pencil);
+      line-height: 1;
+      min-width: 0;
+    }
+    .fartlek-next .next-type { font-size: 1.5rem; }
+    .fartlek-next .next-time { color: var(--muted); font-size: 1.1rem; }
 
 
     @media (max-width: 760px) {
@@ -984,7 +999,10 @@
     <section class="fartlek-section" aria-labelledby="fartlek-title">
       <h2 id="fartlek-title">Fartlek</h2>
       <p class="fartlek-meta">Random bursts &middot; voice + beep cues &middot; works screen-off</p>
-      <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
+      <div class="fartlek-controls">
+        <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
+        <div class="fartlek-next" id="fartlek-next" aria-live="polite"></div>
+      </div>
     </section>
   </main>
   <nav class="bottom-tabs" aria-label="Primary sections">
@@ -2306,8 +2324,10 @@
       let burstCount = 0;
       let elapsedSec = 0;
       let tickInterval = null;
+      let nextBurst = null;
 
       const btn = document.getElementById('fartlek-btn');
+      const nextEl = document.getElementById('fartlek-next');
       if (!btn) return;
 
       function getCtx() {
@@ -2333,27 +2353,24 @@
       // Soft 30s heartbeat tick
       function blip() { tone(550, 0, 0.09, 0.12); }
 
-      // Distinctive burst-start beeps per intensity
+      // Distinctive burst-start beeps per intensity (longer = more distinct from 30s blip)
       function burstStartBeep(type) {
         if (type === 'Fast') {
-          // 3 ascending quick beeps — high energy
-          tone(880,  0,    0.13, 0.28);
-          tone(1046, 0.17, 0.13, 0.28);
-          tone(1318, 0.34, 0.20, 0.32);
-        } else if (type === 'Medium') {
-          // 2 medium beeps
-          tone(880, 0,    0.20, 0.25);
-          tone(990, 0.28, 0.25, 0.28);
+          // 3 ascending beeps — high energy
+          tone(880,  0,    0.28, 0.30);
+          tone(1046, 0.36, 0.28, 0.30);
+          tone(1318, 0.72, 0.40, 0.34);
         } else {
-          // 1 longer low beep — slow and steady
-          tone(660, 0, 0.45, 0.20);
+          // Medium: 2 longer beeps
+          tone(880, 0,    0.45, 0.28);
+          tone(990, 0.58, 0.55, 0.30);
         }
       }
 
-      // Descending 2-beep = stop
+      // Descending 2-beep = stop (longer)
       function burstEndBeep() {
-        tone(880, 0,    0.18, 0.28);
-        tone(660, 0.24, 0.28, 0.24);
+        tone(880, 0,    0.38, 0.28);
+        tone(660, 0.50, 0.55, 0.26);
       }
 
       // Single short beep for final countdown
@@ -2417,13 +2434,12 @@
 
       function queueSpeech(text) { pendingSpeech = text; }
 
-      const BURST_TYPES = ['Fast', 'Medium', 'Slow'];
+      const BURST_TYPES = ['Fast', 'Medium'];
       const BURST_SECS = {
         Fast:   [20, 25, 30, 35, 40],
         Medium: [45, 50, 55, 60, 70],
-        Slow:   [60, 75, 90, 100, 120],
       };
-      const BURST_COLORS = { Fast: '#c0392b', Medium: '#d35400', Slow: '#1a9641' };
+      const BURST_COLORS = { Fast: '#c0392b', Medium: '#d35400' };
 
       // Random easy phase: 1.5 – 4.5 min
       function randomEasyDur() { return 90 + Math.floor(Math.random() * 181); }
@@ -2439,18 +2455,32 @@
         return m + ':' + String(sec).padStart(2, '0');
       }
 
+      function updateNext() {
+        if (!nextEl) return;
+        if (!running) { nextEl.innerHTML = ''; return; }
+        if (phase === 'easy' && nextBurst) {
+          nextEl.innerHTML = `<span class="next-type">${nextBurst.type}</span> <span class="next-time">${fmt(ticksLeft)}</span>`;
+        } else if (phase === 'burst') {
+          nextEl.innerHTML = `<span class="next-time">${ticksLeft}s</span>`;
+        }
+      }
+
       function startEasy() {
         phase = 'easy';
         ticksLeft = randomEasyDur();
+        nextBurst = randomBurst(); // pre-select so we can show type during easy phase
+        updateNext();
       }
 
       function startBurst() {
         phase = 'burst';
         burstCount++;
-        const { type, duration } = randomBurst();
+        const { type, duration } = nextBurst || randomBurst();
+        nextBurst = null;
         ticksLeft = duration;
         burstStartBeep(type);
         queueSpeech(type + ' for ' + duration + ' seconds');
+        updateNext();
       }
 
       function tick() {
@@ -2467,8 +2497,10 @@
             burstEndBeep();
             queueSpeech('Stop');
             startEasy();
+            return;
           }
         }
+        updateNext();
       }
 
       function start() {
@@ -2477,6 +2509,7 @@
         loadVoices();
         blip();     // immediate confirm beep
         startSpeechChain("Let's go!"); // speech chain starts on user gesture; runs until stop
+        if (nextEl) nextEl.innerHTML = '';
         startEasy();
         tickInterval = setInterval(tick, 1000);
         btn.textContent = '\u23f9 Stop';
@@ -2487,6 +2520,7 @@
         running = false;
         clearInterval(tickInterval); tickInterval = null;
         stopSpeechChain();
+        if (nextEl) nextEl.innerHTML = '';
         btn.textContent = '\u25b6 Start';
         btn.classList.remove('running');
       }
