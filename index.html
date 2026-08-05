@@ -2459,7 +2459,7 @@
         if (!nextEl) return;
         if (!running) { nextEl.innerHTML = ''; return; }
         if (phase === 'easy' && nextBurst) {
-          nextEl.innerHTML = `<span class="next-type">${nextBurst.type}</span> <span class="next-time">${fmt(ticksLeft)}</span>`;
+          nextEl.innerHTML = `<span class="next-type">${nextBurst.type}</span> <span class="next-time">in ${fmt(ticksLeft)}</span>`;
         } else if (phase === 'burst') {
           nextEl.innerHTML = `<span class="next-time">${ticksLeft}s</span>`;
         }
