@@ -188,6 +188,32 @@
       box-shadow: 0 5px 18px rgba(50, 40, 25, 0.06);
     }
     .expand-years:active { transform: translateY(1px); }
+    .calendar-wrap {
+      position: relative;
+    }
+    .earlier-scrim {
+      position: absolute;
+      top: 0;
+      left: -12px;
+      right: -12px;
+      height: 130px;
+      background: linear-gradient(to bottom, #fff 0%, #fff 38%, transparent 100%);
+      z-index: 10;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 16px;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .earlier-scrim.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .earlier-scrim > button {
+      pointer-events: auto;
+      margin: 0;
+    }
     .year-grid {
       position: relative;
       display: grid;
@@ -899,8 +925,12 @@
       </nav>
     </header>
     <div class="calendar-heading-wrap"><h2 class="calendar-heading">Calendar</h2></div>
-    <button type="button" class="expand-years" data-action="toggle-earlier" aria-expanded="false">Show earlier</button>
-    <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+    <div class="calendar-wrap">
+      <div class="earlier-scrim" id="earlier-scrim">
+        <button type="button" class="expand-years" data-action="toggle-earlier" aria-expanded="false">Show earlier</button>
+      </div>
+      <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+    </div>
     <button type="button" class="expand-years" data-action="toggle-2027" aria-expanded="false">Show 2027</button>
     <section class="health-charts" aria-labelledby="health-charts-title">
       <h2 id="health-charts-title">Vitals</h2>
@@ -2585,9 +2615,13 @@
     function toggleEarlier() {
       showEarlier = !showEarlier;
       const button = document.querySelector('[data-action="toggle-earlier"]');
+      const scrim = document.getElementById('earlier-scrim');
       if (button) {
         button.textContent = showEarlier ? "Hide earlier" : "Show earlier";
         button.setAttribute("aria-expanded", String(showEarlier));
+      }
+      if (scrim) {
+        scrim.classList.toggle('hidden', showEarlier);
       }
       renderCalendar();
       if (!showEarlier) {
