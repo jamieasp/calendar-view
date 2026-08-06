@@ -1767,7 +1767,10 @@
         return `<line class="health-rug" x1="${(width - margin.right + 22).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
       }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right + 10).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
-      const latestText = `${latest.value.toFixed(panel.kind === "RHR" ? 0 : 1)}${panel.unit ? ` ${panel.unit}` : ""}`;
+      const latestDateStr = latest.date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+      const valStr = panel.unit ? `${latest.value.toFixed(0)} ${panel.unit}` : latest.value.toFixed(2);
+      const combinedLabel = pct ? `${latestDateStr} \u2022 ${valStr} \u2022 ${pct}` : `${latestDateStr} \u2022 ${valStr}`;
+      const combinedLabelWidth = Math.max(150, combinedLabel.length * 17 + 24);
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
         ${janBand}
         ${mondayDates(start, end).map(date => `<line class="health-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}"></line>`).join("")}
@@ -1785,9 +1788,8 @@
         ${events}
         ${rug}
         <circle class="health-latest-dot" cx="${x(latest.date).toFixed(1)}" cy="${y(latest.value).toFixed(1)}" r="8.2"></circle>
-        <rect class="health-percentile-bg" x="${width - margin.right - 93}" y="${margin.top + 13}" width="76" height="28" rx="5" transform="rotate(1.4 ${width - margin.right - 55} ${margin.top + 27})"></rect>
-        <text class="health-percentile" x="${width - margin.right - 55}" y="${margin.top + 39}" text-anchor="middle">${pct}</text>
-        <text class="health-current-label" x="${(x(latest.date) + 14).toFixed(1)}" y="${(y(latest.value) - 14).toFixed(1)}">${latestText}</text>
+        <rect class="health-percentile-bg" x="${(width - margin.right - combinedLabelWidth - 6).toFixed(1)}" y="${margin.top + 10}" width="${combinedLabelWidth}" height="32" rx="7"></rect>
+        <text class="health-percentile" x="${(width - margin.right - combinedLabelWidth / 2 - 6).toFixed(1)}" y="${margin.top + 33}" text-anchor="middle">${combinedLabel}</text>
       </svg></article>`;
     }
     async function renderHealthCharts() {
