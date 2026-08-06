@@ -1769,8 +1769,10 @@
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
       const latestDateStr = latest.date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
       const valStr = panel.unit ? `${latest.value.toFixed(0)} ${panel.unit}` : latest.value.toFixed(2);
-      const combinedLabel = pct ? `${latestDateStr}      ${valStr}      ${pct}` : `${latestDateStr}      ${valStr}`;
-      const combinedLabelWidth = Math.max(150, combinedLabel.length * 17 + 24);
+      const sep = '      ';
+      const labelParts = pct ? [latestDateStr, valStr, pct] : [latestDateStr, valStr];
+      const combinedLabel = labelParts.join(sep);
+      const combinedLabelWidth = Math.max(120, labelParts.join('').length * 17 + (labelParts.length - 1) * 52 + 24);
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
         ${janBand}
         ${mondayDates(start, end).map(date => `<line class="health-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}"></line>`).join("")}
