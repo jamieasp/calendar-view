@@ -1769,7 +1769,7 @@
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
       const latestDateStr = latest.date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
       const valStr = panel.unit ? `${latest.value.toFixed(0)} ${panel.unit}` : latest.value.toFixed(2);
-      const combinedLabel = pct ? `${latestDateStr} \u2022 ${valStr} \u2022 ${pct}` : `${latestDateStr} \u2022 ${valStr}`;
+      const combinedLabel = pct ? `${latestDateStr}   ${valStr}   ${pct}` : `${latestDateStr}   ${valStr}`;
       const combinedLabelWidth = Math.max(150, combinedLabel.length * 17 + 24);
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
         ${janBand}
