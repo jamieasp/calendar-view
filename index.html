@@ -1767,7 +1767,7 @@
         return `<line class="health-rug" x1="${(width - margin.right + 22).toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
       }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right + 10).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
-      const latestDateStr = latest.date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+      const latestDateStr = latest.date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
       const valStr = panel.unit ? `${latest.value.toFixed(0)} ${panel.unit}` : latest.value.toFixed(2);
       const combinedLabel = pct ? `${latestDateStr} \u2022 ${valStr} \u2022 ${pct}` : `${latestDateStr} \u2022 ${valStr}`;
       const combinedLabelWidth = Math.max(150, combinedLabel.length * 17 + 24);
