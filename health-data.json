@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-05T22:14:20.135856+00:00",
+  "generatedAt": "2026-08-06T06:01:07.346308+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1112,9 +1112,13 @@
         {
           "date": "2026-08-05",
           "value": 57.0
+        },
+        {
+          "date": "2026-08-06",
+          "value": 58.0
         }
       ],
-      "latestPercentile": 83.6
+      "latestPercentile": 70.8
     },
     {
       "kind": "HRV",
@@ -2226,9 +2230,13 @@
         {
           "date": "2026-08-05",
           "value": 46.4
+        },
+        {
+          "date": "2026-08-06",
+          "value": 40.7
         }
       ],
-      "latestPercentile": 90.9
+      "latestPercentile": 68.8
     },
     {
       "kind": "RHR/HRV",
@@ -3268,9 +3276,13 @@
         {
           "date": "2026-08-05",
           "value": 1.2284
+        },
+        {
+          "date": "2026-08-06",
+          "value": 1.4251
         }
       ],
-      "latestPercentile": 92.6
+      "latestPercentile": 69.6
     },
     {
       "kind": "BodyFat",
