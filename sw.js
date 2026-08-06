@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calendar-view-v2-clawjcal';
+const CACHE_NAME = 'calendar-view-v3-clawjcal';
 const ASSETS = [
   '/calendar-view/',
   '/calendar-view/index.html',
