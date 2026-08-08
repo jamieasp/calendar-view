@@ -412,6 +412,7 @@
 
     .races-section {
       margin-top: 56px;
+      margin-bottom: 56px;
       padding-top: 8px;
       scroll-margin-top: 112px;
     }
@@ -2708,6 +2709,46 @@
     document.querySelector('[data-action="toggle-2027"]')?.addEventListener("click", toggle2027);
     document.querySelector('[data-action="copy-url"]')?.addEventListener("click", () => { copyCalendarUrl().catch(() => {}); });
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
+
+    // ── Scroll-driven tab highlight ────────────────────────────
+    (function () {
+      let suppress = false, suppressTimer = null;
+      function startSuppress() {
+        suppress = true;
+        clearTimeout(suppressTimer);
+        suppressTimer = setTimeout(() => { suppress = false; }, 1200);
+      }
+      document.querySelectorAll('.bottom-tab').forEach(btn => {
+        btn.addEventListener('click', startSuppress, { capture: true });
+      });
+
+      const tabSections = [
+        { selector: '.races-section',   tab: 'races'    },
+        { selector: '.calendar-wrap',   tab: 'calendar' },
+        { selector: '.health-charts',   tab: 'charts'   },
+        { selector: '.train-section',   tab: 'train'    },
+        { selector: '.fartlek-section', tab: 'fartlek'  },
+      ];
+
+      function updateTabFromScroll() {
+        if (suppress) return;
+        const threshold = window.innerHeight * 0.4;
+        let active = tabSections[0].tab;
+        for (const { selector, tab } of tabSections) {
+          const el = document.querySelector(selector);
+          if (el && el.getBoundingClientRect().top <= threshold) active = tab;
+        }
+        setActiveTab(active);
+      }
+
+      let raf = false;
+      window.addEventListener('scroll', () => {
+        if (!raf) { raf = true; requestAnimationFrame(() => { updateTabFromScroll(); raf = false; }); }
+      }, { passive: true });
+
+      window.addEventListener('load', updateTabFromScroll);
+    })();
+    // ─────────────────────────────────────────────────────────────
 
     if (currentDayEl()) {
       window.addEventListener("load", () => {
