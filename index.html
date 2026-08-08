@@ -795,11 +795,45 @@
     .health-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.16; }
     .health-y-grid { stroke: #9aa7b1; stroke-width: 1; opacity: 0.25; }
     .health-axis { stroke: #ded6c8; stroke-width: 1.3; }
-    .notes-section {
-      margin-top: 56px;
-      margin-bottom: 56px;
-      padding-top: 8px;
-      scroll-margin-top: 112px;
+    .notes-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: var(--paper);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px 80px;
+    }
+    .notes-overlay[hidden] { display: none; }
+    .notes-overlay-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0 10px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 24px;
+    }
+    .notes-overlay-title {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+    .notes-overlay-close {
+      appearance: none;
+      border: 1.5px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      cursor: pointer;
     }
     .notes-lock {
       display: flex;
@@ -1043,6 +1077,7 @@
       <nav class="header-actions" aria-label="Page shortcuts">
         <button type="button" class="header-button" data-action="copy-url" aria-label="Copy calendar URL" title="Copy URL"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
+        <button type="button" class="header-button" data-action="notes" aria-label="Notes" title="Notes" id="notes-header-btn"><span class="material-symbols-outlined" aria-hidden="true">lock</span></button>
       </nav>
     </header>
     <section class="races-section" aria-labelledby="upcoming-races-title">
@@ -1170,33 +1205,37 @@
         <div class="fartlek-next" id="fartlek-next" aria-live="polite"></div>
       </div>
     </section>
-    <section class="notes-section" aria-labelledby="notes-title">
-      <div class="notes-lock" id="notes-lock">
-        <h2 id="notes-title">Notes 🔒</h2>
-        <p class="notes-lock-desc">Encrypted &middot; passphrase to unlock</p>
-        <div class="notes-lock-form">
-          <input type="password" id="notes-passphrase" class="notes-input" placeholder="Passphrase&hellip;" autocomplete="off" />
-          <button type="button" id="notes-unlock-btn" class="notes-unlock-btn">Unlock</button>
-        </div>
-        <p class="notes-err" id="notes-err" hidden>Wrong passphrase — try again</p>
-      </div>
-      <div id="notes-content" hidden>
-        <div class="notes-toolbar">
-          <div class="notes-file-pills" id="notes-pills"></div>
-          <button type="button" class="notes-relock" id="notes-relock" title="Lock">🔒</button>
-        </div>
-        <div class="notes-body" id="notes-body"></div>
-        <p class="notes-updated" id="notes-updated"></p>
-      </div>
-    </section>
   </main>
+  <div id="notes-overlay" class="notes-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="notes-overlay-title">
+    <div class="notes-overlay-bar">
+      <span class="notes-overlay-title" id="notes-overlay-title">Notes</span>
+      <button type="button" class="notes-overlay-close" id="notes-overlay-close">Close</button>
+    </div>
+    <div class="notes-lock" id="notes-lock">
+      <h2 id="notes-title">🔒 Encrypted</h2>
+      <p class="notes-lock-desc">Passphrase to unlock</p>
+      <div class="notes-lock-form">
+        <input type="password" id="notes-passphrase" class="notes-input" placeholder="Passphrase&hellip;" autocomplete="off" />
+        <button type="button" id="notes-unlock-btn" class="notes-unlock-btn">Unlock</button>
+      </div>
+      <p class="notes-err" id="notes-err" hidden>Wrong passphrase — try again</p>
+    </div>
+    <div id="notes-content" hidden>
+      <div class="notes-toolbar">
+        <div class="notes-file-pills" id="notes-pills"></div>
+        <button type="button" class="notes-relock" id="notes-relock" title="Lock">🔒 Lock</button>
+      </div>
+      <div class="notes-body" id="notes-body"></div>
+      <p class="notes-updated" id="notes-updated"></p>
+    </div>
+  </div>
   <nav class="bottom-tabs" aria-label="Primary sections">
     <button type="button" class="bottom-tab active" data-tab="races" aria-label="Races">Races</button>
     <button type="button" class="bottom-tab" data-tab="calendar" aria-label="Calendar">Calendar</button>
     <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts">Charts</button>
     <button type="button" class="bottom-tab" data-tab="train" aria-label="Train">Train</button>
     <button type="button" class="bottom-tab" data-tab="fartlek" aria-label="Fartlek">Fartlek</button>
-    <button type="button" class="bottom-tab" data-tab="notes" aria-label="Notes">Notes</button>
+
   </nav>
   <script>
     const year = 2026;
@@ -2758,11 +2797,6 @@
       document.querySelector(".fartlek-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       setActiveTab("fartlek");
     }
-    function scrollToNotes() {
-      document.querySelector(".notes-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActiveTab("notes");
-    }
-
     // ── Notes: encrypted memory viewer ───────────────────────────
     (function () {
       const CACHE_KEY = 'notes_derived_key_b64';
@@ -2849,10 +2883,19 @@
         notesData = data;
         document.getElementById('notes-lock').hidden = true;
         document.getElementById('notes-content').hidden = false;
+        const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
+        if (icon) icon.textContent = 'lock_open';
         buildPills();
         renderFile(0);
       }
 
+      function openNotesOverlay() {
+        document.getElementById('notes-overlay').hidden = false;
+        document.getElementById('notes-passphrase').focus();
+      }
+      function closeNotesOverlay() {
+        document.getElementById('notes-overlay').hidden = true;
+      }
       function lockNotes() {
         notesData = null;
         sessionStorage.removeItem('notes_passphrase_session');
@@ -2860,6 +2903,9 @@
         document.getElementById('notes-content').hidden = true;
         document.getElementById('notes-passphrase').value = '';
         document.getElementById('notes-err').hidden = true;
+        const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
+        if (icon) icon.textContent = 'lock';
+        closeNotesOverlay();
       }
 
       document.getElementById('notes-unlock-btn').addEventListener('click', async () => {
@@ -2885,6 +2931,8 @@
       });
 
       document.getElementById('notes-relock').addEventListener('click', lockNotes);
+      document.getElementById('notes-overlay-close').addEventListener('click', closeNotesOverlay);
+      document.querySelector('[data-action="notes"]').addEventListener('click', openNotesOverlay);
 
       // Auto-unlock if passphrase cached in sessionStorage
       window.addEventListener('load', async () => {
@@ -2892,6 +2940,10 @@
         if (cached) {
           try { unlock(await tryDecrypt(cached)); } catch { sessionStorage.removeItem('notes_passphrase_session'); }
         }
+      });
+      // Close overlay on backdrop tap (outside the content)
+      document.getElementById('notes-overlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('notes-overlay')) closeNotesOverlay();
       });
     })();
     // ─────────────────────────────────────────────────────────────
@@ -2959,7 +3011,6 @@
         if (button.dataset.tab === "races") scrollToLists();
         if (button.dataset.tab === "train") scrollToTrain();
         if (button.dataset.tab === "fartlek") scrollToFartlek();
-        if (button.dataset.tab === "notes") scrollToNotes();
       });
     });
     document.querySelectorAll(".histogram-filter").forEach(button => {
@@ -3006,7 +3057,6 @@
         { selector: '.health-charts',   tab: 'charts'   },
         { selector: '.train-section',   tab: 'train'    },
         { selector: '.fartlek-section', tab: 'fartlek'  },
-        { selector: '.notes-section',   tab: 'notes'    },
       ];
 
       function updateTabFromScroll() {
