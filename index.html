@@ -461,21 +461,31 @@
       min-width: 0;
       overflow: hidden;
     }
+    .race-name-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
     .race-name {
-      display: block;
       font-weight: 900;
       letter-spacing: -0.035em;
       font-size: 1.18rem;
       line-height: 1.05;
+      flex: 1 1 auto;
+      min-width: 0;
     }
     .race-countdown {
-      display: block;
-      margin-top: 6px;
+      flex: 0 0 auto;
       color: var(--pencil);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 1.45rem;
-      font-weight: 800;
+      font-size: 1.1rem;
+      font-weight: 900;
       line-height: 1;
+      background: var(--today);
+      border-radius: 6px;
+      padding: 2px 7px;
+      white-space: nowrap;
     }
     .race-meta {
       display: block;
@@ -2020,7 +2030,7 @@
         const link = status === "interesting" && event.url ? ` · <a class="race-link" href="${event.url}" target="_blank" rel="noopener">Register</a>` : "";
         const watch = event.watched && event.lastChecked ? `<span class="race-watch">👀 Last checked ${event.lastChecked}</span>` : "";
         const metaHtml = event.meta ? ` · ${event.meta.replace(/with\s+[^·]+/g, m => `<span class="meta-with">${m.trim()}</span>`)}` : "";
-        return `<li class="race-card"><span class="race-name">${raceDisplayTitle(event)}</span><span class="race-countdown">${dayLabel}</span><span class="race-meta">${dateLabel(event.start)}${metaHtml}${link}</span>${watch}</li>`;
+        return `<li class="race-card"><div class="race-name-row"><span class="race-name">${raceDisplayTitle(event)}</span><span class="race-countdown">${dayLabel}</span></div><span class="race-meta">${dateLabel(event.start)}${metaHtml}${link}</span>${watch}</li>`;
       }).join("");
     }
     function renderUpcomingRaces() {
