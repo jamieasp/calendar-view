@@ -321,6 +321,18 @@
       white-space: nowrap;
       transform: rotate(2deg);
     }
+    .pressup-score {
+      position: absolute;
+      left: 4px;
+      top: 3px;
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 0.72rem;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      opacity: 0.75;
+    }
     .event-stack { display: grid; gap: 2px; position: relative; }
     .event-bar, .event-spacer {
       min-height: 17px;
@@ -957,6 +969,139 @@
       color: var(--muted);
       margin-top: 24px;
     }
+    /* ── Press-up ladder ─────────────────────── */
+    .pressup-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin: 16px 0;
+    }
+    .pressup-status {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      min-height: 1.4em;
+      text-align: center;
+    }
+    .pressup-reps-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 2rem;
+      align-items: center;
+    }
+    .pu-circle {
+      font-size: 1.5rem;
+      line-height: 1;
+      transition: transform 0.1s;
+      color: var(--muted);
+    }
+    .pu-circle.done { color: var(--ink); transform: scale(1.15); }
+    .pu-rest {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--ink);
+      font-family: "Patrick Hand", cursive;
+    }
+    .pressup-btn {
+      padding: 13px 36px;
+      border-radius: 100px;
+      border: none;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      background: var(--ink);
+      color: var(--bg);
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+    .pressup-btn:active { transform: translateY(1px); }
+    .pressup-btn.running { background: #c0392b; }
+    .pressup-log-panel {
+      margin-top: 8px;
+      text-align: center;
+    }
+    .pressup-log-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .pressup-score-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+    .pressup-score-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--ink);
+      transition: background 0.12s, color 0.12s;
+    }
+    .pressup-score-btn:hover { background: var(--ink); color: var(--bg); }
+    .pressup-score-btn.suggested { background: var(--today); border-color: var(--today); color: var(--ink); }
+    .pressup-history { margin-top: 20px; }
+    .pu-history-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .pu-history-bars {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      height: 64px;
+    }
+    .pu-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+    }
+    .pu-bar {
+      width: 100%;
+      background: var(--ink);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      min-height: 4px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .pu-bar-num {
+      font-size: 0.62rem;
+      font-weight: 900;
+      color: var(--bg);
+      padding-top: 2px;
+      line-height: 1;
+    }
+    .pu-bar-day {
+      font-size: 0.6rem;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pu-today-bar .pu-bar { background: var(--today); }
+    .pu-today-bar .pu-bar-num { color: var(--ink); }
+    /* ── end press-up ─────────────────────────── */
     .fartlek-section {
       margin-top: 56px;
       padding-top: 8px;
@@ -1204,6 +1349,20 @@
           <li data-seconds="60"><span class="train-exercise">Cossack Squat</span><span class="train-sets">60s each side</span></li>
         </ul>
       </div>
+    </section>
+    <section class="train-section" aria-labelledby="pressup-title">
+      <h2 id="pressup-title">Press-ups</h2>
+      <p class="train-meta">Ladder &middot; rest = reps &times; 2.5s &middot; see how high you can go</p>
+      <div class="pressup-controls">
+        <div class="pressup-status" id="pressup-status">Ready</div>
+        <div class="pressup-reps-row" id="pressup-reps-row" aria-live="polite"></div>
+        <button type="button" class="pressup-btn" id="pressup-btn">▶ Start</button>
+      </div>
+      <div class="pressup-log-panel" id="pressup-log-panel" hidden>
+        <p class="pressup-log-label" id="pressup-log-label">Last complete set?</p>
+        <div class="pressup-score-btns" id="pressup-score-btns"></div>
+      </div>
+      <div class="pressup-history" id="pressup-history"></div>
     </section>
     <section class="fartlek-section" aria-labelledby="fartlek-title">
       <h2 id="fartlek-title">Fartlek</h2>
@@ -1568,6 +1727,9 @@
           "2026-08-06": 7,
           "2026-08-07": 8,
           "2026-08-08": 9
+    };
+
+    const pressupLog = {
     };
 
     const absStreaks = {
@@ -2451,7 +2613,9 @@
           const stretchLabel = stretchStreak ? `<span class="stretch-streak" title="Stretch streak">🧘${isFinalStretchDay ? stretchStreak : ""}</span>` : "";
           const isFinalAbsDay = absStreak && !absStreaks[nextIso];
           const absLabel = absStreak ? `<span class="abs-streak" title="Strength/abs streak">💪${isFinalAbsDay ? absStreak : ""}</span>` : "";
-          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span></div><div class="event-stack">${stack}</div>${runLabel}${stretchLabel}${absLabel}`;
+          const puScore = (pressupLog[iso] || 0) || ((() => { try { const s = localStorage.getItem('pressupLog'); return s ? JSON.parse(s)[iso] : 0; } catch(e) { return 0; } })());
+          const puLabel = puScore ? `<span class="pressup-score" title="Press-up ladder: set ${puScore}">⬆${puScore}</span>` : "";
+          cell.innerHTML = `<div class="date-row"><span class="date-number">${day}</span></div><div class="event-stack">${stack}</div>${runLabel}${stretchLabel}${absLabel}${puLabel}`;
           calendar.appendChild(cell);
         }
       });
@@ -2479,6 +2643,230 @@
     renderHealthCharts();
     initTimers();
     initFartlek();
+    initPressup();
+
+    function initPressup() {
+      const REP_INTERVAL_S = 1.6;   // seconds between rep beeps within a set
+      const REST_PER_REP_S = 2.5;   // rest = N reps × this
+
+      let puCtx = null;
+      let running = false;
+      let currentSet = 0;    // set we are currently ON (1-indexed)
+      let repsDone = 0;      // reps completed within current set
+      let phase = 'idle';    // 'rep' | 'rest' | 'idle'
+      let phaseTimer = null;
+      let repTimers = [];
+      let displayTimer = null;
+      let restStartTime = 0;
+      let restDuration = 0;
+
+      const btn      = document.getElementById('pressup-btn');
+      const statusEl = document.getElementById('pressup-status');
+      const repsRowEl= document.getElementById('pressup-reps-row');
+      const logPanel = document.getElementById('pressup-log-panel');
+      const logLabel = document.getElementById('pressup-log-label');
+      const logBtns  = document.getElementById('pressup-score-btns');
+      const histEl   = document.getElementById('pressup-history');
+      if (!btn) return;
+
+      function getCtx() {
+        if (!puCtx) puCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (puCtx.state === 'suspended') puCtx.resume();
+        return puCtx;
+      }
+
+      function tone(freq, startT, dur, vol) {
+        try {
+          const ctx = getCtx();
+          const t = ctx.currentTime + startT;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = 'sine'; osc.frequency.value = freq;
+          g.gain.setValueAtTime(vol, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+          osc.start(t); osc.stop(t + dur + 0.02);
+        } catch(e) {}
+      }
+
+      // Single clean beep: do a rep
+      function repBeep()  { tone(880, 0, 0.14, 0.32); }
+      // Descending pair: set done, rest now
+      function restBeep() { tone(880, 0, 0.18, 0.28); tone(660, 0.26, 0.32, 0.22); }
+      // Soft tick for countdown
+      function tickBeep(delay) { tone(660, delay, 0.09, 0.16); }
+      // Ascending pair: GO — next set
+      function goBeep()   { tone(660, 0, 0.12, 0.22); tone(880, 0.18, 0.22, 0.30); }
+
+      function updateDisplay() {
+        if (!running) return;
+        if (phase === 'rep') {
+          let html = '';
+          for (let i = 1; i <= currentSet; i++) {
+            html += `<span class="pu-circle${i <= repsDone ? ' done' : ''}">` +
+                    (i <= repsDone ? '&#9679;' : '&#9675;') + '</span>';
+          }
+          repsRowEl.innerHTML = html;
+          statusEl.textContent = `Set ${currentSet} — ${repsDone}\u200a/\u200a${currentSet} reps`;
+        } else if (phase === 'rest') {
+          const elapsed = (Date.now() - restStartTime) / 1000;
+          const rem = Math.max(0, restDuration - elapsed);
+          const secs = Math.ceil(rem);
+          statusEl.textContent = secs > 0 ? `Rest — ${secs}s` : 'Get ready…';
+          repsRowEl.innerHTML = `<span class="pu-rest">${secs > 0 ? secs : '▶'}</span>`;
+        }
+      }
+
+      function clearRepTimers() {
+        repTimers.forEach(clearTimeout);
+        repTimers = [];
+        clearTimeout(phaseTimer);
+        phaseTimer = null;
+      }
+
+      function startSet(setNum) {
+        if (!running) return;
+        currentSet = setNum;
+        repsDone = 0;
+        phase = 'rep';
+
+        // Pre-schedule rep beeps via AudioContext (works screen-off)
+        for (let r = 0; r < setNum; r++) {
+          const delay = r * REP_INTERVAL_S;
+          tone(880, delay, 0.14, 0.32); // audio pre-scheduled
+          // Visual update via setTimeout
+          const rep = r + 1;
+          const t = setTimeout(() => {
+            if (!running) return;
+            repsDone = rep;
+          }, delay * 1000);
+          repTimers.push(t);
+        }
+
+        // After all reps: transition to rest
+        const setDuration = setNum * REP_INTERVAL_S;
+        phaseTimer = setTimeout(() => {
+          if (!running) return;
+          phase = 'rest';
+          restDuration = setNum * REST_PER_REP_S;
+          restStartTime = Date.now();
+          restBeep();
+
+          // Schedule countdown ticks in last 3s of rest
+          for (let s = Math.min(3, Math.floor(restDuration) - 1); s >= 1; s--) {
+            tickBeep(restDuration - s); // audio
+            const tickT = (restDuration - s) * 1000;
+            const tt = setTimeout(() => {
+              // visual handled by displayTimer
+            }, tickT);
+            repTimers.push(tt);
+          }
+
+          // Transition to next set
+          phaseTimer = setTimeout(() => {
+            if (!running) return;
+            goBeep();
+            startSet(setNum + 1);
+          }, restDuration * 1000);
+        }, setDuration * 1000);
+      }
+
+      function start() {
+        running = true;
+        btn.textContent = '\u25a0 Stop';
+        btn.classList.add('running');
+        logPanel.hidden = true;
+        goBeep();
+        displayTimer = setInterval(updateDisplay, 120);
+        startSet(1);
+      }
+
+      function stop() {
+        running = false;
+        clearRepTimers();
+        clearInterval(displayTimer);
+        btn.textContent = '\u25b6 Start';
+        btn.classList.remove('running');
+        repsRowEl.innerHTML = '';
+        // "Completed" = last set where all reps were done
+        // If we stopped mid-rest or mid-set, currentSet - 1 is the last complete set
+        const lastComplete = phase === 'rest' ? currentSet : Math.max(0, currentSet - 1);
+        phase = 'idle';
+        if (lastComplete >= 1) {
+          statusEl.textContent = `Stopped after set ${lastComplete}`;
+          showLogPanel(lastComplete);
+        } else {
+          statusEl.textContent = 'Ready';
+        }
+      }
+
+      function showLogPanel(suggest) {
+        logPanel.hidden = false;
+        logBtns.innerHTML = '';
+        const max = Math.max(suggest + 3, 8);
+        for (let n = 1; n <= max; n++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pressup-score-btn' + (n === suggest ? ' suggested' : '');
+          b.textContent = n;
+          b.addEventListener('click', () => logScore(n));
+          logBtns.appendChild(b);
+        }
+      }
+
+      function todayISO() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }
+
+      function getLocalLog() {
+        try { return JSON.parse(localStorage.getItem('pressupLog') || '{}'); } catch(e) { return {}; }
+      }
+
+      function logScore(n) {
+        const iso = todayISO();
+        const log = getLocalLog();
+        if (!log[iso] || log[iso] < n) log[iso] = n;
+        localStorage.setItem('pressupLog', JSON.stringify(log));
+        logPanel.hidden = true;
+        statusEl.textContent = `\u2713 Set ${n} logged!`;
+        renderHistory();
+      }
+
+      function getMergedLog() {
+        const local = getLocalLog();
+        return Object.assign({}, pressupLog, local);
+      }
+
+      function renderHistory() {
+        const log = getMergedLog();
+        const entries = Object.entries(log)
+          .sort((a, b) => a[0] > b[0] ? -1 : 1)
+          .slice(0, 14);
+        if (!entries.length) { histEl.innerHTML = ''; return; }
+        const best = Math.max(...entries.map(e => e[1]));
+        const todayISO_ = todayISO();
+        const show = entries.slice(0, 10).reverse();
+        let html = '<div class="pu-history-title">Recent scores</div><div class="pu-history-bars">';
+        for (const [iso, score] of show) {
+          const pct = Math.round((score / Math.max(best, 5)) * 100);
+          const isToday = iso === todayISO_;
+          const day = iso.slice(5).replace('-', '/'); // MM/DD
+          html += `<div class="pu-bar-wrap${isToday ? ' pu-today-bar' : ''}">`;
+          html += `<div class="pu-bar" style="height:${pct}%"><span class="pu-bar-num">${score}</span></div>`;
+          html += `<div class="pu-bar-day">${day}</div></div>`;
+        }
+        html += '</div>';
+        histEl.innerHTML = html;
+      }
+
+      btn.addEventListener('click', () => {
+        getCtx(); // warm up AudioContext on user gesture
+        if (running) stop(); else start();
+      });
+
+      renderHistory();
+    }
 
     function initTimers() {
       let audioCtx = null;
