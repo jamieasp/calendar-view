@@ -2691,12 +2691,6 @@
 
       // Single clean beep: do a rep
       function repBeep()  { tone(880, 0, 0.14, 0.32); }
-      // Descending pair: set done, rest now
-      function restBeep() { tone(880, 0, 0.18, 0.28); tone(660, 0.26, 0.32, 0.22); }
-      // Soft tick for countdown
-      function tickBeep(delay) { tone(660, delay, 0.09, 0.16); }
-      // Ascending pair: GO — next set
-      function goBeep()   { tone(660, 0, 0.12, 0.22); tone(880, 0.18, 0.22, 0.30); }
 
       function updateDisplay() {
         if (!running) return;
@@ -2750,22 +2744,10 @@
           phase = 'rest';
           restDuration = setNum * REST_PER_REP_S;
           restStartTime = Date.now();
-          restBeep();
 
-          // Schedule countdown ticks in last 3s of rest
-          for (let s = Math.min(3, Math.floor(restDuration) - 1); s >= 1; s--) {
-            tickBeep(restDuration - s); // audio
-            const tickT = (restDuration - s) * 1000;
-            const tt = setTimeout(() => {
-              // visual handled by displayTimer
-            }, tickT);
-            repTimers.push(tt);
-          }
-
-          // Transition to next set
+          // Transition to next set (first rep beep IS the go signal)
           phaseTimer = setTimeout(() => {
             if (!running) return;
-            goBeep();
             startSet(setNum + 1);
           }, restDuration * 1000);
         }, setDuration * 1000);
@@ -2776,7 +2758,6 @@
         btn.textContent = '\u25a0 Stop';
         btn.classList.add('running');
         logPanel.hidden = true;
-        goBeep();
         displayTimer = setInterval(updateDisplay, 120);
         startSet(1);
       }
