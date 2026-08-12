@@ -33,6 +33,8 @@ FRESH_NDJSON = DATA_DIR / "workouts_2026_fresh.ndjson"
 RUN_ACTIVITY_IDS = {1, 22}
 YEAR = 2026
 HEALTH_START = "2025-11-01"
+BEDTIME_START = "2026-01-01"
+BEDTIME_END = "2027-01-02"
 TRT_DATE = dt.date(2026, 3, 9)
 VIRUS_DATE = dt.date(2026, 3, 19)
 TURMERIC_DATE = dt.date(2026, 5, 27)
@@ -289,7 +291,53 @@ def write_health_chart_data() -> bool:
     HEALTH_DATA.write_text(serialized)
     return True
 
-def update_index(run_distances: dict[str, int], run_elevations: dict[str, int]) -> bool:
+
+def bedtime_day_and_minutes(start_iso: str) -> tuple[str, int, str] | None:
+    """Return (evening ISO date, minutes since 21:00, local HH:MM) for a sleep start."""
+    try:
+        start = dt.datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    local_day = start.date()
+    minutes_of_day = start.hour * 60 + start.minute
+    # A sleep that starts after midnight belongs to the previous evening's bedtime.
+    if start.hour < 12:
+        bedtime_day = local_day - dt.timedelta(days=1)
+        minutes_since_2100 = minutes_of_day + (24 - 21) * 60
+    else:
+        bedtime_day = local_day
+        minutes_since_2100 = minutes_of_day - 21 * 60
+    if bedtime_day.year != YEAR:
+        return None
+    return bedtime_day.isoformat(), max(0, minutes_since_2100), start.strftime("%H:%M")
+
+
+def load_bedtimes() -> tuple[dict[str, int], dict[str, str]]:
+    """Load main nightly bedtimes from Google Health sleep starts.
+
+    Values are minutes since 21:00 local time so 01:00 correctly sorts later
+    than 23:00. If multiple sleep records map to one evening, keep the longest.
+    """
+    payload = run_json(["ghealth", "data", "sleep", "list", "--from", BEDTIME_START, "--to", BEDTIME_END, "--limit", "800"])
+    candidates: dict[str, tuple[int, str, int]] = {}
+    for point in payload.get("dataPoints", []):
+        start_iso = point.get("start")
+        if not start_iso:
+            continue
+        parsed = bedtime_day_and_minutes(start_iso)
+        if not parsed:
+            continue
+        iso, minutes, label = parsed
+        total = int(point.get("totalMinutes") or point.get("minutesAsleep") or 0)
+        previous = candidates.get(iso)
+        if previous is None or total > previous[2]:
+            candidates[iso] = (minutes, label, total)
+    bedtimes = {iso: value[0] for iso, value in sorted(candidates.items())}
+    labels = {iso: value[1] for iso, value in sorted(candidates.items())}
+    return bedtimes, labels
+
+
+def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
     html = INDEX.read_text()
     required_dynamic_consumers = [
         "function monthRunTotal(totalYear, month)",
@@ -304,6 +352,8 @@ def update_index(run_distances: dict[str, int], run_elevations: dict[str, int]) 
         "health-data.json",
         "const stretchStreaks =",
         "stretch-streak",
+        "const bedtimes =",
+        "renderBedtimeHeatmap();",
     ]
     missing = [needle for needle in required_dynamic_consumers if needle not in html]
     if missing:
@@ -323,6 +373,18 @@ def update_index(run_distances: dict[str, int], run_elevations: dict[str, int]) 
     updated, elevation_count = elevation_pattern.subn(elevation_replacement, updated, count=1)
     if elevation_count != 1:
         raise RuntimeError("Could not find exactly one runElevations block in index.html")
+    bedtime_replacement = "    const bedtimes = " + json.dumps(bedtimes, indent=6).replace("\n", "\n    ") + ";"
+    bedtime_pattern = re.compile(r"    const bedtimes = \{.*?\};", re.S)
+    updated, bedtime_count = bedtime_pattern.subn(bedtime_replacement, updated, count=1)
+    if bedtime_count != 1:
+        raise RuntimeError("Could not find exactly one bedtimes block in index.html")
+
+    bedtime_label_replacement = "    const bedtimeLabels = " + json.dumps(bedtime_labels, indent=6).replace("\n", "\n    ") + ";"
+    bedtime_label_pattern = re.compile(r"    const bedtimeLabels = \{.*?\};", re.S)
+    updated, bedtime_label_count = bedtime_label_pattern.subn(bedtime_label_replacement, updated, count=1)
+    if bedtime_label_count != 1:
+        raise RuntimeError("Could not find exactly one bedtimeLabels block in index.html")
+
     if updated == html:
         return False
     INDEX.write_text(updated)
@@ -351,10 +413,11 @@ def main() -> int:
         raise FileNotFoundError(f"Missing suuntool at {SUUNTOOL}")
     pull_workouts()
     distances, elevations = load_running_totals()
-    changed = update_index(distances, elevations)
+    bedtimes, bedtime_labels = load_bedtimes()
+    changed = update_index(distances, elevations, bedtimes, bedtime_labels)
     stretch_changed = update_stretch_streaks()
     health_changed = write_health_chart_data()
-    print(f"Loaded {len(distances)} run-distance days and {len(elevations)} elevation days for {YEAR}.")
+    print(f"Loaded {len(distances)} run-distance days, {len(elevations)} elevation days, and {len(bedtimes)} bedtime days for {YEAR}.")
     print(f"Stretch streak badges {'updated' if stretch_changed else 'already up to date'}.")
     print(f"Health chart data {'updated' if health_changed else 'already up to date'}.")
     if changed or stretch_changed or health_changed:
