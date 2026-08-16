@@ -987,36 +987,42 @@
     /* ── Press-up ladder ─────────────────────── */
     .pressup-controls {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 18px;
       margin: 0;
+      flex-wrap: wrap;
+    }
+    .pressup-next {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
     }
     .pressup-status {
-      font-size: 1.55rem;
-      font-weight: 900;
-      color: var(--ink);
-      letter-spacing: -0.04em;
-      min-height: 1.9rem;
-      text-align: center;
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--pencil);
+      letter-spacing: -0.02em;
+      min-height: 1.5rem;
     }
     .pressup-reps-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      justify-content: center;
-      min-height: 2rem;
+      justify-content: flex-start;
+      min-height: 1.7rem;
       align-items: center;
     }
     .pu-circle {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       line-height: 1;
       transition: transform 0.1s;
       color: var(--muted);
     }
     .pu-circle.done { color: var(--ink); transform: scale(1.15); }
     .pu-rest {
-      font-size: 2.2rem;
+      font-size: 1.7rem;
       font-weight: 900;
       color: var(--ink);
       font-family: "Patrick Hand", cursive;
@@ -1072,7 +1078,7 @@
     }
     .pressup-score-btn:hover { background: var(--ink); color: var(--bg); }
     .pressup-score-btn.suggested { background: var(--today); border-color: var(--today); color: var(--ink); }
-    .pressup-history { margin-top: 10px; width: min(100%, 520px); }
+    .pressup-history { margin-top: 8px; width: min(100%, 520px); }
     .pu-history-title {
       font-size: 0.78rem;
       font-weight: 800;
@@ -1147,8 +1153,7 @@
       font-weight: 750;
       font-size: 0.9rem;
     }
-    .fartlek-card,
-    .pressup-card {
+    .fartlek-card {
       border: 1px solid #eadfce;
       border-radius: 18px;
       padding: 28px 20px 24px;
@@ -1158,6 +1163,12 @@
       align-items: center;
       gap: 12px;
       text-align: center;
+    }
+    .pressup-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
     }
     .fartlek-status {
       font-size: 1.55rem;
@@ -1391,9 +1402,11 @@
       <p class="pressup-meta">Ladder &middot; rest = reps &times; 2.5s &middot; see how high you can go</p>
       <div class="pressup-card">
         <div class="pressup-controls">
-          <div class="pressup-status" id="pressup-status">Ready</div>
-          <div class="pressup-reps-row" id="pressup-reps-row" aria-live="polite"></div>
           <button type="button" class="pressup-btn" id="pressup-btn">▶ Start</button>
+          <div class="pressup-next" aria-live="polite">
+            <div class="pressup-status" id="pressup-status">Ready</div>
+            <div class="pressup-reps-row" id="pressup-reps-row"></div>
+          </div>
         </div>
         <div class="pressup-log-panel" id="pressup-log-panel" hidden>
           <p class="pressup-log-label" id="pressup-log-label">Last complete set?</p>
