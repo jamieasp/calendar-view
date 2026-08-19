@@ -858,6 +858,11 @@
       font-weight: 800;
       letter-spacing: -0.03em;
     }
+    .notes-overlay-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .notes-overlay-close {
       appearance: none;
       border: 1.5px solid var(--line);
@@ -958,8 +963,10 @@
       border: 1.5px solid var(--line);
       border-radius: 999px;
       background: var(--paper);
-      padding: 5px 11px;
-      font-size: 0.9rem;
+      padding: 4px 12px;
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
       cursor: pointer;
       color: var(--muted);
     }
@@ -979,6 +986,71 @@
     .notes-body strong { font-weight: 700; }
     .notes-body em { font-style: italic; }
     .notes-body a { color: var(--ink); }
+    .tweet-card {
+      margin: 14px 0 18px;
+      padding: 13px 14px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--paper) 88%, var(--line));
+      box-shadow: 0 2px 0 rgba(35, 35, 35, 0.04);
+    }
+    .tweet-card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .tweet-card-header h3 {
+      min-width: 0;
+      margin: 0;
+      font-size: 0.98rem;
+      overflow-wrap: anywhere;
+    }
+    .tweet-card-header time {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 0.76rem;
+      white-space: nowrap;
+    }
+    .tweet-body {
+      margin: 0 0 10px !important;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .tweet-body a, .tweet-detail a {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+    .tweet-link {
+      margin: 0 0 9px !important;
+    }
+    .tweet-link a {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--paper) !important;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .tweet-detail {
+      margin: 7px 0 0 !important;
+      padding-top: 7px;
+      border-top: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 520px) {
+      .tweet-card-header { display: block; }
+      .tweet-card-header time { display: block; margin-top: 2px; }
+    }
     .notes-updated {
       font-size: 0.78rem;
       color: var(--muted);
@@ -1427,11 +1499,13 @@
   <div id="notes-overlay" class="notes-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="notes-overlay-title">
     <div class="notes-overlay-bar">
       <span class="notes-overlay-title" id="notes-overlay-title">Saved tweets</span>
-      <button type="button" class="notes-overlay-close" id="notes-overlay-close">Close</button>
+      <div class="notes-overlay-actions">
+        <button type="button" class="notes-relock" id="notes-relock" title="Lock" hidden>Lock</button>
+        <button type="button" class="notes-overlay-close" id="notes-overlay-close">Close</button>
+      </div>
     </div>
     <div class="notes-lock" id="notes-lock">
-      <h2 id="notes-title">🔒 Saved tweets</h2>
-      <p class="notes-lock-desc">Encrypted bookmark library · passphrase to unlock</p>
+      <p class="notes-lock-desc">Encrypted bookmark library · enter your passphrase to unlock</p>
       <div class="notes-lock-form">
         <input type="password" id="notes-passphrase" class="notes-input" placeholder="Passphrase&hellip;" autocomplete="off" />
         <button type="button" id="notes-unlock-btn" class="notes-unlock-btn">Unlock</button>
@@ -1439,10 +1513,6 @@
       <p class="notes-err" id="notes-err" hidden>Wrong passphrase — try again</p>
     </div>
     <div id="notes-content" hidden>
-      <div class="notes-toolbar">
-        <div class="notes-file-pills" id="notes-pills"></div>
-        <button type="button" class="notes-relock" id="notes-relock" title="Lock">🔒 Lock</button>
-      </div>
       <div class="notes-body" id="notes-body"></div>
       <p class="notes-updated" id="notes-updated"></p>
     </div>
@@ -3833,28 +3903,92 @@
         return { files: parsed.files, updatedAt: blob.updatedAt };
       }
 
-      // Simple markdown renderer
+      function formatTweetDate(raw) {
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return raw;
+        return new Intl.DateTimeFormat(undefined, {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZone: 'UTC', timeZoneName: 'short'
+        }).format(date);
+      }
+
+      // Small, deliberately limited Markdown renderer for the encrypted bookmark library.
       function mdToHtml(text) {
         const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const inline = s => esc(s)
-          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.+?)\*/g, '<em>$1</em>')
-          .replace(/`([^`]+)`/g, '<code>$1</code>')
-          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        const inline = s => {
+          const links = [];
+          let value = esc(s)
+            .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, (_, label, url) => {
+              const token = `@@LINK${links.length}@@`;
+              links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+              return token;
+            })
+            .replace(/(^|[\s(])((?:https?:\/\/)[^\s<]+)/g, (_, prefix, url) => {
+              const token = `@@LINK${links.length}@@`;
+              links.push(`<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+              return prefix + token;
+            })
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>');
+          return value.replace(/@@LINK(\d+)@@/g, (_, i) => links[Number(i)]);
+        };
         const lines = text.split('\n');
         const out = [];
         let inList = false;
+        let inTweet = false;
+        let startedCategories = false;
+        let skippingCategoryGuide = false;
+        const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
+        const closeTweet = () => { closeList(); if (inTweet) { out.push('</article>'); inTweet = false; } };
         for (const raw of lines) {
           const line = raw.trimEnd();
-          if (/^### /.test(line))      { if (inList) { out.push('</ul>'); inList=false; } out.push('<h3>' + inline(line.slice(4)) + '</h3>'); }
-          else if (/^## /.test(line))  { if (inList) { out.push('</ul>'); inList=false; } out.push('<h2>' + inline(line.slice(3)) + '</h2>'); }
-          else if (/^# /.test(line))   { if (inList) { out.push('</ul>'); inList=false; } out.push('<h1>' + inline(line.slice(2)) + '</h1>'); }
-          else if (/^- /.test(line))   { if (!inList) { out.push('<ul>'); inList=true; } out.push('<li>' + inline(line.slice(2)) + '</li>'); }
-          else if (/^---+$/.test(line)){ if (inList) { out.push('</ul>'); inList=false; } out.push('<hr>'); }
-          else if (line === '')        { if (inList) { out.push('</ul>'); inList=false; } out.push(''); }
-          else                         { if (inList) { out.push('</ul>'); inList=false; } out.push('<p>' + inline(line) + '</p>'); }
+          if (!startedCategories) {
+            if (/^## Category guide$/.test(line)) { skippingCategoryGuide = true; continue; }
+            if (!(skippingCategoryGuide && /^## /.test(line))) continue;
+            startedCategories = true;
+            skippingCategoryGuide = false;
+          }
+          if (/^### /.test(line)) {
+            closeTweet();
+            const match = line.slice(4).match(/^\[([^\]]+)\]\s+(@?[^—]+?)\s+—\s+(.+)$/);
+            if (match) {
+              const author = match[2].trim().replace(/^@/, '');
+              const timestamp = match[3].trim();
+              out.push(`<article class="tweet-card"><header class="tweet-card-header"><h3>@${inline(author)}</h3><time datetime="${esc(timestamp)}">${inline(formatTweetDate(timestamp))}</time></header>`);
+              inTweet = true;
+            } else out.push('<h3>' + inline(line.slice(4)) + '</h3>');
+          } else if (/^## /.test(line)) {
+            closeTweet();
+            out.push('<h2>' + inline(line.slice(3)) + '</h2>');
+          } else if (/^# /.test(line)) {
+            closeTweet();
+            out.push('<h1>' + inline(line.slice(2)) + '</h1>');
+          } else if (inTweet && /^- URL:\s*(https?:\/\/\S+)/.test(line)) {
+            closeList();
+            const url = line.match(/^ - URL:\s*(https?:\/\/\S+)/) || line.match(/^- URL:\s*(https?:\/\/\S+)/);
+            out.push(`<p class="tweet-link"><a href="${url[1]}" target="_blank" rel="noopener noreferrer">Open tweet ↗</a></p>`);
+          } else if (inTweet && /^- Body:\s*/.test(line)) {
+            closeList();
+            out.push('<p class="tweet-body">' + inline(line.replace(/^- Body:\s*/, '')) + '</p>');
+          } else if (inTweet && /^- ([^:]+):\s*/.test(line)) {
+            closeList();
+            const detail = line.match(/^- ([^:]+):\s*(.*)$/);
+            out.push('<p class="tweet-detail"><strong>' + inline(detail[1]) + ':</strong> ' + inline(detail[2]) + '</p>');
+          } else if (/^- /.test(line)) {
+            if (!inList) { out.push('<ul>'); inList = true; }
+            out.push('<li>' + inline(line.slice(2)) + '</li>');
+          } else if (/^---+$/.test(line)) {
+            closeTweet();
+            out.push('<hr>');
+          } else if (line === '') {
+            closeList();
+          } else {
+            closeList();
+            out.push('<p>' + inline(line) + '</p>');
+          }
         }
-        if (inList) out.push('</ul>');
+        closeTweet();
         return out.join('\n');
       }
 
@@ -3868,6 +4002,7 @@
 
       function buildPills() {
         const pills = document.getElementById('notes-pills');
+        if (!pills) return;
         pills.innerHTML = '';
         notesData.files.forEach((f, i) => {
           const btn = document.createElement('button');
@@ -3883,6 +4018,7 @@
         notesData = data;
         document.getElementById('notes-lock').hidden = true;
         document.getElementById('notes-content').hidden = false;
+        document.getElementById('notes-relock').hidden = false;
         const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
         if (icon) icon.textContent = 'lock_open';
         buildPills();
@@ -3901,6 +4037,7 @@
         sessionStorage.removeItem('notes_passphrase_session');
         document.getElementById('notes-lock').hidden = false;
         document.getElementById('notes-content').hidden = true;
+        document.getElementById('notes-relock').hidden = true;
         document.getElementById('notes-passphrase').value = '';
         document.getElementById('notes-err').hidden = true;
         const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
