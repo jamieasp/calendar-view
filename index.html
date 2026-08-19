@@ -2578,7 +2578,7 @@
       { syncId: "copper-skytrail-2026", start: "2026-08-15", status: "upcoming", race: true, title: "Copper Skytrail", listTitle: "Copper Skytrail Eryri", meta: "27km · ↗ 2,300m" },
       { syncId: "lake-district-aug-2026", start: "2026-08-17", end: "2026-08-21", status: "trip", title: "Lake District", listTitle: "Lake District", meta: "4 nights" },
       { syncId: "valencia-sep-2026", start: "2026-09-06", status: "trip", title: "Valencia?", listTitle: "Valencia?", meta: "" },
-      { syncId: "serra-calderona-2026", start: "2026-09-06", status: "interesting", title: "Serra Calderona?", listTitle: "Serra Calderona trail run?", meta: "near Valencia · early morning" },
+      { syncId: "serra-calderona-2026", start: "2026-09-06", status: "interesting", race: false, title: "Serra Calderona?", listTitle: "Serra Calderona trail run?", meta: "near Valencia · early morning" },
       { syncId: "paris-summit-sep-2026", start: "2026-09-08", end: "2026-09-10", status: "trip", title: "Paris summit?", listTitle: "Paris summit?", meta: "8–10 Sep" },
       { syncId: "slovenia-sep-2026", start: "2026-09-17", end: "2026-09-21", status: "trip", title: "Slovenia", listTitle: "Slovenia", meta: "4 nights" },
       { syncId: "julian-alps-utmb-2026", start: "2026-09-20", status: "upcoming", race: true, title: "Julian Alps UTMB", listTitle: "Julian Alps Trail Run by UTMB", meta: "20km · ↗ 800m" },
@@ -2616,6 +2616,7 @@
     ];
 
     function isRaceEvent(event) {
+      if (event.race === false) return false;
       const text = `${event.title} ${event.listTitle || ""}`;
       return Boolean(event.race || /\b(utmb|maverick|jurassic|copper|st sunday|race|skyrace|skytrail|trail run)\b/i.test(text));
     }
