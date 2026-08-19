@@ -1021,11 +1021,19 @@
       box-shadow: 0 2px 0 rgba(35, 35, 35, 0.04);
     }
     .tweet-card-header {
+      position: static;
+      z-index: auto;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 8px;
+      margin: 0 0 8px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
     }
     .tweet-card-header h3 {
       min-width: 0;
