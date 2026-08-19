@@ -881,6 +881,8 @@
       align-items: flex-start;
       gap: 18px;
     }
+    .notes-lock[hidden],
+    #notes-content[hidden] { display: none !important; }
     .notes-lock h2 {
       margin: 0;
       font-size: clamp(1.65rem, 3vw, 2.8rem);
@@ -976,7 +978,31 @@
       color: var(--ink);
     }
     .notes-body h1 { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.04em; margin: 1.4em 0 0.4em; }
-    .notes-body h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; margin: 1.2em 0 0.3em; }
+    .notes-body h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; margin: 1.2em 0 0.3em; scroll-margin-top: 72px; }
+    .category-guide-title { margin-bottom: 0.55em !important; }
+    .category-guide {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 0 0 20px;
+    }
+    .category-link {
+      display: inline-block;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted) !important;
+      background: var(--paper);
+      font-size: 0.79rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: none !important;
+    }
+    .category-link:active, .category-link:focus-visible {
+      color: var(--paper) !important;
+      background: var(--ink);
+      outline: none;
+    }
     .notes-body h3 { font-size: 0.97rem; font-weight: 700; margin: 1em 0 0.25em; }
     .notes-body p { margin: 0.4em 0; }
     .notes-body ul { margin: 0.4em 0; padding-left: 1.3em; }
@@ -3937,17 +3963,31 @@
         const out = [];
         let inList = false;
         let inTweet = false;
-        let startedCategories = false;
-        let skippingCategoryGuide = false;
+        let startedPage = false;
+        let inCategoryGuide = false;
+        const categoryId = label => 'category-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
         const closeTweet = () => { closeList(); if (inTweet) { out.push('</article>'); inTweet = false; } };
         for (const raw of lines) {
           const line = raw.trimEnd();
-          if (!startedCategories) {
-            if (/^## Category guide$/.test(line)) { skippingCategoryGuide = true; continue; }
-            if (!(skippingCategoryGuide && /^## /.test(line))) continue;
-            startedCategories = true;
-            skippingCategoryGuide = false;
+          if (!startedPage) {
+            if (/^## Category guide$/.test(line)) {
+              startedPage = true;
+              inCategoryGuide = true;
+              out.push('<h2 class="category-guide-title">Categories</h2><nav class="category-guide" aria-label="Bookmark categories">');
+              continue;
+            }
+            continue;
+          }
+          if (inCategoryGuide) {
+            if (/^## /.test(line)) {
+              out.push('</nav>');
+              inCategoryGuide = false;
+            } else {
+              const guideItem = line.match(/^- \*\*(.+?)\*\*/);
+              if (guideItem) out.push(`<a class="category-link" href="#${categoryId(guideItem[1])}">${inline(guideItem[1])}</a>`);
+              continue;
+            }
           }
           if (/^### /.test(line)) {
             closeTweet();
@@ -3960,7 +4000,8 @@
             } else out.push('<h3>' + inline(line.slice(4)) + '</h3>');
           } else if (/^## /.test(line)) {
             closeTweet();
-            out.push('<h2>' + inline(line.slice(3)) + '</h2>');
+            const title = line.slice(3);
+            out.push('<h2 id="' + categoryId(title) + '">' + inline(title) + '</h2>');
           } else if (/^# /.test(line)) {
             closeTweet();
             out.push('<h1>' + inline(line.slice(2)) + '</h1>');
