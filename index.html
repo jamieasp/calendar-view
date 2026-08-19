@@ -1261,7 +1261,7 @@
         <h1>ClawjCal</h1>
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
-        <button type="button" class="header-button" data-action="notes" aria-label="Notes" title="Notes" id="notes-header-btn"><span class="material-symbols-outlined" aria-hidden="true">lock</span></button>
+        <button type="button" class="header-button" data-action="notes" aria-label="Saved tweets" title="Saved tweets" id="notes-header-btn"><span class="material-symbols-outlined" aria-hidden="true">lock</span></button>
         <button type="button" class="header-button" data-action="copy-url" aria-label="Copy calendar URL" title="Copy URL"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
@@ -1426,12 +1426,12 @@
   </main>
   <div id="notes-overlay" class="notes-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="notes-overlay-title">
     <div class="notes-overlay-bar">
-      <span class="notes-overlay-title" id="notes-overlay-title">Notes</span>
+      <span class="notes-overlay-title" id="notes-overlay-title">Saved tweets</span>
       <button type="button" class="notes-overlay-close" id="notes-overlay-close">Close</button>
     </div>
     <div class="notes-lock" id="notes-lock">
-      <h2 id="notes-title">🔒 Encrypted</h2>
-      <p class="notes-lock-desc">Passphrase to unlock</p>
+      <h2 id="notes-title">🔒 Saved tweets</h2>
+      <p class="notes-lock-desc">Encrypted bookmark library · passphrase to unlock</p>
       <div class="notes-lock-form">
         <input type="password" id="notes-passphrase" class="notes-input" placeholder="Passphrase&hellip;" autocomplete="off" />
         <button type="button" id="notes-unlock-btn" class="notes-unlock-btn">Unlock</button>
@@ -3862,7 +3862,7 @@
         const file = notesData.files[idx];
         document.getElementById('notes-body').innerHTML = mdToHtml(file.content);
         document.querySelectorAll('.notes-pill').forEach((p, i) => p.classList.toggle('active', i === idx));
-        const ts = notesData.updatedAt ? 'Encrypted ' + notesData.updatedAt.slice(0,10) : '';
+        const ts = notesData.updatedAt ? 'Updated ' + notesData.updatedAt.slice(0,10) : '';
         document.getElementById('notes-updated').textContent = ts;
       }
 
