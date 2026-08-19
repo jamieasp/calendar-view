@@ -1003,6 +1003,35 @@
       background: var(--ink);
       outline: none;
     }
+    .category-count {
+      display: inline-grid;
+      min-width: 1.35em;
+      height: 1.35em;
+      margin-left: 4px;
+      padding: 0 3px;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 0.78em;
+      line-height: 1;
+    }
+    .tweet-media {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin: 4px 0 11px;
+    }
+    .tweet-media a { display: block; line-height: 0; }
+    .tweet-media img {
+      display: block;
+      width: 100%;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
     .notes-body h3 { font-size: 0.97rem; font-weight: 700; margin: 1em 0 0.25em; }
     .notes-body p { margin: 0.4em 0; }
     .notes-body ul { margin: 0.4em 0; padding-left: 1.3em; }
@@ -1367,7 +1396,7 @@
         <h1>ClawjCal</h1>
       </div>
       <nav class="header-actions" aria-label="Page shortcuts">
-        <button type="button" class="header-button" data-action="notes" aria-label="Saved tweets" title="Saved tweets" id="notes-header-btn"><span class="material-symbols-outlined" aria-hidden="true">lock</span></button>
+        <button type="button" class="header-button" data-action="notes" aria-label="Saved tweets" title="Saved tweets" id="notes-header-btn"><span class="material-symbols-outlined" aria-hidden="true">flutter_dash</span></button>
         <button type="button" class="header-button" data-action="copy-url" aria-label="Copy calendar URL" title="Copy URL"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
@@ -3974,6 +4003,17 @@
         let startedPage = false;
         let inCategoryGuide = false;
         const categoryId = label => 'category-' + label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const categoryCounts = {};
+        let currentCategory = null;
+        for (const sourceLine of lines) {
+          if (/^## /.test(sourceLine)) {
+            const category = sourceLine.slice(3).trim();
+            currentCategory = category === 'Category guide' ? null : category;
+            if (currentCategory) categoryCounts[currentCategory] = 0;
+          } else if (currentCategory && /^### /.test(sourceLine)) {
+            categoryCounts[currentCategory] += 1;
+          }
+        }
         const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
         const closeTweet = () => { closeList(); if (inTweet) { out.push('</article>'); inTweet = false; } };
         for (const raw of lines) {
@@ -3993,7 +4033,11 @@
               inCategoryGuide = false;
             } else {
               const guideItem = line.match(/^- \*\*(.+?)\*\*/);
-              if (guideItem) out.push(`<a class="category-link" href="#${categoryId(guideItem[1])}">${inline(guideItem[1])}</a>`);
+              if (guideItem) {
+                const label = guideItem[1];
+                const count = categoryCounts[label] ?? 0;
+                out.push(`<a class="category-link" href="#${categoryId(label)}">${inline(label)} <span class="category-count">${count}</span></a>`);
+              }
               continue;
             }
           }
@@ -4017,9 +4061,16 @@
             closeList();
             const url = line.match(/^ - URL:\s*(https?:\/\/\S+)/) || line.match(/^- URL:\s*(https?:\/\/\S+)/);
             out.push(`<p class="tweet-link"><a href="${url[1]}" target="_blank" rel="noopener noreferrer">Open tweet ↗</a></p>`);
+          } else if (inTweet && /^- Media:\s*/.test(line)) {
+            closeList();
+            const urls = line.replace(/^- Media:\s*/, '').match(/https?:\/\/\S+/g) || [];
+            if (urls.length) {
+              out.push('<div class="tweet-media">' + urls.map(url => `<a href="${url}" target="_blank" rel="noopener noreferrer"><img src="${url}" alt="Saved tweet media" loading="lazy"></a>`).join('') + '</div>');
+            }
           } else if (inTweet && /^- Body:\s*/.test(line)) {
             closeList();
-            out.push('<p class="tweet-body">' + inline(line.replace(/^- Body:\s*/, '')) + '</p>');
+            const body = line.replace(/^- Body:\s*/, '').replace(/https?:\/\/\S+/g, '').replace(/\s{2,}/g, ' ').trim();
+            out.push('<p class="tweet-body">' + inline(body) + '</p>');
           } else if (inTweet && /^- ([^:]+):\s*/.test(line)) {
             closeList();
             const detail = line.match(/^- ([^:]+):\s*(.*)$/);
@@ -4069,7 +4120,7 @@
         document.getElementById('notes-content').hidden = false;
         document.getElementById('notes-relock').hidden = false;
         const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
-        if (icon) icon.textContent = 'lock_open';
+        if (icon) icon.textContent = 'flutter_dash';
         buildPills();
         renderFile(0);
       }
@@ -4090,7 +4141,7 @@
         document.getElementById('notes-passphrase').value = '';
         document.getElementById('notes-err').hidden = true;
         const icon = document.querySelector('#notes-header-btn .material-symbols-outlined');
-        if (icon) icon.textContent = 'lock';
+        if (icon) icon.textContent = 'flutter_dash';
         closeNotesOverlay();
       }
 
