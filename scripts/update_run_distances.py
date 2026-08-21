@@ -247,10 +247,12 @@ def build_health_chart_data() -> dict:
     start = dt.date.fromisoformat(HEALTH_START)
     rhr_payload = run_json(["ghealth", "data", "daily-resting-heart-rate", "list", "--from", HEALTH_START, "--limit", "500"])
     hrv_payload = run_json(["ghealth", "data", "daily-heart-rate-variability", "list", "--from", HEALTH_START, "--limit", "500"])
+    breathing_payload = run_json(["ghealth", "data", "daily-respiratory-rate", "list", "--from", HEALTH_START, "--limit", "500"])
     exercise_payload = run_json(["ghealth", "data", "exercise", "list", "--from", HEALTH_START, "--limit", "1200"])
     bf_payload = run_json(["ghealth", "data", "body-fat", "list", "--from", HEALTH_START, "--limit", "500"])
     rhr_points = load_metric_points(rhr_payload, "beatsPerMinute", start)
     hrv_points = load_metric_points(hrv_payload, "averageHeartRateVariabilityMilliseconds", start)
+    breathing_points = load_metric_points(breathing_payload, "breathsPerMinute", start)
     ratio_points = build_ratio_points(rhr_points, hrv_points)
     bf_points = load_body_fat_points(bf_payload, start)
     long_dates = parse_long_run_dates(exercise_payload, start)
@@ -273,11 +275,15 @@ def build_health_chart_data() -> dict:
         "eventMarkers": [
             {"date": VIRUS_DATE.isoformat(), "label": "Virus", "color": "#333333", "yoff": 0.86},
         ],
+        "backgroundRanges": [
+            {"start": "2026-06-29", "end": "2026-07-10", "label": "Chamonix", "color": "#f4b183"},
+        ],
         "longRunDates": [day.isoformat() for day in long_dates],
         "panels": [
             panel("RHR", "Resting Heart Rate", "RHR (bpm)", "bpm", rhr_points, True),
             panel("HRV", "Heart Rate Variability", "HRV (ms)", "ms", hrv_points, False),
             panel("RHR/HRV", "RHR / HRV", "RHR / HRV (bpm/ms)", "", ratio_points, True),
+            panel("Breathing", "Breathing Rate", "Breaths/min", "breaths/min", breathing_points, True),
             panel("BodyFat", "Body Fat", "Body Fat (%)", "%", bf_points, True),
         ],
     }

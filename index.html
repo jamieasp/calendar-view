@@ -819,6 +819,14 @@
     .health-axis-label { fill: var(--muted); font-size: 24px; font-weight: 850; }
     .health-event-highlight,
     .health-percentile-bg { fill: var(--highlighter-strong); opacity: 0.72; }
+    .health-background-range { opacity: 0.18; }
+    .health-background-label-bg { opacity: 0.72; }
+    .health-background-label {
+      fill: #6b3f00;
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 30px;
+      font-weight: 900;
+    }
     .health-event-label,
     .health-percentile,
     .health-current-label {
@@ -2818,6 +2826,17 @@
         const sd = Math.sqrt(janValues.reduce((sum, value) => sum + (value - avg) ** 2, 0) / (janValues.length - 1));
         janBand = `<rect class="health-jan-band" x="${margin.left}" y="${y(avg + sd).toFixed(1)}" width="${plotW}" height="${Math.max(0, y(avg - sd) - y(avg + sd)).toFixed(1)}"></rect>`;
       }
+      const backgroundRanges = panel.kind === "Breathing" ? (data.backgroundRanges || [])
+        .map(range => ({ start: dateFromIso(range.start), end: dateFromIso(range.end), ...range }))
+        .filter(range => range.end >= start && range.start <= end)
+        .map(range => {
+          const rangeStart = range.start < start ? start : range.start;
+          const rangeEnd = range.end > end ? end : range.end;
+          const xStart = x(rangeStart);
+          const xEnd = x(rangeEnd);
+          const mid = (xStart + xEnd) / 2;
+          return `<rect class="health-background-range" x="${xStart.toFixed(1)}" y="${margin.top}" width="${Math.max(1, xEnd - xStart).toFixed(1)}" height="${plotH}" fill="${range.color}"></rect><rect class="health-background-label-bg" x="${(mid - Math.max(48, range.label.length * 9)).toFixed(1)}" y="${margin.top + 42}" width="${Math.max(96, range.label.length * 18)}" height="28" rx="6" fill="${range.color}"></rect><text class="health-background-label" x="${mid.toFixed(1)}" y="${margin.top + 62}" text-anchor="middle">${range.label}</text>`;
+        }).join("") : "";
       const latest = points[points.length - 1];
       const events = data.eventMarkers
         .filter(marker => dateFromIso(marker.date) >= start && dateFromIso(marker.date) <= end)
@@ -2837,13 +2856,15 @@
       }).join("") + (panel.kind === "RHR" ? "" : `<line class="health-rug-latest" x1="${(width - margin.right + 10).toFixed(1)}" y1="${y(latest.value).toFixed(1)}" x2="${(width - margin.right + 50).toFixed(1)}" y2="${y(latest.value).toFixed(1)}"></line>`);
       const pct = panel.latestPercentile == null ? "" : `P${Math.round(panel.latestPercentile)}`;
       const latestDateStr = latest.date.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
-      const valStr = panel.unit ? `${latest.value.toFixed(0)} ${panel.unit}` : latest.value.toFixed(2);
+      const valuePrecision = panel.kind === "RHR" ? 0 : 1;
+      const valStr = panel.unit ? `${latest.value.toFixed(valuePrecision)} ${panel.unit}` : latest.value.toFixed(2);
       const sep = '      ';
       const labelParts = pct ? [latestDateStr, valStr, pct] : [latestDateStr, valStr];
       const combinedLabel = labelParts.join(sep);
       const combinedLabelWidth = Math.max(120, labelParts.join('').length * 17 + (labelParts.length - 1) * 52 + 24);
       return `<article class="health-panel"><svg class="health-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${panel.title}">
         ${janBand}
+        ${backgroundRanges}
         ${mondayDates(start, end).map(date => `<line class="health-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}"></line>`).join("")}
         ${yTicks.map(tick => `<line class="health-y-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="health-axis-label" x="${margin.left - 14}" y="${(y(tick) + 6).toFixed(1)}" text-anchor="end">${tick.toFixed(yPrecision)}</text>`).join("")}
         ${monthTicks.map(date => `<text class="health-axis-label" x="${x(date).toFixed(1)}" y="${height - 21}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
