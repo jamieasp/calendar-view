@@ -4405,11 +4405,10 @@
     })();
     // ─────────────────────────────────────────────────────────────
 
-    if (currentDayEl()) {
-      window.addEventListener("load", () => {
-        scrollToToday({ behavior: "auto" });
-      });
-    }
+    window.addEventListener("load", () => {
+      document.querySelector(".races-section")?.scrollIntoView({ behavior: "auto", block: "start" });
+      setActiveTab("races");
+    });
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
