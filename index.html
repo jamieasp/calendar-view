@@ -3775,31 +3775,31 @@
         } catch(e) {}
       }
 
-      // Soft 30s heartbeat tick
-      function blip() { tone(550, 0, 0.09, 0.12); }
+      // Audible 30s heartbeat tick — strong enough to cut through a podcast.
+      function blip() { tone(550, 0, 0.16, 0.22); }
 
       // Distinctive burst-start beeps per intensity (longer = more distinct from 30s blip)
       function burstStartBeep(type) {
         if (type === 'Fast') {
           // 3 ascending beeps — high energy
-          tone(880,  0,    0.28, 0.30);
-          tone(1046, 0.36, 0.28, 0.30);
-          tone(1318, 0.72, 0.40, 0.34);
+          tone(880,  0,    0.42, 0.50);
+          tone(1046, 0.52, 0.42, 0.50);
+          tone(1318, 1.04, 0.62, 0.56);
         } else {
           // Medium: 2 longer beeps
-          tone(880, 0,    0.45, 0.28);
-          tone(990, 0.58, 0.55, 0.30);
+          tone(880, 0,    0.62, 0.48);
+          tone(990, 0.78, 0.78, 0.54);
         }
       }
 
       // Descending 2-beep = stop (longer)
       function burstEndBeep() {
-        tone(880, 0,    0.38, 0.28);
-        tone(660, 0.50, 0.55, 0.26);
+        tone(880, 0,    0.52, 0.48);
+        tone(660, 0.68, 0.78, 0.46);
       }
 
-      // Single short beep for final countdown
-      function countdownBeep() { tone(880, 0, 0.10, 0.22); }
+      // Single audible beep for final countdown
+      function countdownBeep() { tone(880, 0, 0.20, 0.38); }
 
       // Android Chrome: voices may not be ready immediately — load them on demand.
       let fVoices = [];
@@ -3870,7 +3870,7 @@
       function randomEasyDur() { return 90 + Math.floor(Math.random() * 181); }
 
       function randomBurst() {
-        const type = BURST_TYPES[Math.floor(Math.random() * 3)];
+        const type = BURST_TYPES[Math.floor(Math.random() * BURST_TYPES.length)];
         const durs = BURST_SECS[type];
         return { type, duration: durs[Math.floor(Math.random() * durs.length)] };
       }
