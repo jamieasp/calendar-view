@@ -3078,7 +3078,7 @@
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">km / week</text>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
         <path class="chart-line weekly-21" d="${linePath(twentyOneDay)}"></path>
-        ${chartEndLabel(x(latest21.date) + 28, y(latest21.value) + 28, ["21-day", `${Math.round(latest21.value)}km/week`])}
+        ${chartEndLabel(x(latest21.date) + 28, y(latest21.value) + 28, ["21 day moving avg", `${Math.round(latest21.value)}km/week`])}
       `;
     }
 
