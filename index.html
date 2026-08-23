@@ -3031,10 +3031,14 @@
         const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
         daily.push({ iso, date: new Date(date), km: Number(distances[iso] || 0) });
       }
-      return daily.slice(windowSize - 1).map((entry, index) => {
-        const endIndex = index + windowSize - 1;
-        const window = daily.slice(endIndex - windowSize + 1, endIndex + 1);
-        const average = window.reduce((sum, day) => sum + day.km, 0) / windowSize;
+      // Center the moving average so the line describes the surrounding period,
+      // rather than lagging behind the underlying running data.
+      return daily.map((entry, index) => {
+        const halfWindow = Math.floor(windowSize / 2);
+        const lo = Math.max(0, index - halfWindow);
+        const hi = Math.min(daily.length, index + halfWindow + 1);
+        const window = daily.slice(lo, hi);
+        const average = window.reduce((sum, day) => sum + day.km, 0) / window.length;
         return { ...entry, value: average * 7 };
       });
     }
