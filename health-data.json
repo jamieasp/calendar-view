@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T06:01:23.036262+00:00",
+  "generatedAt": "2026-08-23T06:01:24.864628+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1181,9 +1181,13 @@
         {
           "date": "2026-08-21",
           "value": 59.0
+        },
+        {
+          "date": "2026-08-22",
+          "value": 58.0
         }
       ],
-      "latestPercentile": 56.7
+      "latestPercentile": 71.6
     },
     {
       "kind": "HRV",
@@ -2351,9 +2355,13 @@
         {
           "date": "2026-08-21",
           "value": 30.75
+        },
+        {
+          "date": "2026-08-22",
+          "value": 34.2
         }
       ],
-      "latestPercentile": 13.8
+      "latestPercentile": 26.2
     },
     {
       "kind": "RHR/HRV",
@@ -3449,9 +3457,13 @@
         {
           "date": "2026-08-21",
           "value": 1.9187
+        },
+        {
+          "date": "2026-08-22",
+          "value": 1.6959
         }
       ],
-      "latestPercentile": 19.9
+      "latestPercentile": 34.6
     },
     {
       "kind": "Breathing",
@@ -4534,6 +4546,10 @@
         },
         {
           "date": "2026-08-21",
+          "value": 11.2
+        },
+        {
+          "date": "2026-08-22",
           "value": 11.2
         }
       ],
