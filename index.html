@@ -3775,8 +3775,22 @@
         } catch(e) {}
       }
 
-      // Audible 30s heartbeat tick — strong enough to cut through a podcast.
-      function blip() { tone(550, 0, 0.16, 0.22); }
+      // Short percussive 30s marker — a bright tick rather than a sustained beep.
+      function blip() {
+        try {
+          const ctx = getCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1800, now);
+          osc.frequency.exponentialRampToValueAtTime(700, now + 0.055);
+          g.gain.setValueAtTime(0.30, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+          osc.start(now); osc.stop(now + 0.065);
+        } catch(e) {}
+      }
 
       // Distinctive burst-start beeps per intensity (longer = more distinct from 30s blip)
       function burstStartBeep(type) {
