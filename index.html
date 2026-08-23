@@ -738,10 +738,6 @@
       stroke-width: 3;
       opacity: 0.9;
     }
-    .chart-line.weekly-7 {
-      stroke: #c0392b;
-      stroke-width: 4;
-    }
     .chart-line.weekly-21 {
       stroke: #2e86ab;
       stroke-width: 4;
@@ -3047,9 +3043,8 @@
       const svg = document.getElementById("weekly-distance-chart");
       if (!svg) return;
 
-      const sevenDay = runningDistanceMovingAverage(runDistances, year, 7);
       const twentyOneDay = runningDistanceMovingAverage(runDistances, year, 21);
-      if (!sevenDay.length || !twentyOneDay.length) return;
+      if (!twentyOneDay.length) return;
 
       const width = 1500;
       const height = 620;
@@ -3059,30 +3054,27 @@
       const yearStart = new Date(`${year}-01-01T12:00:00`);
       const yearEnd = new Date(`${year}-12-31T12:00:00`);
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
-      const rawYMax = Math.max(10, ...sevenDay.map(point => point.value), ...twentyOneDay.map(point => point.value));
+      const rawYMax = Math.max(10, ...twentyOneDay.map(point => point.value));
       const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
       const x = date => margin.left + (dayOfYear(date) / totalDays) * plotW;
       const y = value => margin.top + plotH - (value / yMax) * plotH;
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
+      const itbsStart = new Date(`${year}-02-22T12:00:00`);
+      const itbsEnd = new Date(`${year}-05-10T12:00:00`);
       const linePath = points => svgPath(points, x, y);
-      const latest7 = sevenDay[sevenDay.length - 1];
       const latest21 = twentyOneDay[twentyOneDay.length - 1];
 
       svg.innerHTML = `
+        <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 34}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">km / week</text>
+        <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
         <path class="chart-line weekly-21" d="${linePath(twentyOneDay)}"></path>
-        <path class="chart-line weekly-7" d="${linePath(sevenDay)}"></path>
-        <line class="chart-line weekly-7" x1="${width - margin.right - 245}" y1="32" x2="${width - margin.right - 205}" y2="32"></line>
-        <text class="chart-label" x="${width - margin.right - 195}" y="40">7-day MA × 7</text>
-        <line class="chart-line weekly-21" x1="${width - margin.right - 245}" y1="68" x2="${width - margin.right - 205}" y2="68"></line>
-        <text class="chart-label" x="${width - margin.right - 195}" y="76">21-day MA × 7</text>
-        ${chartEndLabel(x(latest7.date) + 28, y(latest7.value) - 28, ["7-day", `${Math.round(latest7.value)}km/week`])}
         ${chartEndLabel(x(latest21.date) + 28, y(latest21.value) + 28, ["21-day", `${Math.round(latest21.value)}km/week`])}
       `;
     }
