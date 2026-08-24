@@ -96,7 +96,7 @@ The Saved tweets overlay contains Jamie’s intent-organised bookmark library ra
 
 - The encrypted payload contains only `Saved tweets by intent.md`.
 - Category guide chips link to sections in the same page and show per-category counts.
-- Categories include Buy / try, Go / experience, HealthTech, Relationships, Work behaviours, Life behaviours, Mental models, Quick watch, Watch / listen later, Personal operating system experiments, Taste / craft references, Share / discuss, News / worldview, Humour, and Needs clarification.
+- Categories include Try, Buy, Go / experience, HealthTech, Relationships, Work behaviours, Life behaviours, Mental models, Quick watch, Watch / listen later, Personal AI, Taste / craft references, Share / discuss, News / worldview, Humour, and Needs clarification.
 - Tweet cards show author, formatted timestamp, body, notes, and an **Open tweet** link.
 - Raw URLs are removed from beneath tweet bodies while the primary tweet link remains tappable.
 - Saved image/media URLs are rendered inline as lazy-loaded thumbnails, with each image still linking to its source.
