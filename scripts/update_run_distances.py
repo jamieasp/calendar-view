@@ -102,7 +102,7 @@ def iter_workouts_from_file(path: Path) -> Iterable[dict]:
                 yield workout
 
 
-def load_running_totals() -> tuple[dict[str, int], dict[str, int]]:
+def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
     seen: dict[str, dict] = {}
     sources = [
         FRESH_NDJSON,
@@ -118,6 +118,7 @@ def load_running_totals() -> tuple[dict[str, int], dict[str, int]]:
 
     daily_km: dict[str, float] = collections.defaultdict(float)
     daily_ascent_m: dict[str, float] = collections.defaultdict(float)
+    paces: list[dict[str, float | str]] = []
     for workout in seen.values():
         if workout.get("activityId") not in RUN_ACTIVITY_IDS:
             continue
@@ -132,10 +133,14 @@ def load_running_totals() -> tuple[dict[str, int], dict[str, int]]:
             continue
         daily_km[day] += distance_m / 1000
         daily_ascent_m[day] += workout.get("totalAscent") or 0
+        total_time_s = float(workout.get("totalTime") or 0)
+        distance_km = distance_m / 1000
+        if total_time_s > 0 and distance_km > 0:
+            paces.append({"date": day, "pace": round(total_time_s / 60 / distance_km, 3)})
 
     distances = {day: math.floor(km + 0.5) for day, km in sorted(daily_km.items()) if math.floor(km + 0.5) > 0}
     elevations = {day: math.floor(meters + 0.5) for day, meters in sorted(daily_ascent_m.items()) if math.floor(meters + 0.5) > 0}
-    return distances, elevations
+    return distances, elevations, sorted(paces, key=lambda run: str(run["date"]))
 
 
 
@@ -343,7 +348,7 @@ def load_bedtimes() -> tuple[dict[str, int], dict[str, str]]:
     return bedtimes, labels
 
 
-def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
+def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], run_paces: list[dict[str, float | str]], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
     html = INDEX.read_text()
     required_dynamic_consumers = [
         "function monthRunTotal(totalYear, month)",
@@ -379,6 +384,12 @@ def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], 
     updated, elevation_count = elevation_pattern.subn(elevation_replacement, updated, count=1)
     if elevation_count != 1:
         raise RuntimeError("Could not find exactly one runElevations block in index.html")
+
+    pace_replacement = "    const runPaces = " + json.dumps(run_paces, indent=6).replace("\n", "\n    ") + ";"
+    pace_pattern = re.compile(r"    const runPaces = \[.*?\];", re.S)
+    updated, pace_count = pace_pattern.subn(pace_replacement, updated, count=1)
+    if pace_count != 1:
+        raise RuntimeError("Could not find exactly one runPaces block in index.html")
     bedtime_replacement = "    const bedtimes = " + json.dumps(bedtimes, indent=6).replace("\n", "\n    ") + ";"
     bedtime_pattern = re.compile(r"    const bedtimes = \{.*?\};", re.S)
     updated, bedtime_count = bedtime_pattern.subn(bedtime_replacement, updated, count=1)
@@ -418,12 +429,12 @@ def main() -> int:
     if not SUUNTOOL.exists():
         raise FileNotFoundError(f"Missing suuntool at {SUUNTOOL}")
     pull_workouts()
-    distances, elevations = load_running_totals()
+    distances, elevations, paces = load_running_totals()
     bedtimes, bedtime_labels = load_bedtimes()
-    changed = update_index(distances, elevations, bedtimes, bedtime_labels)
+    changed = update_index(distances, elevations, paces, bedtimes, bedtime_labels)
     stretch_changed = update_stretch_streaks()
     health_changed = write_health_chart_data()
-    print(f"Loaded {len(distances)} run-distance days, {len(elevations)} elevation days, and {len(bedtimes)} bedtime days for {YEAR}.")
+    print(f"Loaded {len(distances)} run-distance days, {len(elevations)} elevation days, {len(paces)} runs with pace, and {len(bedtimes)} bedtime days for {YEAR}.")
     print(f"Stretch streak badges {'updated' if stretch_changed else 'already up to date'}.")
     print(f"Health chart data {'updated' if health_changed else 'already up to date'}.")
     if changed or stretch_changed or health_changed:

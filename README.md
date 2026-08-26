@@ -59,6 +59,7 @@ The Charts area contains SVG-based visualisations and year filters:
 - Cumulative elevation gain.
 - Daily running-distance histogram with All/2024/2025/2026 filters.
 - Daily elevation-gain histogram with the same year filters.
+- Pace-per-run histogram, with the latest run highlighted.
 - GitHub-style daily running-distance heatmap.
 - GitHub-style daily elevation-gain heatmap.
 - Stretch-consistency heatmap.

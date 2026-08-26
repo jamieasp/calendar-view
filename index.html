@@ -1471,6 +1471,10 @@
       </div>
       <svg id="elevation-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of daily running elevation gain with latest day marked"></svg>
       <div class="chart-header secondary-chart-title">
+        <h2>Pace per run distribution</h2>
+      </div>
+      <svg id="pace-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of pace per run, in minutes per kilometre, with latest run marked"></svg>
+      <div class="chart-header secondary-chart-title">
         <h2>Distance heatmap</h2>
       </div>
       <div class="heatmap-filters" aria-label="Distance heatmap year">
@@ -1775,6 +1779,273 @@
           "2026-08-15": 2401,
           "2026-08-23": 92
     };
+
+    const runPaces = [
+          {
+                "date": "2026-01-11",
+                "pace": 7.048
+          },
+          {
+                "date": "2026-01-11",
+                "pace": 6.471
+          },
+          {
+                "date": "2026-01-14",
+                "pace": 5.197
+          },
+          {
+                "date": "2026-01-16",
+                "pace": 5.698
+          },
+          {
+                "date": "2026-01-18",
+                "pace": 7.458
+          },
+          {
+                "date": "2026-01-25",
+                "pace": 5.871
+          },
+          {
+                "date": "2026-01-28",
+                "pace": 9.577
+          },
+          {
+                "date": "2026-01-31",
+                "pace": 8.483
+          },
+          {
+                "date": "2026-02-02",
+                "pace": 5.116
+          },
+          {
+                "date": "2026-02-05",
+                "pace": 5.066
+          },
+          {
+                "date": "2026-02-08",
+                "pace": 6.488
+          },
+          {
+                "date": "2026-02-08",
+                "pace": 6.206
+          },
+          {
+                "date": "2026-02-10",
+                "pace": 11.426
+          },
+          {
+                "date": "2026-02-14",
+                "pace": 6.372
+          },
+          {
+                "date": "2026-02-21",
+                "pace": 8.179
+          },
+          {
+                "date": "2026-02-28",
+                "pace": 8.422
+          },
+          {
+                "date": "2026-03-02",
+                "pace": 4.958
+          },
+          {
+                "date": "2026-03-02",
+                "pace": 7.969
+          },
+          {
+                "date": "2026-03-03",
+                "pace": 6.168
+          },
+          {
+                "date": "2026-03-04",
+                "pace": 5.712
+          },
+          {
+                "date": "2026-03-14",
+                "pace": 4.961
+          },
+          {
+                "date": "2026-03-28",
+                "pace": 10.525
+          },
+          {
+                "date": "2026-04-01",
+                "pace": 4.736
+          },
+          {
+                "date": "2026-04-02",
+                "pace": 5.001
+          },
+          {
+                "date": "2026-04-02",
+                "pace": 7.872
+          },
+          {
+                "date": "2026-04-05",
+                "pace": 8.731
+          },
+          {
+                "date": "2026-04-13",
+                "pace": 7.143
+          },
+          {
+                "date": "2026-04-14",
+                "pace": 8.286
+          },
+          {
+                "date": "2026-04-18",
+                "pace": 8.77
+          },
+          {
+                "date": "2026-04-25",
+                "pace": 8.469
+          },
+          {
+                "date": "2026-04-28",
+                "pace": 5.281
+          },
+          {
+                "date": "2026-05-05",
+                "pace": 4.691
+          },
+          {
+                "date": "2026-05-07",
+                "pace": 5.107
+          },
+          {
+                "date": "2026-05-16",
+                "pace": 7.128
+          },
+          {
+                "date": "2026-05-18",
+                "pace": 5.215
+          },
+          {
+                "date": "2026-05-18",
+                "pace": 6.985
+          },
+          {
+                "date": "2026-05-20",
+                "pace": 6.936
+          },
+          {
+                "date": "2026-05-23",
+                "pace": 6.872
+          },
+          {
+                "date": "2026-05-25",
+                "pace": 6.856
+          },
+          {
+                "date": "2026-05-27",
+                "pace": 8.575
+          },
+          {
+                "date": "2026-05-30",
+                "pace": 9.948
+          },
+          {
+                "date": "2026-06-03",
+                "pace": 5.056
+          },
+          {
+                "date": "2026-06-06",
+                "pace": 12.615
+          },
+          {
+                "date": "2026-06-11",
+                "pace": 6.046
+          },
+          {
+                "date": "2026-06-13",
+                "pace": 8.575
+          },
+          {
+                "date": "2026-06-15",
+                "pace": 15.371
+          },
+          {
+                "date": "2026-06-18",
+                "pace": 12.944
+          },
+          {
+                "date": "2026-06-19",
+                "pace": 9.933
+          },
+          {
+                "date": "2026-06-27",
+                "pace": 8.159
+          },
+          {
+                "date": "2026-07-02",
+                "pace": 10.483
+          },
+          {
+                "date": "2026-07-04",
+                "pace": 14.327
+          },
+          {
+                "date": "2026-07-07",
+                "pace": 20.592
+          },
+          {
+                "date": "2026-07-12",
+                "pace": 5.0
+          },
+          {
+                "date": "2026-07-18",
+                "pace": 9.594
+          },
+          {
+                "date": "2026-07-22",
+                "pace": 5.629
+          },
+          {
+                "date": "2026-07-26",
+                "pace": 9.42
+          },
+          {
+                "date": "2026-07-26",
+                "pace": 28.271
+          },
+          {
+                "date": "2026-07-27",
+                "pace": 13.855
+          },
+          {
+                "date": "2026-07-30",
+                "pace": 5.454
+          },
+          {
+                "date": "2026-08-02",
+                "pace": 6.287
+          },
+          {
+                "date": "2026-08-02",
+                "pace": 8.127
+          },
+          {
+                "date": "2026-08-05",
+                "pace": 5.449
+          },
+          {
+                "date": "2026-08-08",
+                "pace": 6.479
+          },
+          {
+                "date": "2026-08-10",
+                "pace": 5.157
+          },
+          {
+                "date": "2026-08-15",
+                "pace": 10.385
+          },
+          {
+                "date": "2026-08-23",
+                "pace": 6.266
+          }
+    ];
 
     const comparisonRunElevations = {
           "2025-01-03": 275,
@@ -3266,6 +3537,76 @@
       `;
     }
 
+    function formatPace(minutesPerKm) {
+      const totalSeconds = Math.round(minutesPerKm * 60);
+      return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
+    }
+
+    function renderPaceDensityChart() {
+      const svg = document.getElementById("pace-density-chart");
+      if (!svg || !runPaces.length) return;
+
+      const runs = runPaces
+        .filter(run => Number.isFinite(Number(run.pace)) && Number(run.pace) > 0)
+        .map(run => ({ ...run, pace: Number(run.pace), date: dateFromIso(run.date) }))
+        .sort((a, b) => a.date - b.date);
+      if (!runs.length) return;
+
+      const width = 1500;
+      const height = 860;
+      const margin = { top: 58, right: 86, bottom: 86, left: 98 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      const bucketSize = 0.5;
+      const domainMin = Math.max(0, Math.floor(Math.min(...runs.map(run => run.pace))));
+      const domainMax = Math.ceil(Math.max(...runs.map(run => run.pace)) / bucketSize) * bucketSize;
+      const bucketCount = Math.max(1, Math.round((domainMax - domainMin) / bucketSize));
+      const buckets = Array.from({ length: bucketCount }, (_, index) => ({ pace: domainMin + index * bucketSize, runs: [] }));
+      runs.forEach(run => {
+        const index = Math.min(bucketCount - 1, Math.max(0, Math.floor((run.pace - domainMin) / bucketSize)));
+        buckets[index].runs.push(run);
+      });
+      const maxCount = Math.max(1, ...buckets.map(bucket => bucket.runs.length));
+      const yTicks = niceTicks(0, maxCount, 5).filter(tick => tick >= 0);
+      const yMax = yTicks[yTicks.length - 1];
+      const x = value => margin.left + ((value - domainMin) / (domainMax - domainMin || 1)) * plotW;
+      const y = count => margin.top + plotH - (count / yMax) * plotH;
+      const baseline = margin.top + plotH;
+      const xTicks = Array.from({ length: Math.floor(domainMax - domainMin) + 1 }, (_, index) => domainMin + index);
+      const latest = runs.at(-1);
+      const avg = runs.reduce((sum, run) => sum + run.pace, 0) / runs.length;
+      const barGap = 3;
+      const barWidth = Math.max(2, plotW / bucketCount - barGap);
+      const unitHeight = plotH / yMax;
+      const bars = buckets.map(bucket => {
+        if (!bucket.runs.length) return "";
+        const bx = x(bucket.pace) + barGap / 2;
+        const units = bucket.runs.map((run, index) => {
+          const yy = baseline - unitHeight * (index + 1);
+          const isLatest = run.date.getTime() === latest.date.getTime() && run.pace === latest.pace;
+          const cls = isLatest ? "histogram-latest-unit" : "histogram-unit y2026";
+          const range = `${formatPace(bucket.pace)}–${formatPace(bucket.pace + bucketSize)}/km`;
+          const label = isLatest ? `Latest run: ${formatPace(run.pace)}/km · ${run.date.toISOString().slice(0, 10)}` : `${run.date.toISOString().slice(0, 10)}: ${formatPace(run.pace)}/km · ${range}`;
+          return `<rect class="${cls}" x="${bx.toFixed(1)}" y="${yy.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>${label}</title></rect>`;
+        }).join("");
+        const dividers = Array.from({ length: bucket.runs.length - 1 }, (_, index) => {
+          const yy = baseline - unitHeight * (index + 1);
+          return `<line class="histogram-unit-divider" x1="${bx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${(bx + barWidth).toFixed(1)}" y2="${yy.toFixed(1)}"></line>`;
+        }).join("");
+        return `${units}${dividers}`;
+      }).join("");
+
+      svg.innerHTML = `
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">2026 · ${runs.length} runs · latest ${formatPace(latest.pace)}/km · avg ${formatPace(avg)}/km</text>
+        ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${formatPace(tick)}</text>`).join("")}
+        ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
+        <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
+        <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${baseline}"></line>
+        <text class="chart-label" x="${width - margin.right}" y="${height - 30}" text-anchor="end">min/km</text>
+        ${bars}
+      `;
+    }
+
     function runDistanceSourceForYear(selectedYear) {
       if (selectedYear === 2024) return comparisonRunDistances2024;
       if (selectedYear === 2025) return comparisonRunDistances;
@@ -3523,6 +3864,7 @@
     renderWeeklyDistanceChart();
     renderRunDensityChart();
     renderElevationDensityChart();
+    renderPaceDensityChart();
     renderDistanceHeatmap();
     renderElevationHeatmap();
     renderStretchHeatmap();
