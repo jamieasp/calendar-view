@@ -18,23 +18,26 @@
     .back { color:var(--ink); text-decoration:none; border:1px solid var(--line); background:#fffaf0; padding:8px 11px; border-radius:8px; font-size:.78rem; font-weight:700; }
     .back:hover { background:#fff; }
     main { padding:10px 18px 14px; }
-    .week-header,.month { display:grid; grid-template-columns:95px repeat(7,minmax(0,1fr)); }
-    .week-header { height:21px; color:var(--muted); font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.075em; align-items:end; }
-    .week-header span { padding:0 5px; }
+    .week-header,.month { display:grid; grid-template-columns:95px minmax(0,1fr); }
+    .week-header { height:21px; color:var(--muted); font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; align-items:end; }
+    .weekday-strip { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); min-width:0; }
+    .weekday-strip span { padding:0 2px; text-align:center; }
+    .weekday-strip .week-start { border-left:1px solid var(--line); }
     .month { height:calc((100vh - 108px) / 12); min-height:62px; max-height:94px; border-top:1px solid var(--line); }
     .month:last-child { border-bottom:1px solid var(--line); }
     .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
     .month-label small { display:block; margin-top:3px; font-size:.58rem; font-weight:600; color:var(--muted); letter-spacing:0; }
-    .month-grid { grid-column:2 / -1; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); grid-template-rows:repeat(6,1fr); min-width:0; }
-    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); border-top:1px solid rgba(217,207,189,.35); padding:1px 3px; overflow:hidden; background:rgba(255,255,255,.2); }
+    .month-grid { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); grid-template-rows:1fr; min-width:0; }
+    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 2px; overflow:hidden; background:rgba(255,255,255,.2); }
+    .day.week-start { border-left-color:#c9bda8; }
     .day.weekend { background:rgba(240,234,223,.7); }
     .day.today { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.17); z-index:1; }
     .day.empty { background:transparent; }
-    .date { position:absolute; top:1px; left:3px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
-    .run { position:absolute; right:3px; top:1px; font-family:"Patrick Hand",cursive; font-size:.68rem; color:var(--ink); line-height:1; }
-    .badges { position:absolute; right:2px; bottom:1px; font-size:.58rem; letter-spacing:-.1em; line-height:1; }
-    .events { padding:8px 0 0 9px; display:grid; gap:1px; }
-    .event { height:8px; min-width:0; border-radius:2px; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.56rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
+    .date { position:absolute; top:1px; left:2px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
+    .run { position:absolute; right:2px; top:1px; font-family:"Patrick Hand",cursive; font-size:.62rem; color:var(--ink); line-height:1; }
+    .badges { position:absolute; right:1px; bottom:1px; font-size:.55rem; letter-spacing:-.14em; line-height:1; }
+    .events { padding:8px 0 0 7px; display:grid; gap:1px; }
+    .event { height:8px; min-width:0; border-radius:2px; padding:0 1px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
     .event:not(.start) { font-size:0; border-radius:1px; opacity:.68; }
     .event:not(.start)::after { content:""; }
@@ -49,7 +52,7 @@
     <a class="back" href="./">Open main app ↗</a>
   </header>
   <main>
-    <div class="week-header"><span></span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="week-header"><span></span><div class="weekday-strip" aria-label="Six consecutive Monday-first weeks"></div></div>
     <div id="year"><div id="status">Loading calendar…</div></div>
   </main>
   <script>
@@ -115,7 +118,7 @@
           const isFinalStretch = !stretchStreaks[isoDate(YEAR, month, day + 1)];
           const isFinalAbs = !absStreaks[isoDate(YEAR, month, day + 1)];
           const tooltip = [iso, ...dayEvents.map(e => `${e.listTitle || e.title}${e.meta ? ` — ${e.meta}` : ""}`), runDistances[iso] ? `${runDistances[iso]} km run` : ""].filter(Boolean).join("\n");
-          cell.className = `day${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
+          cell.className = `day${slot % 7 === 0 ? " week-start" : ""}${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
           cell.title = tooltip;
           const eventHtml = dayEvents.map(event => {
             const start = iso === event.start || date.getDay() === 1;
@@ -130,6 +133,8 @@
         host.append(section);
       }
     }
+
+    document.querySelector(".weekday-strip").innerHTML = Array.from({ length: 42 }, (_, index) => `<span class="${index % 7 === 0 ? "week-start" : ""}">${["M", "T", "W", "T", "F", "S", "S"][index % 7]}</span>`).join("");
 
     loadCalendarData().then(render).catch(error => {
       document.getElementById("year").innerHTML = `<div id="status">${error.message} Try reloading the main app first.</div>`;
