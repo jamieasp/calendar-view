@@ -28,19 +28,21 @@
     .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
     .month-label small { display:block; margin-top:3px; font-size:.58rem; font-weight:600; color:var(--muted); letter-spacing:0; }
     .month-grid { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); grid-template-rows:1fr; min-width:0; }
-    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 2px; overflow:hidden; background:rgba(255,255,255,.2); }
+    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 0; overflow:hidden; background:rgba(255,255,255,.2); }
     .day.week-start { border-left-color:#c9bda8; }
     .day.weekend { background:rgba(240,234,223,.7); }
     .day.today { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.17); z-index:1; }
-    .day.empty { background:transparent; }
+    .day.empty { background:transparent; border-left:0; }
     .date { position:absolute; top:1px; left:2px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
     .run { position:absolute; right:2px; top:1px; font-family:"Patrick Hand",cursive; font-size:.62rem; color:var(--ink); line-height:1; }
     .badges { position:absolute; right:1px; bottom:1px; font-size:.55rem; letter-spacing:-.14em; line-height:1; }
-    .events { padding:8px 0 0 7px; display:grid; gap:1px; }
-    .event { height:8px; min-width:0; border-radius:2px; padding:0 1px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
+    .events { padding:8px 0 0; display:grid; gap:1px; }
+    .event { height:8px; width:calc(100% + 1px); margin-left:-1px; min-width:0; border-radius:0; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
+    .event.start { border-radius:3px 0 0 3px; margin-left:0; width:100%; }
+    .event.end { border-radius:0 3px 3px 0; }
+    .event.start.end { border-radius:3px; }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
-    .event:not(.start) { font-size:0; border-radius:1px; opacity:.68; }
-    .event:not(.start)::after { content:""; }
+    .event.continuation { font-size:0; opacity:.78; }
     #status { font-size:.8rem; color:var(--muted); padding:28px; }
     @media (max-height:760px) { .month { min-height:54px; } .event { height:7px; line-height:7px; } }
     @media print { body { min-width:0; } header { height:42px; padding:5px 12px; } .back { display:none; } main { padding:4px 10px; } .month { height:calc((100vh - 70px) / 12); max-height:none; } }
@@ -121,8 +123,10 @@
           cell.className = `day${slot % 7 === 0 ? " week-start" : ""}${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
           cell.title = tooltip;
           const eventHtml = dayEvents.map(event => {
-            const start = iso === event.start || date.getDay() === 1;
-            return `<div class="event ${event.status || "trip"}${start ? " start" : ""}" title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
+            const eventEnd = event.end || event.start;
+            const start = iso === event.start || day === 1;
+            const end = iso === eventEnd || day === daysInMonth;
+            return `<div class="event ${event.status || "trip"}${start ? " start" : " continuation"}${end ? " end" : ""}" title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
           }).join("");
           const run = runDistances[iso] ? `<span class="run">${Number(runDistances[iso]).toFixed(1)}</span>` : "";
           const stretch = stretchStreaks[iso] ? `🧘${isFinalStretch ? stretchStreaks[iso] : ""}` : "";
