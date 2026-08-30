@@ -21,12 +21,15 @@ On smaller screens the app is optimised for one-handed use; on larger screens th
 ## Header controls
 
 - **Bird icon** — opens the encrypted Saved tweets library.
+- **Desktop-year icon** — opens `/calendar-view/desktop.html`, a whole-year desktop view with months in rows and Monday-first weekday columns.
 - **Copy icon** — copies the current calendar URL to the clipboard.
 - **Refresh icon** — performs a hard refresh by clearing service-worker registrations/caches before reloading.
 
 ## Calendar and event model
 
 Events are embedded in the `events` array in `index.html`. Each event has a stable `syncId`, start date, optional end date, status, display titles, metadata, and optional URL. Statuses drive the visual treatment and include trips, races, upcoming items, interesting/considered items, completed items, cancelled items, and injuries.
+
+`desktop.html` loads its event, run-distance, and training-streak data from `index.html` at runtime, so there is only one calendar data source to maintain.
 
 Calendar behaviour includes:
 

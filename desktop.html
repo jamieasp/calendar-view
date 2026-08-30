@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f1e5">
+  <title>Jamie’s 2026 Calendar — Desktop</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --paper:#f7f1e5; --ink:#25313a; --muted:#69717a; --line:#d9cfbd; --weekend:#f0eadf; --today:#f6d45c; --trip:rgba(255,214,90,.75); --injury:rgba(243,164,169,.72); --interesting:rgba(170,213,151,.72); --school:rgba(169,205,242,.72); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:1000px; background:var(--paper); color:var(--ink); font-family:"Space Grotesk",system-ui,sans-serif; }
+    header { height:62px; display:flex; align-items:center; justify-content:space-between; padding:10px 22px; border-bottom:1px solid var(--line); background:rgba(247,241,229,.94); }
+    h1 { margin:0; font-size:1.15rem; letter-spacing:-.035em; } h1 span { color:var(--muted); font-size:.78rem; font-weight:500; margin-left:8px; letter-spacing:0; }
+    .back { color:var(--ink); text-decoration:none; border:1px solid var(--line); background:#fffaf0; padding:8px 11px; border-radius:8px; font-size:.78rem; font-weight:700; }
+    .back:hover { background:#fff; }
+    main { padding:10px 18px 14px; }
+    .week-header,.month { display:grid; grid-template-columns:95px repeat(7,minmax(0,1fr)); }
+    .week-header { height:21px; color:var(--muted); font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.075em; align-items:end; }
+    .week-header span { padding:0 5px; }
+    .month { height:calc((100vh - 108px) / 12); min-height:62px; max-height:94px; border-top:1px solid var(--line); }
+    .month:last-child { border-bottom:1px solid var(--line); }
+    .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
+    .month-label small { display:block; margin-top:3px; font-size:.58rem; font-weight:600; color:var(--muted); letter-spacing:0; }
+    .month-grid { grid-column:2 / -1; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); grid-template-rows:repeat(6,1fr); min-width:0; }
+    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); border-top:1px solid rgba(217,207,189,.35); padding:1px 3px; overflow:hidden; background:rgba(255,255,255,.2); }
+    .day.weekend { background:rgba(240,234,223,.7); }
+    .day.today { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.17); z-index:1; }
+    .day.empty { background:transparent; }
+    .date { position:absolute; top:1px; left:3px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
+    .run { position:absolute; right:3px; top:1px; font-family:"Patrick Hand",cursive; font-size:.68rem; color:var(--ink); line-height:1; }
+    .badges { position:absolute; right:2px; bottom:1px; font-size:.58rem; letter-spacing:-.1em; line-height:1; }
+    .events { padding:8px 0 0 9px; display:grid; gap:1px; }
+    .event { height:8px; min-width:0; border-radius:2px; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.56rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
+    .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
+    .event:not(.start) { font-size:0; border-radius:1px; opacity:.68; }
+    .event:not(.start)::after { content:""; }
+    #status { font-size:.8rem; color:var(--muted); padding:28px; }
+    @media (max-height:760px) { .month { min-height:54px; } .event { height:7px; line-height:7px; } }
+    @media print { body { min-width:0; } header { height:42px; padding:5px 12px; } .back { display:none; } main { padding:4px 10px; } .month { height:calc((100vh - 70px) / 12); max-height:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Jamie’s 2026 Calendar <span>desktop year view</span></h1>
+    <a class="back" href="./">Open main app ↗</a>
+  </header>
+  <main>
+    <div class="week-header"><span></span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div id="year"><div id="status">Loading calendar…</div></div>
+  </main>
+  <script>
+    const YEAR = 2026;
+    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const today = new Date();
+    const isoDate = (year, month, day) => `${year}-${String(month + 1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const mondayOffset = date => (date.getDay() + 6) % 7;
+
+    function literalFromMain(source, name) {
+      const marker = `const ${name} =`;
+      const start = source.indexOf(marker);
+      if (start < 0) throw new Error(`Could not find ${name} in the main app.`);
+      let i = source.indexOf("=", start) + 1;
+      while (/\s/.test(source[i])) i++;
+      const open = source[i], close = open === "[" ? "]" : "}";
+      if (open !== "[" && open !== "{") throw new Error(`Unexpected ${name} format.`);
+      let depth = 0, quote = "", escaped = false;
+      for (let end = i; end < source.length; end++) {
+        const ch = source[end];
+        if (quote) { if (escaped) escaped = false; else if (ch === "\\") escaped = true; else if (ch === quote) quote = ""; continue; }
+        if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
+        if (ch === open) depth++;
+        if (ch === close && --depth === 0) return Function(`"use strict"; return (${source.slice(i, end + 1)});`)();
+      }
+      throw new Error(`Could not parse ${name}.`);
+    }
+
+    async function loadCalendarData() {
+      const main = await fetch("index.html", { cache:"no-store" }).then(response => {
+        if (!response.ok) throw new Error("Could not load the main calendar.");
+        return response.text();
+      });
+      return {
+        events: literalFromMain(main, "events"),
+        runDistances: literalFromMain(main, "runDistances"),
+        stretchStreaks: literalFromMain(main, "stretchStreaks"),
+        absStreaks: literalFromMain(main, "absStreaks")
+      };
+    }
+
+    function render(data) {
+      const { events, runDistances, stretchStreaks, absStreaks } = data;
+      const host = document.getElementById("year");
+      const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
+      const eventsForDate = iso => events.filter(event => iso >= event.start && iso <= (event.end || event.start));
+      host.innerHTML = "";
+      for (let month = 0; month < 12; month++) {
+        const first = new Date(YEAR, month, 1);
+        const daysInMonth = new Date(YEAR, month + 1, 0).getDate();
+        const runTotal = Object.entries(runDistances).filter(([iso]) => iso.startsWith(`${YEAR}-${String(month + 1).padStart(2,"0")}-`)).reduce((sum, [, km]) => sum + Number(km || 0), 0);
+        const section = document.createElement("section");
+        section.className = "month";
+        section.innerHTML = `<div class="month-label">${MONTHS[month]}<small>${runTotal ? `${runTotal.toFixed(0)} km run` : ""}</small></div><div class="month-grid"></div>`;
+        const grid = section.querySelector(".month-grid");
+        for (let slot = 0; slot < 42; slot++) {
+          const day = slot - mondayOffset(first) + 1;
+          const cell = document.createElement("div");
+          if (day < 1 || day > daysInMonth) { cell.className = "day empty"; grid.append(cell); continue; }
+          const date = new Date(YEAR, month, day);
+          const iso = isoDate(YEAR, month, day);
+          const dayEvents = eventsForDate(iso);
+          const isFinalStretch = !stretchStreaks[isoDate(YEAR, month, day + 1)];
+          const isFinalAbs = !absStreaks[isoDate(YEAR, month, day + 1)];
+          const tooltip = [iso, ...dayEvents.map(e => `${e.listTitle || e.title}${e.meta ? ` — ${e.meta}` : ""}`), runDistances[iso] ? `${runDistances[iso]} km run` : ""].filter(Boolean).join("\n");
+          cell.className = `day${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
+          cell.title = tooltip;
+          const eventHtml = dayEvents.map(event => {
+            const start = iso === event.start || date.getDay() === 1;
+            return `<div class="event ${event.status || "trip"}${start ? " start" : ""}" title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
+          }).join("");
+          const run = runDistances[iso] ? `<span class="run">${Number(runDistances[iso]).toFixed(1)}</span>` : "";
+          const stretch = stretchStreaks[iso] ? `🧘${isFinalStretch ? stretchStreaks[iso] : ""}` : "";
+          const abs = absStreaks[iso] ? `💪${isFinalAbs ? absStreaks[iso] : ""}` : "";
+          cell.innerHTML = `<span class="date">${day}</span>${run}<div class="events">${eventHtml}</div><span class="badges">${stretch}${abs}</span>`;
+          grid.append(cell);
+        }
+        host.append(section);
+      }
+    }
+
+    loadCalendarData().then(render).catch(error => {
+      document.getElementById("year").innerHTML = `<div id="status">${error.message} Try reloading the main app first.</div>`;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>
