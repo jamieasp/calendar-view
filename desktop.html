@@ -32,6 +32,7 @@
     .event.start { position:relative; z-index:4; min-height:8px; height:auto; border-radius:3px 0 0 3px; margin-left:0; width:calc(100% * var(--span, 1)); line-height:1.05; white-space:normal; overflow-wrap:anywhere; }
     .event.end { border-radius:0 3px 3px 0; }
     .event.start.end { border-radius:3px; }
+    .event.single { width:100% !important; white-space:normal; overflow:hidden; overflow-wrap:anywhere; max-height:30px; }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
     .event.continuation { font-size:0; opacity:.78; }
     #status { font-size:.8rem; color:var(--muted); padding:28px; }
@@ -106,12 +107,13 @@
           cell.title = tooltip;
           const eventHtml = dayEvents.map(event => {
             const eventEnd = event.end || event.start;
+            const single = eventEnd === event.start;
             const start = iso === event.start || day === 1;
             const end = iso === eventEnd || day === daysInMonth;
             const endsThisMonth = eventEnd.slice(0, 7) === iso.slice(0, 7);
             const span = start ? (endsThisMonth ? Number(eventEnd.slice(-2)) : daysInMonth) - day + 1 : 1;
             const style = start ? ` style="--span:${span}"` : "";
-            return `<div class="event ${event.status || "trip"}${start ? " start" : " continuation"}${end ? " end" : ""}"${style} title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
+            return `<div class="event ${event.status || "trip"}${single ? " single" : ""}${start ? " start" : " continuation"}${end ? " end" : ""}"${style} title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
           }).join("");
           cell.innerHTML = `<span class="date">${day}</span><div class="events">${eventHtml}</div>`;
           grid.append(cell);
