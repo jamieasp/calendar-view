@@ -27,15 +27,15 @@
     .month:last-child { border-bottom:1px solid var(--line); }
     .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
     .month-grid { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); grid-template-rows:1fr; min-width:0; }
-    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 0; overflow:hidden; background:rgba(255,255,255,.2); }
+    .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 0; overflow:visible; background:rgba(255,255,255,.2); }
     .day.week-start { border-left-color:#c9bda8; }
     .day.weekend { background:rgba(240,234,223,.7); }
     .day.today { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.17); z-index:1; }
     .day.empty { background:transparent; border-left:0; }
     .date { position:absolute; top:1px; left:2px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
     .events { padding:8px 0 0; display:grid; gap:1px; }
-    .event { height:8px; width:calc(100% + 1px); margin-left:-1px; min-width:0; border-radius:0; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
-    .event.start { border-radius:3px 0 0 3px; margin-left:0; width:100%; }
+    .event { height:8px; width:calc(100% + 1px); margin-left:-1px; min-width:0; border-radius:0; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:visible; background:var(--trip); }
+    .event.start { position:relative; z-index:4; border-radius:3px 0 0 3px; margin-left:0; width:calc(100% * var(--span, 1)); }
     .event.end { border-radius:0 3px 3px 0; }
     .event.start.end { border-radius:3px; }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
@@ -115,7 +115,10 @@
             const eventEnd = event.end || event.start;
             const start = iso === event.start || day === 1;
             const end = iso === eventEnd || day === daysInMonth;
-            return `<div class="event ${event.status || "trip"}${start ? " start" : " continuation"}${end ? " end" : ""}" title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
+            const endsThisMonth = eventEnd.slice(0, 7) === iso.slice(0, 7);
+            const span = start ? (endsThisMonth ? Number(eventEnd.slice(-2)) : daysInMonth) - day + 1 : 1;
+            const style = start ? ` style="--span:${span}"` : "";
+            return `<div class="event ${event.status || "trip"}${start ? " start" : " continuation"}${end ? " end" : ""}"${style} title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
           }).join("");
           cell.innerHTML = `<span class="date">${day}</span><div class="events">${eventHtml}</div>`;
           grid.append(cell);
