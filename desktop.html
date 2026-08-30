@@ -34,7 +34,7 @@
     .event.start.end { border-radius:3px; }
     .event.single { width:100% !important; white-space:normal; overflow:hidden; overflow-wrap:normal; word-break:normal; hyphens:none; max-height:30px; }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
-    .event.continuation { font-size:0; opacity:.78; }
+    .event.continuation { font-size:0; opacity:0; pointer-events:none; }
     #status { font-size:.8rem; color:var(--muted); padding:28px; }
     @media (max-height:760px) { .month { min-height:54px; } .event { height:7px; line-height:7px; } }
     @media print { body { min-width:0; } header { height:42px; padding:5px 12px; } .back { display:none; } main { padding:4px 10px; } .month { height:calc((100vh - 70px) / 12); max-height:none; } }
