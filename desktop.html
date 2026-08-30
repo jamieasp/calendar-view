@@ -82,6 +82,12 @@
       return { events: literalFromMain(main, "events") };
     }
 
+    function isRaceEvent(event) {
+      if (event.race === false) return false;
+      const text = `${event.title || ""} ${event.listTitle || ""}`;
+      return Boolean(event.race || /\b(utmb|maverick|jurassic|copper|st sunday|race|skyrace|skytrail|trail run)\b/i.test(text));
+    }
+
     function render(data) {
       const { events } = data;
       const host = document.getElementById("year");
@@ -113,7 +119,8 @@
             const endsThisMonth = eventEnd.slice(0, 7) === iso.slice(0, 7);
             const span = start ? (endsThisMonth ? Number(eventEnd.slice(-2)) : daysInMonth) - day + 1 : 1;
             const style = start ? ` style="--span:${span}"` : "";
-            return `<div class="event ${event.status || "trip"}${single ? " single" : ""}${start ? " start" : " continuation"}${end ? " end" : ""}"${style} title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
+            const label = isRaceEvent(event) ? `🏁 ${event.title || ""}` : (event.title || "");
+            return `<div class="event ${event.status || "trip"}${single ? " single" : ""}${start ? " start" : " continuation"}${end ? " end" : ""}"${style} title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? label : ""}</div>`;
           }).join("");
           cell.innerHTML = `<span class="date">${day}</span><div class="events">${eventHtml}</div>`;
           grid.append(cell);
