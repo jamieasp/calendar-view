@@ -25,6 +25,7 @@
     .day:not(.empty)::before { content:""; position:absolute; inset:1px; z-index:0; border:1px solid rgba(217,207,189,.82); border-radius:8px; background:rgba(255,255,255,.38); }
     .day.weekend::before { background:rgba(240,234,223,.82); }
     .day.today::before { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.20); }
+    .day.future::before { border:1.5px solid #20262c; }
     .day.empty { background:transparent; }
     .date { position:absolute; z-index:2; top:3px; left:4px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
     .events { position:relative; z-index:1; padding:12px 2px 0; display:grid; gap:1px; }
@@ -109,7 +110,7 @@
           const iso = isoDate(YEAR, month, day);
           const dayEvents = eventsForDate(iso);
           const tooltip = [iso, ...dayEvents.map(e => `${e.listTitle || e.title}${e.meta ? ` — ${e.meta}` : ""}`)].filter(Boolean).join("\n");
-          cell.className = `day${slot % 7 === 0 ? " week-start" : ""}${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
+          cell.className = `day${slot % 7 === 0 ? " week-start" : ""}${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}${iso > todayIso ? " future" : ""}`;
           cell.title = tooltip;
           const eventHtml = dayEvents.map(event => {
             const eventEnd = event.end || event.start;
