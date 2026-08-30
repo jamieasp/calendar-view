@@ -26,7 +26,6 @@
     .month { height:calc((100vh - 108px) / 12); min-height:62px; max-height:94px; border-top:1px solid var(--line); }
     .month:last-child { border-bottom:1px solid var(--line); }
     .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
-    .month-label small { display:block; margin-top:3px; font-size:.58rem; font-weight:600; color:var(--muted); letter-spacing:0; }
     .month-grid { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); grid-template-rows:1fr; min-width:0; }
     .day { min-width:0; min-height:0; position:relative; border-left:1px solid rgba(217,207,189,.7); padding:1px 0; overflow:hidden; background:rgba(255,255,255,.2); }
     .day.week-start { border-left-color:#c9bda8; }
@@ -34,8 +33,6 @@
     .day.today { box-shadow:inset 0 0 0 2px var(--today); background:rgba(246,212,92,.17); z-index:1; }
     .day.empty { background:transparent; border-left:0; }
     .date { position:absolute; top:1px; left:2px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
-    .run { position:absolute; right:2px; top:1px; font-family:"Patrick Hand",cursive; font-size:.62rem; color:var(--ink); line-height:1; }
-    .badges { position:absolute; right:1px; bottom:1px; font-size:.55rem; letter-spacing:-.14em; line-height:1; }
     .events { padding:8px 0 0; display:grid; gap:1px; }
     .event { height:8px; width:calc(100% + 1px); margin-left:-1px; min-width:0; border-radius:0; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:var(--trip); }
     .event.start { border-radius:3px 0 0 3px; margin-left:0; width:100%; }
@@ -88,16 +85,11 @@
         if (!response.ok) throw new Error("Could not load the main calendar.");
         return response.text();
       });
-      return {
-        events: literalFromMain(main, "events"),
-        runDistances: literalFromMain(main, "runDistances"),
-        stretchStreaks: literalFromMain(main, "stretchStreaks"),
-        absStreaks: literalFromMain(main, "absStreaks")
-      };
+      return { events: literalFromMain(main, "events") };
     }
 
     function render(data) {
-      const { events, runDistances, stretchStreaks, absStreaks } = data;
+      const { events } = data;
       const host = document.getElementById("year");
       const todayIso = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
       const eventsForDate = iso => events.filter(event => iso >= event.start && iso <= (event.end || event.start));
@@ -105,10 +97,9 @@
       for (let month = 0; month < 12; month++) {
         const first = new Date(YEAR, month, 1);
         const daysInMonth = new Date(YEAR, month + 1, 0).getDate();
-        const runTotal = Object.entries(runDistances).filter(([iso]) => iso.startsWith(`${YEAR}-${String(month + 1).padStart(2,"0")}-`)).reduce((sum, [, km]) => sum + Number(km || 0), 0);
         const section = document.createElement("section");
         section.className = "month";
-        section.innerHTML = `<div class="month-label">${MONTHS[month]}<small>${runTotal ? `${runTotal.toFixed(0)} km run` : ""}</small></div><div class="month-grid"></div>`;
+        section.innerHTML = `<div class="month-label">${MONTHS[month]}</div><div class="month-grid"></div>`;
         const grid = section.querySelector(".month-grid");
         for (let slot = 0; slot < 42; slot++) {
           const day = slot - mondayOffset(first) + 1;
@@ -117,9 +108,7 @@
           const date = new Date(YEAR, month, day);
           const iso = isoDate(YEAR, month, day);
           const dayEvents = eventsForDate(iso);
-          const isFinalStretch = !stretchStreaks[isoDate(YEAR, month, day + 1)];
-          const isFinalAbs = !absStreaks[isoDate(YEAR, month, day + 1)];
-          const tooltip = [iso, ...dayEvents.map(e => `${e.listTitle || e.title}${e.meta ? ` — ${e.meta}` : ""}`), runDistances[iso] ? `${runDistances[iso]} km run` : ""].filter(Boolean).join("\n");
+          const tooltip = [iso, ...dayEvents.map(e => `${e.listTitle || e.title}${e.meta ? ` — ${e.meta}` : ""}`)].filter(Boolean).join("\n");
           cell.className = `day${slot % 7 === 0 ? " week-start" : ""}${date.getDay() === 0 || date.getDay() === 6 ? " weekend" : ""}${iso === todayIso ? " today" : ""}`;
           cell.title = tooltip;
           const eventHtml = dayEvents.map(event => {
@@ -128,10 +117,7 @@
             const end = iso === eventEnd || day === daysInMonth;
             return `<div class="event ${event.status || "trip"}${start ? " start" : " continuation"}${end ? " end" : ""}" title="${(event.listTitle || event.title).replace(/"/g,"&quot;")}">${start ? (event.title || "") : ""}</div>`;
           }).join("");
-          const run = runDistances[iso] ? `<span class="run">${Number(runDistances[iso]).toFixed(1)}</span>` : "";
-          const stretch = stretchStreaks[iso] ? `🧘${isFinalStretch ? stretchStreaks[iso] : ""}` : "";
-          const abs = absStreaks[iso] ? `💪${isFinalAbs ? absStreaks[iso] : ""}` : "";
-          cell.innerHTML = `<span class="date">${day}</span>${run}<div class="events">${eventHtml}</div><span class="badges">${stretch}${abs}</span>`;
+          cell.innerHTML = `<span class="date">${day}</span><div class="events">${eventHtml}</div>`;
           grid.append(cell);
         }
         host.append(section);

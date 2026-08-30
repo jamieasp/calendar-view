@@ -29,7 +29,7 @@ On smaller screens the app is optimised for one-handed use; on larger screens th
 
 Events are embedded in the `events` array in `index.html`. Each event has a stable `syncId`, start date, optional end date, status, display titles, metadata, and optional URL. Statuses drive the visual treatment and include trips, races, upcoming items, interesting/considered items, completed items, cancelled items, and injuries.
 
-`desktop.html` loads its event, run-distance, and training-streak data from `index.html` at runtime, so there is only one calendar data source to maintain.
+`desktop.html` loads its event data from `index.html` at runtime, so there is only one calendar data source to maintain.
 
 Calendar behaviour includes:
 
