@@ -18,12 +18,7 @@
     .back { color:var(--ink); text-decoration:none; border:1px solid var(--line); background:#fffaf0; padding:8px 11px; border-radius:8px; font-size:.78rem; font-weight:700; }
     .back:hover { background:#fff; }
     main { padding:10px 18px 14px; }
-    .week-header,.month { display:grid; grid-template-columns:95px minmax(0,1fr); }
-    .week-header { height:21px; color:var(--muted); font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.035em; align-items:end; }
-    .weekday-strip { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); min-width:0; }
-    .weekday-strip span { padding:0 2px; text-align:center; }
-    .weekday-strip .week-start { border-left:1px solid var(--line); }
-    .month { height:calc((100vh - 108px) / 12); min-height:62px; max-height:94px; margin-bottom:3px; }
+    .month { display:grid; grid-template-columns:95px minmax(0,1fr); height:calc((100vh - 87px) / 12); min-height:62px; max-height:94px; margin-bottom:3px; }
     .month-label { padding:7px 8px 4px 0; font-weight:800; font-size:.88rem; letter-spacing:-.035em; display:flex; align-items:flex-start; }
     .month-grid { display:grid; grid-template-columns:repeat(42,minmax(0,1fr)); grid-template-rows:1fr; min-width:0; }
     .day { min-width:0; min-height:0; position:relative; padding:1px 0; overflow:visible; background:transparent; }
@@ -50,7 +45,6 @@
     <a class="back" href="./">Open main app ↗</a>
   </header>
   <main>
-    <div class="week-header"><span></span><div class="weekday-strip" aria-label="Six consecutive Monday-first weeks"></div></div>
     <div id="year"><div id="status">Loading calendar…</div></div>
   </main>
   <script>
@@ -125,8 +119,6 @@
         host.append(section);
       }
     }
-
-    document.querySelector(".weekday-strip").innerHTML = Array.from({ length: 42 }, (_, index) => `<span class="${index % 7 === 0 ? "week-start" : ""}">${["M", "T", "W", "T", "F", "S", "S"][index % 7]}</span>`).join("");
 
     loadCalendarData().then(render).catch(error => {
       document.getElementById("year").innerHTML = `<div id="status">${error.message} Try reloading the main app first.</div>`;
