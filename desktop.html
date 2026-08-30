@@ -34,7 +34,7 @@
     .date { position:absolute; z-index:2; top:3px; left:4px; font-size:.56rem; color:var(--muted); font-weight:800; line-height:1; }
     .events { position:relative; z-index:1; padding:12px 2px 0; display:grid; gap:1px; }
     .event { height:8px; width:calc(100% + 1px); margin-left:-1px; min-width:0; border-radius:0; padding:0 2px; font-family:"Patrick Hand",cursive; font-size:.53rem; font-weight:bold; line-height:8px; white-space:nowrap; overflow:visible; background:var(--trip); }
-    .event.start { position:relative; z-index:4; border-radius:3px 0 0 3px; margin-left:0; width:calc(100% * var(--span, 1)); }
+    .event.start { position:relative; z-index:4; min-height:8px; height:auto; border-radius:3px 0 0 3px; margin-left:0; width:calc(100% * var(--span, 1)); line-height:1.05; white-space:normal; overflow-wrap:anywhere; }
     .event.end { border-radius:0 3px 3px 0; }
     .event.start.end { border-radius:3px; }
     .event.injury { background:var(--injury); } .event.interesting { background:var(--interesting); } .event.school { background:var(--school); } .event.cancelled { opacity:.55; text-decoration:line-through; }
