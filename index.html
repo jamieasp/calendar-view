@@ -394,6 +394,15 @@
     .event-bar.single.injury .highlight-text { background: linear-gradient(transparent 44%, var(--pink-highlighter) 44% 82%, transparent 82%); }
     .event-bar.single.interesting .highlight-text { background: linear-gradient(transparent 44%, var(--interesting-highlighter) 44% 82%, transparent 82%); }
     .event-bar.single.school .highlight-text { background: linear-gradient(transparent 44%, var(--school-highlighter) 44% 82%, transparent 82%); }
+    .event-bar.training {
+      color: #989898;
+      font-size: 0.8rem;
+      font-weight: 750;
+      letter-spacing: -0.015em;
+      opacity: 0.92;
+      transform: none;
+    }
+    .event-bar.single.training .highlight-text { background: none; }
     .event-bar.cancelled {
       text-decoration: line-through;
       opacity: 0.74;
@@ -3035,6 +3044,37 @@
     function eventsForDate(iso) {
       return events.filter(event => iso >= event.start && iso <= (event.end || event.start));
     }
+    function coachPlanCalendarLabel(workout) {
+      const title = String(workout.title || "").toLowerCase();
+      const duration = workout.duration || "";
+      if (title === "zone 1") return `Z1, ${duration}`;
+      if (title === "zone 2") return `Z2, ${duration}`;
+      if (title.includes("active recovery running")) return `${duration} Rec`;
+      if (title.includes("active recovery walking")) return `${duration} Walk`;
+      if (title === "strides") return `${duration} Strides`;
+      if (title.includes("hill sprints")) return "4–10 Hills";
+      if (title.includes("drills for runners")) return `${duration} Drills`;
+      return `${duration ? `${duration} ` : ""}${workout.title}`;
+    }
+    function syncCoachPlanCalendar(workouts) {
+      for (let index = events.length - 1; index >= 0; index--) {
+        if (String(events[index].syncId || "").startsWith("trainingpeaks-")) events.splice(index, 1);
+      }
+      workouts.forEach(workout => {
+        if (!workout.id || !workout.date) return;
+        const label = coachPlanCalendarLabel(workout);
+        events.push({
+          syncId: `trainingpeaks-${workout.id}`,
+          start: workout.date,
+          status: "training",
+          title: label,
+          listTitle: workout.title || label,
+          meta: [workout.sport, workout.duration, workout.tss ? `${Math.round(workout.tss)} TSS` : null].filter(Boolean).join(" · "),
+          race: false,
+        });
+      });
+      renderCalendar();
+    }
     function isStartOfVisibleSegment(event, date) {
       const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
       return iso === event.start || date.getDay() === 1;
@@ -4834,6 +4874,7 @@
         if (!response.ok) throw new Error("Plan unavailable");
         const plan = await response.json();
         const workouts = Array.isArray(plan.workouts) ? plan.workouts : [];
+        syncCoachPlanCalendar(workouts);
         list.replaceChildren();
         if (!workouts.length) {
           list.textContent = "No TrainingPeaks activities in this window.";

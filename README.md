@@ -152,7 +152,7 @@ python scripts/sync_google_calendar.py --apply --calendar-id primary
 - `scripts/update_stretch_streaks.py` rebuilds stretch streaks from `../memory/stretch-reminders.md`.
 - `scripts/update_abs_streaks.py` combines `../memory/abs-workouts.md` with Suunto gym sessions to rebuild strength/abs streaks. Use `--no-pull` to rely on locally available workout data.
 - `scripts/update_pressup_log.py` maintains press-up completion data.
-- `scripts/sync_trainingpeaks_plan.py` publishes the TrainingPeaks coach plan for the Train tab. It retains activities from the previous three days and up to 28 days ahead. The scheduled publisher refreshes the JSON daily and only commits when it has changed.
+- `scripts/sync_trainingpeaks_plan.py` publishes the TrainingPeaks coach plan for the Train tab and its minimal grey calendar labels. It retains historic activities, while refreshing the previous three days and up to 28 days ahead. The scheduled publisher refreshes the JSON daily and only commits when it has changed.
 - `scripts/authorize_google_calendar.py` handles Google Calendar OAuth setup.
 - `health-data.json` is the chart dataset consumed by the health panels.
 

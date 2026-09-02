@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Publish the recent and upcoming TrainingPeaks plan for the static web app.
+"""Publish the TrainingPeaks plan for the static web app.
 
-The GitHub Pages site is static, so this keeps its small training-plan JSON
-current.  It retains the previous three days and pulls the next 28 days.
+The GitHub Pages site is static. Historic plan activities are retained, while
+the rolling live window is replaced with the previous three days plus the next
+28 days from TrainingPeaks.
 """
 
 from __future__ import annotations
@@ -63,8 +64,18 @@ def main() -> None:
         "workouts": workouts,
     }
     output = REPO / "trainingpeaks-plan.json"
+    if output.exists():
+        try:
+            existing = json.loads(output.read_text(encoding="utf-8"))
+            historic = [
+                workout for workout in existing.get("workouts", [])
+                if isinstance(workout, dict) and workout.get("date", "") < start.isoformat()
+            ]
+            payload["workouts"] = historic + workouts
+        except (json.JSONDecodeError, OSError):
+            pass
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(f"Wrote {len(workouts)} TrainingPeaks workouts for {start} to {end}")
+    print(f"Wrote {len(payload['workouts'])} TrainingPeaks workouts; refreshed {start} to {end}")
 
 
 if __name__ == "__main__":
