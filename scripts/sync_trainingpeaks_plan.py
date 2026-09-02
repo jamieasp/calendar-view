@@ -3,7 +3,7 @@
 
 The GitHub Pages site is static. Historic plan activities are retained, while
 the rolling live window is replaced with the previous three days plus the next
-28 days from TrainingPeaks.
+56 days from TrainingPeaks.
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ def main() -> None:
     parser.add_argument("--today", type=date.fromisoformat, help="YYYY-MM-DD; useful for testing")
     args = parser.parse_args()
     today = args.today or datetime.now(timezone.utc).date()
-    start, end = today - timedelta(days=3), today + timedelta(days=28)
+    start, end = today - timedelta(days=3), today + timedelta(days=56)
     workouts = asyncio.run(fetch_plan(start, end))
     payload = {
         "updatedAt": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
