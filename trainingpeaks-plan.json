@@ -1,0 +1,180 @@
+{
+  "updatedAt": "2026-09-02T20:50:39Z",
+  "window": {
+    "start": "2026-08-30",
+    "end": "2026-09-30"
+  },
+  "workouts": [
+    {
+      "id": "3933091386",
+      "date": "2026-09-03",
+      "title": "Zone 1",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 23.3,
+      "optional": false
+    },
+    {
+      "id": "3933105492",
+      "date": "2026-09-10",
+      "title": "Active Recovery Running",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": false
+    },
+    {
+      "id": "3933094407",
+      "date": "2026-09-12",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "2h",
+      "tss": 116.7,
+      "optional": false
+    },
+    {
+      "id": "3933094638",
+      "date": "2026-09-13",
+      "title": "Active Recovery Running (Optional)",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": true
+    },
+    {
+      "id": "3933105755",
+      "date": "2026-09-14",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 26.7,
+      "optional": false
+    },
+    {
+      "id": "3933093880",
+      "date": "2026-09-15",
+      "title": "Strides",
+      "sport": "Run",
+      "duration": "40 min",
+      "tss": 32.5,
+      "optional": false
+    },
+    {
+      "id": "3933093789",
+      "date": "2026-09-16",
+      "title": "Active Recovery Running",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": false
+    },
+    {
+      "id": "3933093348",
+      "date": "2026-09-17",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 26.7,
+      "optional": false
+    },
+    {
+      "id": "3933097452",
+      "date": "2026-09-19",
+      "title": "Active Recovery Running",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": false
+    },
+    {
+      "id": "3933092977",
+      "date": "2026-09-21",
+      "title": "Active Recovery Walking",
+      "sport": "Walk",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": false
+    },
+    {
+      "id": "3933100437",
+      "date": "2026-09-22",
+      "title": "Drills for Runners",
+      "sport": "Run",
+      "duration": "45 min",
+      "tss": 53.31,
+      "optional": false
+    },
+    {
+      "id": "3933097642",
+      "date": "2026-09-23",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "45 min",
+      "tss": 41.7,
+      "optional": false
+    },
+    {
+      "id": "3933094908",
+      "date": "2026-09-24",
+      "title": "Strides",
+      "sport": "Run",
+      "duration": "40 min",
+      "tss": 32.5,
+      "optional": false
+    },
+    {
+      "id": "3933097995",
+      "date": "2026-09-25",
+      "title": "Hill Sprints",
+      "sport": "Run",
+      "duration": "45 min",
+      "tss": 41.7,
+      "optional": false
+    },
+    {
+      "id": "3933098405",
+      "date": "2026-09-26",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "2h 30m",
+      "tss": 146.7,
+      "optional": false
+    },
+    {
+      "id": "3933098647",
+      "date": "2026-09-27",
+      "title": "Active Recovery Running (Optional)",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": true
+    },
+    {
+      "id": "3933106089",
+      "date": "2026-09-28",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 26.7,
+      "optional": false
+    },
+    {
+      "id": "3933106212",
+      "date": "2026-09-29",
+      "title": "Strides",
+      "sport": "Run",
+      "duration": "40 min",
+      "tss": 32.5,
+      "optional": false
+    },
+    {
+      "id": "3933106486",
+      "date": "2026-09-30",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "45 min",
+      "tss": 41.7,
+      "optional": false
+    }
+  ]
+}

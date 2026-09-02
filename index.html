@@ -587,6 +587,18 @@
       text-underline-offset: 3px;
     }
     .train-link:hover { opacity: 0.7; }
+    .coach-plan-day {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 850;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .coach-plan-stale {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
     .train-timer {
       display: flex;
       align-items: center;
@@ -1504,6 +1516,13 @@
         <h2>Bedtime heatmap</h2>
       </div>
       <svg id="bedtime-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style bedtime heatmap; darker means later bedtime"></svg>
+    </section>
+    <section class="train-section" aria-labelledby="coach-plan-title">
+      <h2 id="coach-plan-title">Coach plan</h2>
+      <p class="train-meta" id="coach-plan-meta">Loading TrainingPeaks plan…</p>
+      <div class="train-block">
+        <ul class="train-list" id="coach-plan-list"></ul>
+      </div>
     </section>
     <section class="train-section" aria-labelledby="train-title">
       <h2 id="train-title">Rachel@Home</h2>
@@ -4802,6 +4821,52 @@
         if (icon) icon.textContent = originalIcon;
       }, 1400);
     }
+    function formatCoachPlanDate(iso) {
+      return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" })
+        .format(new Date(`${iso}T12:00:00Z`));
+    }
+    async function loadCoachPlan() {
+      const list = document.getElementById("coach-plan-list");
+      const meta = document.getElementById("coach-plan-meta");
+      if (!list || !meta) return;
+      try {
+        const response = await fetch("trainingpeaks-plan.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("Plan unavailable");
+        const plan = await response.json();
+        const workouts = Array.isArray(plan.workouts) ? plan.workouts : [];
+        list.replaceChildren();
+        if (!workouts.length) {
+          list.textContent = "No TrainingPeaks activities in this window.";
+        } else {
+          workouts.forEach(workout => {
+            const item = document.createElement("li");
+            const day = document.createElement("span");
+            day.className = "coach-plan-day";
+            day.textContent = formatCoachPlanDate(workout.date);
+            const title = document.createElement("span");
+            title.className = "train-exercise";
+            title.textContent = `${workout.title}${workout.optional ? " (optional)" : ""}`;
+            const details = document.createElement("span");
+            details.className = "train-sets";
+            details.textContent = [workout.sport, workout.duration, workout.tss ? `${Math.round(workout.tss)} TSS` : null].filter(Boolean).join(" · ");
+            item.append(day, title, details);
+            list.append(item);
+          });
+        }
+        const updated = plan.updatedAt ? new Date(plan.updatedAt) : null;
+        meta.textContent = updated && !Number.isNaN(updated.getTime())
+          ? `TrainingPeaks · refreshed ${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(updated)}`
+          : "TrainingPeaks plan";
+      } catch (_) {
+        list.replaceChildren();
+        const item = document.createElement("li");
+        item.className = "coach-plan-stale";
+        item.textContent = "Training plan temporarily unavailable.";
+        list.append(item);
+        meta.textContent = "TrainingPeaks plan";
+      }
+    }
+    loadCoachPlan();
     document.querySelectorAll(".bottom-tab").forEach(button => {
       button.addEventListener("click", () => {
         if (button.dataset.tab === "calendar") scrollToCalendar();
