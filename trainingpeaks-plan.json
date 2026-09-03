@@ -1,17 +1,62 @@
 {
-  "updatedAt": "2026-09-03T04:15:01Z",
+  "updatedAt": "2026-09-03T10:50:49Z",
   "window": {
     "start": "2026-08-31",
     "end": "2026-10-29"
   },
   "workouts": [
     {
-      "id": "3933091386",
-      "date": "2026-09-03",
-      "title": "Zone 1",
+      "id": "3934411640",
+      "date": "2026-09-04",
+      "title": "Active Recovery Running",
       "sport": "Run",
       "duration": "30 min",
-      "tss": 23.3,
+      "tss": 24.98,
+      "optional": false
+    },
+    {
+      "id": "3934411898",
+      "date": "2026-09-05",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "1h 30m",
+      "tss": 86.7,
+      "optional": false
+    },
+    {
+      "id": "3934412020",
+      "date": "2026-09-06",
+      "title": "Active Recovery Running (Optional)",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": true
+    },
+    {
+      "id": "3934412294",
+      "date": "2026-09-07",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 26.7,
+      "optional": false
+    },
+    {
+      "id": "3934412295",
+      "date": "2026-09-08",
+      "title": "Strides",
+      "sport": "Run",
+      "duration": "40 min",
+      "tss": 32.5,
+      "optional": false
+    },
+    {
+      "id": "3934412414",
+      "date": "2026-09-09",
+      "title": "Zone 2",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 26.7,
       "optional": false
     },
     {
@@ -233,11 +278,11 @@
     {
       "id": "3933096604",
       "date": "2026-10-07",
-      "title": "Zone 2",
+      "title": "Zone 2 (Optional)",
       "sport": "Run",
       "duration": "30 min",
       "tss": 26.7,
-      "optional": false
+      "optional": true
     },
     {
       "id": "3933096610",
@@ -269,11 +314,11 @@
     {
       "id": "3933101783",
       "date": "2026-10-14",
-      "title": "Active Recovery Running",
+      "title": "Active Recovery Running (Optional)",
       "sport": "Run",
       "duration": "30 min",
       "tss": 24.98,
-      "optional": false
+      "optional": true
     },
     {
       "id": "3933102466",
