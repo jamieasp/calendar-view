@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chamonix Home Base</title>
+  <style>
+    :root { --ink:#182421; --muted:#66746f; --paper:#f6f4ee; --card:#fffdf8; --line:#d9ddd5; --accent:#e46d43; --pine:#315f50; }
+    * { box-sizing:border-box } body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.45 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    header { padding:28px clamp(18px,4vw,64px) 18px; border-bottom:1px solid var(--line); background:#fbfaf6; } h1 { margin:0; font:700 clamp(28px,5vw,48px)/1.05 Georgia,serif; letter-spacing:-.035em } .eyebrow { color:var(--accent); font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:11px; margin-bottom:8px }.sub { margin:10px 0 0; color:var(--muted); max-width:720px }
+    main { display:grid; grid-template-columns:minmax(310px,450px) 1fr; min-height:calc(100vh - 147px) }.side { padding:22px clamp(18px,3vw,40px); border-right:1px solid var(--line); }.filters { background:var(--card); border:1px solid var(--line); padding:16px; border-radius:15px; display:grid; gap:12px }.filter-row { display:grid; grid-template-columns:1fr 1fr; gap:10px } label { color:var(--muted); font-size:12px; font-weight:700; display:grid; gap:5px } input,select { border:1px solid #c9d1ca; padding:9px 10px; border-radius:8px; background:#fff; color:var(--ink); font:inherit } .summary { margin:16px 0; padding:14px 15px; border-left:4px solid var(--accent); background:#fff2eb; border-radius:3px; font-size:14px }.summary strong { font-size:18px }.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px; margin:10px 0; transition:.2s }.card:hover { transform:translateY(-2px); box-shadow:0 10px 20px #26352b14 }.card h2 { margin:0 0 4px; font:700 22px/1 Georgia,serif }.card p { margin:7px 0;color:var(--muted) }.chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px }.chip { border:1px solid #cbd8d0; color:var(--pine); border-radius:999px; padding:3px 7px; font-size:11px; font-weight:700 }.price { font-weight:800; color:var(--ink) }.map { position:sticky; top:0; height:100vh; min-height:620px; background:#d9e2d9; overflow:hidden }.map iframe { width:100%;height:100%;border:0;filter:saturate(.78) contrast(.96) }.map-note { position:absolute; left:18px; right:18px; bottom:18px; max-width:430px; background:#fffffff0; border:1px solid #d8ddd6; padding:12px 14px; border-radius:12px; color:#46554f; font-size:12px }.saved { margin-top:18px; border-top:1px solid var(--line); padding-top:16px }.saved h2 { font:700 20px Georgia,serif; margin:0 0 5px }.saved form { display:flex; gap:8px; margin-top:10px }.saved form input { min-width:0; flex:1 }.saved button { border:0;background:var(--pine);color:white;padding:9px 12px;border-radius:8px;font-weight:700;cursor:pointer }.saved li { margin:7px 0; word-break:break-word }.saved a { color:var(--pine) }.hidden{display:none}@media(max-width:800px){main{display:flex;flex-direction:column}.side{border-right:0}.map{position:relative;height:360px;min-height:0;order:-1}.filter-row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <header><div class="eyebrow">Jamie’s property brief</div><h1>Chamonix Home Base</h1><p class="sub">A long-let / buy shortlist for a two-bedroom alpine base. It ranks areas first; paste real listing links below and we can score individual homes against this brief.</p></header>
+  <main>
+    <section class="side">
+      <div class="filters">
+        <div class="filter-row"><label>Search mode<select id="mode"><option value="rent">12-month rental</option><option value="buy">Buy</option></select></label><label>Bedrooms<select id="beds"><option>2</option></select></label></div>
+        <div class="filter-row"><label id="budget-label">Monthly ceiling (€)<input id="budget" type="number" min="1000" step="100" value="3500"></label><label>Parking<select id="parking"><option value="yes">Required</option><option value="no">Nice to have</option></select></label></div>
+      </div>
+      <div id="summary" class="summary"></div>
+      <div id="areas"></div>
+      <section class="saved"><h2>Listing tray</h2><p class="sub">Add links you find on agencies or portals. They stay only in this browser until we turn them into a scored shortlist.</p><form id="listing-form"><input id="listing-url" type="url" placeholder="Paste a listing URL" aria-label="Listing URL"><button>Add</button></form><ul id="saved-list"></ul></section>
+    </section>
+    <section class="map" aria-label="Map of Chamonix valley"><iframe title="Chamonix valley map" src="https://www.openstreetmap.org/export/embed.html?bbox=6.79%2C45.87%2C6.92%2C45.98&amp;layer=mapnik" loading="lazy"></iframe><div class="map-note"><strong>How to use this:</strong> use the cards to choose the right base first, then add real listings to the tray. Prices are planning bands, not live availability or valuations.</div></section>
+  </main>
+  <script>
+    const areas = [
+      {name:'Chamonix Centre', rent:[2800,3500], buy:[850000,1100000], note:'Best car-free life: shops, trains, buses and the Midi lift on foot. Make secure parking non-negotiable.', chips:['car-light','restaurants','Aiguille du Midi']},
+      {name:'Les Praz', rent:[3000,3600], buy:[950000,1250000], note:'The nicest all-round mountain base: Flegère trails, quieter evenings and good sun. Supply and parking are the compromises.', chips:['Flegère','quiet','sunny']},
+      {name:'Les Pèlerins / Les Bossons', rent:[2400,3300], buy:[700000,950000], note:'Best value close to town, more space and usually easier parking. A bike, bus or car makes life smoother.', chips:['value','parking','Midi side']},
+      {name:'Argentière', rent:[2200,3000], buy:[650000,900000], note:'Proper mountain-village feel and Grand Montets access. Brilliant for trails and skiing; less convenient for central Chamonix.', chips:['Grand Montets','trails','village']},
+      {name:'Les Houches', rent:[2200,3000], buy:[600000,850000], note:'More house for the money and excellent parking. A car is effectively part of the brief; it is a different base from Chamonix centre.', chips:['space','parking','family']}
+    ];
+    const mode=document.querySelector('#mode'), budget=document.querySelector('#budget'), budgetLabel=document.querySelector('#budget-label'), parking=document.querySelector('#parking'), summary=document.querySelector('#summary'), list=document.querySelector('#areas');
+    function euro(n){return new Intl.NumberFormat('en-GB',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n)}
+    function render(){const isRent=mode.value==='rent', limit=Number(budget.value)||0; budgetLabel.firstChild.textContent=isRent?'Monthly ceiling (€)':'Purchase ceiling (€)';
+      const annual=isRent?limit*12:0; summary.innerHTML=isRent?`<strong>${euro(limit)}/month</strong> gives a ${euro(annual)}/year rental brief. As a crude investment-equivalent, that is <strong>${euro(annual/.04)}–${euro(annual/.03)}</strong> at a 4–3% gross yield — not a valuation. For a lived-in 2-bed with parking, set the buy scout to roughly <strong>€850k–€1.1m all-in</strong>.`:`<strong>${euro(limit)}</strong> purchase ceiling. For a 2-bed, prioritise a proper parking space, ownership charges, DPE/energy rating and year-round access before view or renovation potential.`;
+      list.innerHTML=''; areas.filter(a=>{const p=isRent?a.rent:a.buy;return p[0]<=limit||!limit}).sort((a,b)=>(isRent?a.rent[0]:a.buy[0])-(isRent?b.rent[0]:b.buy[0])).forEach(a=>{const p=isRent?a.rent:a.buy; const el=document.createElement('article');el.className='card';el.innerHTML=`<h2>${a.name}</h2><div class="price">${euro(p[0])}–${euro(p[1])}${isRent?' / month':' planning buy band'}</div><p>${a.note}</p><div class="chips">${a.chips.map(c=>`<span class="chip">${c}</span>`).join('')}${parking.value==='yes'?'<span class="chip">parking-first</span>':''}</div>`;list.append(el)});
+    }
+    mode.onchange=render;budget.oninput=render;parking.onchange=render;render();
+    const key='clawj-chamonix-listings'; const saved=JSON.parse(localStorage.getItem(key)||'[]'); const savedList=document.querySelector('#saved-list'); function showSaved(){savedList.innerHTML='';saved.forEach((url,i)=>{const li=document.createElement('li');li.innerHTML=`<a href="${url}" target="_blank" rel="noopener">${new URL(url).hostname}</a> <button aria-label="Remove listing">×</button>`;li.querySelector('button').onclick=()=>{saved.splice(i,1);localStorage.setItem(key,JSON.stringify(saved));showSaved()};savedList.append(li)})};showSaved();
+    document.querySelector('#listing-form').onsubmit=e=>{e.preventDefault();const input=document.querySelector('#listing-url');try{const url=new URL(input.value);saved.unshift(url.href);localStorage.setItem(key,JSON.stringify(saved));input.value='';showSaved()}catch{input.setCustomValidity('Paste a full listing link');input.reportValidity();input.setCustomValidity('')}};
+  </script>
+</body>
+</html>
