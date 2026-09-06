@@ -1,8 +1,8 @@
 {
-  "updatedAt": "2026-09-05T04:15:01Z",
+  "updatedAt": "2026-09-06T04:15:01Z",
   "window": {
-    "start": "2026-09-02",
-    "end": "2026-10-31"
+    "start": "2026-09-03",
+    "end": "2026-11-01"
   },
   "workouts": [
     {
@@ -436,6 +436,15 @@
       "duration": "2h",
       "tss": 116.7,
       "optional": false
+    },
+    {
+      "id": "3933110891",
+      "date": "2026-11-01",
+      "title": "Active Recovery Running (Optional)",
+      "sport": "Run",
+      "duration": "30 min",
+      "tss": 24.98,
+      "optional": true
     }
   ]
 }
