@@ -4613,13 +4613,16 @@
 
       let active = false;
       let reps = 0;
-      let baseline = 9.81;
+      let gravity = { x: 0, y: 0, z: 9.81 };
       let lastRepAt = 0;
-      let peakArmed = true;
+      let riseArmedAt = 0;
       let audioCtx = null;
-      const COOLDOWN_MS = 550;
-      const PEAK_THRESHOLD = 1.15;
-      const RESET_THRESHOLD = 0.28;
+      // A rep must contain an upward acceleration followed by a vertical
+      // deceleration at the top. This rejects sideways pocket movement.
+      const DEBOUNCE_MS = 900;
+      const RISE_THRESHOLD = -0.65;
+      const TOP_THRESHOLD = 0.95;
+      const TOP_WINDOW_MS = 900;
 
       function beep() {
         try {
@@ -4638,22 +4641,32 @@
       }
 
       function onMotion(event) {
-        const a = event.accelerationIncludingGravity || event.acceleration;
+        const a = event.accelerationIncludingGravity;
         if (!a || [a.x, a.y, a.z].some(v => typeof v !== 'number')) return;
-        const magnitude = Math.hypot(a.x, a.y, a.z);
-        // Slow baseline follows gravity / phone orientation; the residual is the heel-drop impulse.
-        baseline = baseline * .94 + magnitude * .06;
-        const impulse = Math.abs(magnitude - baseline);
+        // Low-pass gravity gives a phone-orientation-independent vertical axis.
+        gravity.x = gravity.x * .92 + a.x * .08;
+        gravity.y = gravity.y * .92 + a.y * .08;
+        gravity.z = gravity.z * .92 + a.z * .08;
+        const gLength = Math.hypot(gravity.x, gravity.y, gravity.z);
+        if (gLength < 1) return;
+        const linearX = a.x - gravity.x;
+        const linearY = a.y - gravity.y;
+        const linearZ = a.z - gravity.z;
+        // Positive = accelerating downward; at the top of a heel raise that
+        // is the brief braking pulse we want to beep on.
+        const vertical = (linearX * gravity.x + linearY * gravity.y + linearZ * gravity.z) / gLength;
         const now = performance.now();
-        if (peakArmed && impulse > PEAK_THRESHOLD && now - lastRepAt > COOLDOWN_MS) {
+        if (vertical < RISE_THRESHOLD) {
+          riseArmedAt = now;
+        }
+        if (riseArmedAt && now - riseArmedAt > TOP_WINDOW_MS) riseArmedAt = 0;
+        if (riseArmedAt && vertical > TOP_THRESHOLD && now - lastRepAt > DEBOUNCE_MS) {
           reps += 1;
           lastRepAt = now;
-          peakArmed = false;
+          riseArmedAt = 0;
           countEl.textContent = String(reps);
           statusEl.textContent = 'Rep ' + reps + ' ✓';
           beep();
-        } else if (!peakArmed && impulse < RESET_THRESHOLD) {
-          peakArmed = true;
         }
       }
 
@@ -4679,8 +4692,8 @@
               return;
             }
           }
-          baseline = 9.81;
-          peakArmed = true;
+          gravity = { x: 0, y: 0, z: 9.81 };
+          riseArmedAt = 0;
           lastRepAt = 0;
           active = true;
           window.addEventListener('devicemotion', onMotion);
