@@ -1302,12 +1302,14 @@
     .pu-today-bar .pu-bar-num { color: var(--ink); }
     /* ── end press-up ─────────────────────────── */
     .fartlek-section,
+    .heel-drops-section,
     .pressup-section {
       margin-top: 56px;
       padding-top: 8px;
       scroll-margin-top: 112px;
     }
     .fartlek-section h2,
+    .heel-drops-section h2,
     .pressup-section h2 {
       display: inline;
       background: linear-gradient(100deg, transparent 0, var(--highlighter-strong) 4% 96%, transparent 100%);
@@ -1322,6 +1324,7 @@
       line-height: 0.95;
     }
     .fartlek-meta,
+    .heel-drops-meta,
     .pressup-meta {
       margin: 14px 0 22px;
       color: var(--muted);
@@ -1407,6 +1410,48 @@
     }
     .fartlek-next .next-type { font-size: 1.5rem; }
     .fartlek-next .next-time { color: var(--muted); font-size: 1.1rem; }
+    .heel-drops-card {
+      border: 1px solid #eadfce;
+      border-radius: 18px;
+      padding: 24px 20px;
+      background: rgba(255,255,255,0.62);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .heel-drops-count {
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 4.4rem;
+      font-weight: 800;
+      line-height: .9;
+      min-height: 4rem;
+    }
+    .heel-drops-status {
+      color: var(--muted);
+      font-size: .88rem;
+      font-weight: 750;
+      min-height: 1.2rem;
+    }
+    .heel-drops-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .heel-drops-btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      background: var(--today);
+      color: var(--pencil);
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 900;
+      padding: 12px 23px;
+      cursor: pointer;
+      box-shadow: 0 5px 16px rgba(50, 40, 25, .12);
+    }
+    .heel-drops-btn.running { background: #e74c3c; color: white; }
+    .heel-drops-btn.secondary { background: #eee5d7; box-shadow: none; }
+    .heel-drops-tip { margin: 2px 0 0; color: var(--muted); font-size: .77rem; line-height: 1.35; max-width: 31rem; }
 
 
     @media (max-width: 760px) {
@@ -1628,6 +1673,19 @@
       <div class="fartlek-controls">
         <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
         <div class="fartlek-next" id="fartlek-next" aria-live="polite"></div>
+      </div>
+    </section>
+    <section class="heel-drops-section" aria-labelledby="heel-drops-title">
+      <h2 id="heel-drops-title">Heel drops</h2>
+      <p class="heel-drops-meta">Motion-counted reps &middot; a beep confirms each rise</p>
+      <div class="heel-drops-card">
+        <div class="heel-drops-count" id="heel-drops-count" aria-live="polite">0</div>
+        <div class="heel-drops-status" id="heel-drops-status">Ready when you are</div>
+        <div class="heel-drops-actions">
+          <button type="button" class="heel-drops-btn" id="heel-drops-btn">▶ Start counting</button>
+          <button type="button" class="heel-drops-btn secondary" id="heel-drops-reset">Reset</button>
+        </div>
+        <p class="heel-drops-tip">Put your phone snugly in a front trouser/shorts pocket. It will ask for motion permission once; keep the phone in the same place for the whole set.</p>
       </div>
     </section>
   </main>
@@ -4013,6 +4071,7 @@
     renderHealthCharts();
     initTimers();
     initFartlek();
+    initHeelDrops();
     initPressup();
 
     function initPressup() {
@@ -4543,6 +4602,103 @@
       }
 
       btn.addEventListener('click', () => { if (running) stop(); else start(); });
+    }
+
+    function initHeelDrops() {
+      const btn = document.getElementById('heel-drops-btn');
+      const resetBtn = document.getElementById('heel-drops-reset');
+      const countEl = document.getElementById('heel-drops-count');
+      const statusEl = document.getElementById('heel-drops-status');
+      if (!btn || !countEl || !statusEl) return;
+
+      let active = false;
+      let reps = 0;
+      let baseline = 9.81;
+      let lastRepAt = 0;
+      let peakArmed = true;
+      let audioCtx = null;
+      const COOLDOWN_MS = 550;
+      const PEAK_THRESHOLD = 1.15;
+      const RESET_THRESHOLD = 0.28;
+
+      function beep() {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1046, now);
+          gain.gain.setValueAtTime(.20, now);
+          gain.gain.exponentialRampToValueAtTime(.001, now + .10);
+          osc.start(now); osc.stop(now + .11);
+        } catch (e) {}
+      }
+
+      function onMotion(event) {
+        const a = event.accelerationIncludingGravity || event.acceleration;
+        if (!a || [a.x, a.y, a.z].some(v => typeof v !== 'number')) return;
+        const magnitude = Math.hypot(a.x, a.y, a.z);
+        // Slow baseline follows gravity / phone orientation; the residual is the heel-drop impulse.
+        baseline = baseline * .94 + magnitude * .06;
+        const impulse = Math.abs(magnitude - baseline);
+        const now = performance.now();
+        if (peakArmed && impulse > PEAK_THRESHOLD && now - lastRepAt > COOLDOWN_MS) {
+          reps += 1;
+          lastRepAt = now;
+          peakArmed = false;
+          countEl.textContent = String(reps);
+          statusEl.textContent = 'Rep ' + reps + ' ✓';
+          beep();
+        } else if (!peakArmed && impulse < RESET_THRESHOLD) {
+          peakArmed = true;
+        }
+      }
+
+      function stop() {
+        active = false;
+        window.removeEventListener('devicemotion', onMotion);
+        btn.textContent = '▶ Start counting';
+        btn.classList.remove('running');
+        statusEl.textContent = reps ? reps + ' reps in this set' : 'Paused';
+      }
+
+      async function start() {
+        if (!window.DeviceMotionEvent) {
+          statusEl.textContent = 'Motion sensing is not available in this browser.';
+          return;
+        }
+        try {
+          // iOS requires this to be triggered by a button press.
+          if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission !== 'granted') {
+              statusEl.textContent = 'Motion permission was not granted.';
+              return;
+            }
+          }
+          baseline = 9.81;
+          peakArmed = true;
+          lastRepAt = 0;
+          active = true;
+          window.addEventListener('devicemotion', onMotion);
+          btn.textContent = '⏹ Stop';
+          btn.classList.add('running');
+          statusEl.textContent = 'Listening — rise and drop smoothly';
+          beep();
+        } catch (e) {
+          statusEl.textContent = 'Could not start motion sensing.';
+        }
+      }
+
+      btn.addEventListener('click', () => active ? stop() : start());
+      resetBtn?.addEventListener('click', () => {
+        reps = 0;
+        countEl.textContent = '0';
+        statusEl.textContent = active ? 'Listening — rise and drop smoothly' : 'Ready when you are';
+      });
     }
 
     function currentDayEl() {
