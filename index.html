@@ -1711,8 +1711,8 @@
     </div>
   </div>
   <nav class="bottom-tabs" aria-label="Primary sections">
-    <button type="button" class="bottom-tab active" data-tab="races" aria-label="Races">Races</button>
-    <button type="button" class="bottom-tab" data-tab="calendar" aria-label="Calendar">Calendar</button>
+    <button type="button" class="bottom-tab" data-tab="races" aria-label="Races">Races</button>
+    <button type="button" class="bottom-tab active" data-tab="calendar" aria-label="Calendar">Calendar</button>
     <button type="button" class="bottom-tab" data-tab="charts" aria-label="Charts">Charts</button>
     <button type="button" class="bottom-tab" data-tab="train" aria-label="Train">Train</button>
     <button type="button" class="bottom-tab" data-tab="fartlek" aria-label="Fartlek">Fartlek</button>
@@ -5193,8 +5193,7 @@
     // ─────────────────────────────────────────────────────────────
 
     window.addEventListener("load", () => {
-      document.querySelector(".races-section")?.scrollIntoView({ behavior: "auto", block: "start" });
-      setActiveTab("races");
+      scrollToToday({ behavior: "auto" });
     });
 
     if ("serviceWorker" in navigator) {
