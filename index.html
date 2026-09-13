@@ -596,6 +596,42 @@
       text-underline-offset: 3px;
     }
     .train-link:hover { opacity: 0.7; }
+    .pelvic-tilt {
+      margin-top: 12px;
+      border: 1px solid rgba(120, 98, 22, 0.20);
+      border-radius: 14px;
+      background: rgba(255, 247, 220, 0.52);
+      overflow: hidden;
+    }
+    .pelvic-tilt summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 14px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .pelvic-tilt summary::-webkit-details-marker { display: none; }
+    .pelvic-tilt summary::after {
+      content: "+";
+      font-size: 1.25rem;
+      color: var(--muted);
+    }
+    .pelvic-tilt[open] summary::after { content: "–"; }
+    .pelvic-tilt-body {
+      padding: 0 14px 14px;
+      border-top: 1px solid rgba(120, 98, 22, 0.14);
+    }
+    .pelvic-tilt-note {
+      margin: 11px 0 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
     .coach-plan-day {
       font-size: 0.78rem;
       color: var(--muted);
@@ -1641,6 +1677,20 @@
           <li data-seconds="60"><span class="train-exercise">Cobra Flow</span><span class="train-sets">60s</span></li>
           <li data-seconds="60"><span class="train-exercise">Cossack Squat</span><span class="train-sets">60s each side</span></li>
         </ul>
+        <details class="pelvic-tilt">
+          <summary>Pelvic tilt <span class="train-sets">tap for corrective routine</span></summary>
+          <div class="pelvic-tilt-body">
+            <p class="pelvic-tilt-note">For the mild pelvic-drop / hip-control work from your gait analysis. Move slowly; this is control work, not a hard session. Skip any balance drill that aggravates the outside of the left foot.</p>
+            <ul class="train-list">
+              <li><span class="train-exercise">Hip tucks</span><span class="train-sets">2&times;10 each side &middot; gently find a neutral pelvis</span></li>
+              <li data-seconds="60"><span class="train-exercise">Hip-flexor / runner&rsquo;s lunge</span><span class="train-sets">60s each side &middot; ribs down, glute gently on</span></li>
+              <li><span class="train-exercise">Glute bridge</span><span class="train-sets">2&times;8&ndash;12 &middot; finish with glutes, not a back arch</span></li>
+              <li><span class="train-exercise">Clamshells</span><span class="train-sets">2&times;15&ndash;20 each side &middot; feel the outer glute</span></li>
+              <li data-seconds="25"><span class="train-exercise">Side plank + leg lift</span><span class="train-sets">2&times;20&ndash;30s each side</span></li>
+              <li data-seconds="30"><span class="train-exercise">Single-leg balance</span><span class="train-sets">2&times;30s each side &middot; easy pressure only through the sore left foot</span></li>
+            </ul>
+          </div>
+        </details>
       </div>
     </section>
     <section class="pressup-section" aria-labelledby="pressup-title">
