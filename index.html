@@ -632,6 +632,20 @@
       font-weight: 700;
       line-height: 1.35;
     }
+    .stretch-track-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 2px 0 14px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255, 226, 77, 0.38);
+      color: var(--ink);
+      font-size: 0.9rem;
+      font-weight: 900;
+      text-decoration: none;
+    }
+    .stretch-track-link:active { transform: translateY(1px); }
     .coach-plan-day {
       font-size: 0.78rem;
       color: var(--muted);
@@ -1665,6 +1679,7 @@
     <section class="train-section" aria-labelledby="stretches-title">
       <h2 id="stretches-title">Stretches</h2>
       <p class="train-meta">60s each &middot; flow through without stopping</p>
+      <a class="stretch-track-link" href="https://music.youtube.com/watch?v=K3vbWQ2qcO0&amp;si=sBXsMT6GHUlAWCMr" aria-label="Open stretch track in YouTube Music">▶ Play stretch track</a>
       <div class="train-block">
         <ul class="train-list">
           <li data-seconds="60"><span class="train-exercise">Calf stretch, bent knee</span><span class="train-sets">1 min each leg</span></li>
