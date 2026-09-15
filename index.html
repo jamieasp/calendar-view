@@ -1352,6 +1352,7 @@
     .pu-today-bar .pu-bar-num { color: var(--ink); }
     /* ── end press-up ─────────────────────────── */
     .fartlek-section,
+    .cadence-section,
     .heel-drops-section,
     .pressup-section {
       margin-top: 56px;
@@ -1359,6 +1360,7 @@
       scroll-margin-top: 112px;
     }
     .fartlek-section h2,
+    .cadence-section h2,
     .heel-drops-section h2,
     .pressup-section h2 {
       display: inline;
@@ -1374,6 +1376,7 @@
       line-height: 0.95;
     }
     .fartlek-meta,
+    .cadence-meta,
     .heel-drops-meta,
     .pressup-meta {
       margin: 14px 0 22px;
@@ -1460,6 +1463,27 @@
     }
     .fartlek-next .next-type { font-size: 1.5rem; }
     .fartlek-next .next-time { color: var(--muted); font-size: 1.1rem; }
+    .cadence-card {
+      border: 1px solid #eadfce;
+      border-radius: 18px;
+      padding: 22px 20px;
+      background: rgba(255,255,255,0.62);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+    .cadence-rate {
+      color: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 3.1rem;
+      font-weight: 800;
+      line-height: .9;
+    }
+    .cadence-rate span { font-family: ui-sans-serif, system-ui, sans-serif; font-size: .82rem; color: var(--muted); font-weight: 800; }
+    .cadence-status { color: var(--muted); font-size: .88rem; font-weight: 750; min-height: 1.2rem; }
+    .cadence-tip { margin: 2px 0 0; color: var(--muted); font-size: .77rem; line-height: 1.35; max-width: 31rem; }
     .heel-drops-card {
       border: 1px solid #eadfce;
       border-radius: 18px;
@@ -1731,6 +1755,16 @@
       <div class="fartlek-controls">
         <button type="button" class="fartlek-btn" id="fartlek-btn">▶ Start</button>
         <div class="fartlek-next" id="fartlek-next" aria-live="polite"></div>
+      </div>
+    </section>
+    <section class="cadence-section" aria-labelledby="cadence-title">
+      <h2 id="cadence-title">Cadence</h2>
+      <p class="cadence-meta">180 steps/min &middot; alternating left/right ticks</p>
+      <div class="cadence-card">
+        <div class="cadence-rate">180 <span>spm</span></div>
+        <div class="cadence-status" id="cadence-status" aria-live="polite">Ready to run</div>
+        <button type="button" class="heel-drops-btn" id="cadence-btn">▶ Start metronome</button>
+        <p class="cadence-tip">Left tick is slightly higher than right. Start it once, then lock your screen and keep your phone’s media volume up.</p>
       </div>
     </section>
     <section class="heel-drops-section" aria-labelledby="heel-drops-title">
@@ -4156,6 +4190,7 @@
     renderHealthCharts();
     initTimers();
     initFartlek();
+    initCadenceMetronome();
     initHeelDrops();
     initPressup();
 
@@ -4687,6 +4722,77 @@
       }
 
       btn.addEventListener('click', () => { if (running) stop(); else start(); });
+    }
+
+    function initCadenceMetronome() {
+      const btn = document.getElementById('cadence-btn');
+      const statusEl = document.getElementById('cadence-status');
+      if (!btn || !statusEl) return;
+
+      const BEAT_MS = 60000 / 180;
+      let running = false;
+      let audioCtx = null;
+      let timer = null;
+      let nextBeatAt = 0;
+      let leftFoot = true;
+
+      function getCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+
+      function tick(at, isLeft) {
+        const ctx = getCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        // A subtle stereo-like cue without requiring headphones: left is brighter,
+        // right is lower. Both remain short enough to stay out of the music.
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(isLeft ? 1320 : 880, at);
+        gain.gain.setValueAtTime(0.18, at);
+        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.045);
+        osc.start(at); osc.stop(at + 0.055);
+      }
+
+      function schedule() {
+        if (!running || !audioCtx) return;
+        const horizon = audioCtx.currentTime + 0.8;
+        while (nextBeatAt < horizon) {
+          tick(nextBeatAt, leftFoot);
+          leftFoot = !leftFoot;
+          nextBeatAt += BEAT_MS / 1000;
+        }
+      }
+
+      function start() {
+        const ctx = getCtx();
+        running = true;
+        leftFoot = true;
+        nextBeatAt = ctx.currentTime + 0.05;
+        schedule();
+        timer = window.setInterval(schedule, 200);
+        btn.textContent = '⏹ Stop metronome';
+        btn.classList.add('running');
+        statusEl.textContent = 'Left · right · left · right';
+      }
+
+      function stop() {
+        running = false;
+        window.clearInterval(timer); timer = null;
+        btn.textContent = '▶ Start metronome';
+        btn.classList.remove('running');
+        statusEl.textContent = 'Ready to run';
+      }
+
+      btn.addEventListener('click', () => { if (running) stop(); else start(); });
+      document.addEventListener('visibilitychange', () => {
+        // Keep the audio context warm when the app is backgrounded. Mobile browsers
+        // can still impose their own media policy, but scheduled Web Audio continues
+        // in supported browsers as long as the context is allowed to run.
+        if (running && audioCtx?.state === 'suspended') audioCtx.resume();
+      });
     }
 
     function initHeelDrops() {
