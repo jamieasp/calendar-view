@@ -3408,9 +3408,11 @@
       const ymax = Math.max(...values);
       const yr = ymax - ymin || 1;
       const isSparse = panel.kind === "BodyFat";
-      const yPad = yr * (panel.kind === "HRV" ? 0.06 : 0.025);
-      const yDomainMin = ymin - yPad;
-      const yDomainMax = ymax + yPad;
+      // Keep the plot itself exactly bounded by the recorded values. Tick marks
+      // are still chosen from a human-friendly interval, but never expand the
+      // visual scale beyond the smallest/largest datapoint.
+      const yDomainMin = ymin;
+      const yDomainMax = ymax === ymin ? ymin + 1 : ymax;
       const rawStart = points[0].date;
       const rawEnd = points[points.length - 1].date;
       const nowDate = new Date();
@@ -3418,11 +3420,10 @@
       const end = isSparse ? new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate() + 3) : rawEnd;
       const spanDays = Math.max(1, Math.round((end - start) / 86400000));
       const x = date => margin.left + ((date - start) / 86400000 / spanDays) * plotW;
-      const yTicks = niceTicks(yDomainMin, yDomainMax, 5);
-      const yNiceMin = yTicks[0];
-      const yNiceMax = yTicks[yTicks.length - 1];
+      const yTicks = niceTicks(yDomainMin, yDomainMax, 5)
+        .filter(tick => tick >= yDomainMin && tick <= yDomainMax);
       const yPrecision = Math.max(tickPrecision(yTicks), panel.kind === "RHR" ? 0 : 1);
-      const y = value => margin.top + plotH - ((value - yNiceMin) / (yNiceMax - yNiceMin)) * plotH;
+      const y = value => margin.top + plotH - ((value - yDomainMin) / (yDomainMax - yDomainMin)) * plotH;
       const ma7 = isSparse ? [] : centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
       const monthTicks = [];
       const monthCursor = new Date(start.getFullYear(), start.getMonth(), 1, 12);
