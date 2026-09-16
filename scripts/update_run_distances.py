@@ -30,6 +30,7 @@ INDEX = REPO / "index.html"
 HEALTH_DATA = REPO / "health-data.json"
 DATA_DIR = WORKSPACE / "data" / "suunto"
 FRESH_NDJSON = DATA_DIR / "workouts_2026_fresh.ndjson"
+SUUNTO_STREAM_TIMEOUT_SECONDS = 150
 RUN_ACTIVITY_IDS = {1, 22}
 YEAR = 2026
 HEALTH_START = "2025-11-01"
@@ -52,17 +53,36 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
 
 def pull_workouts() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    with FRESH_NDJSON.open("w") as out:
-        result = subprocess.run([
-            str(SUUNTOOL),
-            "workouts",
-            "list",
-            "--since",
-            f"{YEAR}-01-01",
-            "--stream",
-            "--format",
-            "json",
-        ], stdout=out, cwd=WORKSPACE, text=True)
+    command = [
+        str(SUUNTOOL),
+        "workouts",
+        "list",
+        "--since",
+        f"{YEAR}-01-01",
+        "--stream",
+        "--format",
+        "json",
+    ]
+    try:
+        with FRESH_NDJSON.open("w") as out:
+            result = subprocess.run(
+                command,
+                stdout=out,
+                cwd=WORKSPACE,
+                text=True,
+                timeout=SUUNTO_STREAM_TIMEOUT_SECONDS,
+            )
+    except subprocess.TimeoutExpired:
+        # Suunto sometimes writes the complete response then leaves its stream open.
+        # The useful NDJSON is already on disk, so prefer it (and the local cache)
+        # to failing the whole calendar refresh.
+        if FRESH_NDJSON.exists() and FRESH_NDJSON.stat().st_size > 0:
+            print(
+                f"suuntool timed out after {SUUNTO_STREAM_TIMEOUT_SECONDS}s; "
+                "using captured NDJSON plus local cache."
+            )
+            return
+        raise
     if result.returncode != 0:
         # The API sometimes ends a stream with BAD_ENVELOPE after writing usable NDJSON.
         # Keep going if we captured workouts; fail only when the file is empty.
