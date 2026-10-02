@@ -1351,6 +1351,35 @@
     .pu-today-bar .pu-bar { background: var(--today); }
     .pu-today-bar .pu-bar-num { color: var(--ink); }
     /* ── end press-up ─────────────────────────── */
+
+    .audio-section {
+      margin-top: 56px;
+      padding: 8px 0 36px;
+      scroll-margin-top: 112px;
+    }
+    .audio-section h2 {
+      display: inline;
+      background: linear-gradient(100deg, transparent 0, var(--highlighter-strong) 4% 96%, transparent 100%);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      padding: 0 0.08em;
+      margin: 0 0 6px;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(1.65rem, 3vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.055em;
+      line-height: 0.95;
+    }
+    .audio-card {
+      margin-top: 18px;
+      padding: 18px;
+      background: #fffdf5;
+      border: 2px solid var(--ink);
+      border-radius: 16px;
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+    .audio-card audio { width: 100%; }
+
     .fartlek-section,
     .cadence-section,
     .heel-drops-section,
@@ -1777,6 +1806,16 @@
           <button type="button" class="heel-drops-btn secondary" id="heel-drops-reset">Reset</button>
         </div>
         <p class="heel-drops-tip">Put your phone snugly in a front trouser/shorts pocket. It will ask for motion permission once; keep the phone in the same place for the whole set.</p>
+      </div>
+    </section>
+
+    <section class="audio-section" aria-labelledby="shane-benzie-title">
+      <h2 id="shane-benzie-title">Shane Benzie</h2>
+      <div class="audio-card">
+        <audio controls preload="metadata">
+          <source src="media/shane-benzie.mp3" type="audio/mpeg" />
+          Your browser does not support audio playback.
+        </audio>
       </div>
     </section>
   </main>
