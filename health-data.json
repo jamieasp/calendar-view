@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-04T16:09:36.777364+00:00",
+  "generatedAt": "2026-10-08T08:05:24.411441+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1360,10 +1360,26 @@
         },
         {
           "date": "2026-10-04",
+          "value": 61.0
+        },
+        {
+          "date": "2026-10-05",
           "value": 60.0
+        },
+        {
+          "date": "2026-10-06",
+          "value": 61.0
+        },
+        {
+          "date": "2026-10-07",
+          "value": 60.0
+        },
+        {
+          "date": "2026-10-08",
+          "value": 58.0
         }
       ],
-      "latestPercentile": 45.1
+      "latestPercentile": 74.1
     },
     {
       "kind": "HRV",
@@ -2703,9 +2719,25 @@
         {
           "date": "2026-10-04",
           "value": 46.4
+        },
+        {
+          "date": "2026-10-05",
+          "value": 38.7
+        },
+        {
+          "date": "2026-10-06",
+          "value": 41.2
+        },
+        {
+          "date": "2026-10-07",
+          "value": 37.65
+        },
+        {
+          "date": "2026-10-08",
+          "value": 50.7
         }
       ],
-      "latestPercentile": 91.7
+      "latestPercentile": 98.8
     },
     {
       "kind": "RHR/HRV",
@@ -3972,10 +4004,26 @@
         },
         {
           "date": "2026-10-04",
-          "value": 1.2931
+          "value": 1.3147
+        },
+        {
+          "date": "2026-10-05",
+          "value": 1.5504
+        },
+        {
+          "date": "2026-10-06",
+          "value": 1.4806
+        },
+        {
+          "date": "2026-10-07",
+          "value": 1.5936
+        },
+        {
+          "date": "2026-10-08",
+          "value": 1.144
         }
       ],
-      "latestPercentile": 86.6
+      "latestPercentile": 97.8
     },
     {
       "kind": "Breathing",
@@ -5231,9 +5279,25 @@
         {
           "date": "2026-10-04",
           "value": 11.0
+        },
+        {
+          "date": "2026-10-05",
+          "value": 11.8
+        },
+        {
+          "date": "2026-10-06",
+          "value": 10.6
+        },
+        {
+          "date": "2026-10-07",
+          "value": 11.4
+        },
+        {
+          "date": "2026-10-08",
+          "value": 11.0
         }
       ],
-      "latestPercentile": 68.2
+      "latestPercentile": 68.1
     },
     {
       "kind": "BodyFat",
