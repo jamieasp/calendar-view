@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-11T06:02:16.075162+00:00",
+  "generatedAt": "2026-10-12T06:01:56.925901+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1389,9 +1389,13 @@
         {
           "date": "2026-10-11",
           "value": 63.0
+        },
+        {
+          "date": "2026-10-12",
+          "value": 63.0
         }
       ],
-      "latestPercentile": 19.1
+      "latestPercentile": 19.2
     },
     {
       "kind": "HRV",
@@ -2759,9 +2763,13 @@
         {
           "date": "2026-10-11",
           "value": 30.2
+        },
+        {
+          "date": "2026-10-12",
+          "value": 35.0
         }
       ],
-      "latestPercentile": 11.8
+      "latestPercentile": 27.6
     },
     {
       "kind": "RHR/HRV",
@@ -4057,9 +4065,13 @@
         {
           "date": "2026-10-11",
           "value": 2.0861
+        },
+        {
+          "date": "2026-10-12",
+          "value": 1.8
         }
       ],
-      "latestPercentile": 11.8
+      "latestPercentile": 25.5
     },
     {
       "kind": "Breathing",
@@ -5343,9 +5355,13 @@
         {
           "date": "2026-10-11",
           "value": 12.4
+        },
+        {
+          "date": "2026-10-12",
+          "value": 11.2
         }
       ],
-      "latestPercentile": 8.2
+      "latestPercentile": 56.7
     },
     {
       "kind": "BodyFat",
