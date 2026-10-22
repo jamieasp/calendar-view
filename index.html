@@ -3443,9 +3443,9 @@
       if (!list) return;
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const races = events
-        .filter(event => isRaceEvent(event) && event.status === status)
+        .filter(event => isRaceEvent(event) && (status === "completed" ? event.status !== "cancelled" : event.status === status))
         .map(event => ({ ...event, date: new Date(`${event.start}T12:00:00`) }))
-        .filter(event => status === "completed" || event.date >= todayStart)
+        .filter(event => status === "completed" ? event.date < todayStart : event.date >= todayStart)
         .sort((a, b) => status === "completed" ? b.date - a.date : a.date - b.date);
       list.innerHTML = races.map(event => {
         const daysLeft = Math.ceil((event.date - todayStart) / 86400000);
