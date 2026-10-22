@@ -1595,6 +1595,10 @@
         <button type="button" class="header-button" data-action="refresh" aria-label="Hard refresh" title="Hard refresh"><span class="material-symbols-outlined" aria-hidden="true">refresh</span></button>
       </nav>
     </header>
+    <section class="races-section" aria-labelledby="completed-races-title">
+      <h2 id="completed-races-title">Completed races</h2>
+      <ul id="completed-races" class="race-list"></ul>
+    </section>
     <section class="races-section" aria-labelledby="upcoming-races-title">
       <h2 id="upcoming-races-title">Upcoming races</h2>
       <ul id="upcoming-races" class="race-list"></ul>
@@ -3441,11 +3445,11 @@
       const races = events
         .filter(event => isRaceEvent(event) && event.status === status)
         .map(event => ({ ...event, date: new Date(`${event.start}T12:00:00`) }))
-        .filter(event => event.date >= todayStart)
-        .sort((a, b) => a.date - b.date);
+        .filter(event => status === "completed" || event.date >= todayStart)
+        .sort((a, b) => status === "completed" ? b.date - a.date : a.date - b.date);
       list.innerHTML = races.map(event => {
         const daysLeft = Math.ceil((event.date - todayStart) / 86400000);
-        const dayLabel = daysLeft === 0 ? "today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`;
+        const dayLabel = status === "completed" ? "completed" : (daysLeft === 0 ? "today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"}`);
         const link = status === "interesting" && event.url ? ` · <a class="race-link" href="${event.url}" target="_blank" rel="noopener">Register</a>` : "";
         const watch = event.watched && event.lastChecked ? `<span class="race-watch">👀 Last checked ${event.lastChecked}</span>` : "";
         const metaHtml = event.meta ? ` · ${event.meta.replace(/with\s+[^·]+/g, m => `<span class="meta-with">${m.trim()}</span>`)}` : "";
@@ -3453,6 +3457,7 @@
       }).join("");
     }
     function renderUpcomingRaces() {
+      renderRaceList("completed-races", "completed");
       renderRaceList("upcoming-races", "upcoming");
       renderRaceList("considered-races", "interesting");
     }
