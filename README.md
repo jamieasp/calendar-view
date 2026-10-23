@@ -4,7 +4,7 @@ ClawjCal is a responsive, installable whole-year calendar and training dashboard
 
 **https://jamieasp.github.io/calendar-view/**
 
-It is a static web app: the main interface and event data live in `index.html`, with health data and encrypted saved-tweet data loaded from adjacent JSON files. No server-side application is required.
+It is a static web app: the main interface and event data live in `index.html`, with health data loaded from an adjacent JSON file. No server-side application is required.
 
 ## Main navigation
 
@@ -20,7 +20,6 @@ On smaller screens the app is optimised for one-handed use; on larger screens th
 
 ## Header controls
 
-- **Bird icon** — opens the encrypted Saved tweets library.
 - **Desktop-year icon** — opens `/calendar-view/desktop.html`, a whole-year desktop view with months in rows and Monday-first weekday columns.
 - **Copy icon** — copies the current calendar URL to the clipboard.
 - **Refresh icon** — performs a hard refresh by clearing service-worker registrations/caches before reloading.
@@ -84,39 +83,6 @@ The Train area contains the current workout library and interactive timers:
 
 Press-up history is stored locally in the browser (`localStorage`); it is not uploaded.
 
-## Encrypted Saved tweets library
-
-The Saved tweets overlay contains Jamie’s intent-organised bookmark library rather than memory files.
-
-### Unlocking
-
-- Enter the passphrase in the overlay.
-- The browser fetches `notes-encrypted.json` and decrypts it locally.
-- Once unlocked, the password panel disappears and the page shows a Lock button.
-- Locking clears the in-session passphrase/data and restores the password form.
-- A session-only decrypted-key/passphrase cache can allow reopening during the current browser session.
-
-### Content and presentation
-
-- The encrypted payload contains only `Saved tweets by intent.md`.
-- Category guide chips link to sections in the same page and show per-category counts.
-- Categories include Try, Buy, Go / experience, HealthTech, Relationships, Work behaviours, Life behaviours, Mental models, Quick watch, Watch / listen later, Personal AI, Taste / craft references, Share / discuss, News / worldview, Humour, and Needs clarification.
-- Tweet cards show author, formatted timestamp, body, notes, and an **Open tweet** link.
-- Raw URLs are removed from beneath tweet bodies while the primary tweet link remains tappable.
-- Saved image/media URLs are rendered inline as lazy-loaded thumbnails, with each image still linking to its source.
-- The saved-tweets header is a full-width opaque yellow navigation bar and tweet-card headers scroll normally rather than sticking.
-
-### Encryption
-
-`scripts/encrypt_notes.py` is run from the workspace root and writes `calendar-view/notes-encrypted.json` using:
-
-- AES-256-GCM encryption.
-- PBKDF2-HMAC-SHA256 key derivation with a random salt and 100,000 iterations.
-- A random per-build IV.
-- `NOTES_PASSPHRASE` read from `.secrets/notes.env`.
-
-The passphrase and plaintext bookmark source are not committed to the GitHub Pages repository. `MEMORY.md` and `memory/*` are deliberately excluded from the encrypted app payload.
-
 ## Progressive Web App and offline behaviour
 
 The app includes:
@@ -163,16 +129,6 @@ python scripts/update_stretch_streaks.py
 python scripts/update_abs_streaks.py --no-pull
 ```
 
-### Encrypted notes refresh
-
-From `/home/exedev/.openclaw/workspace`:
-
-```bash
-python3 scripts/encrypt_notes.py
-```
-
-Then commit the regenerated `calendar-view/notes-encrypted.json` together with any source/UI changes.
-
 ## Local development
 
 Serve the directory over HTTP so the service worker, manifest, JSON fetches, and clipboard behaviour work normally:
@@ -190,14 +146,14 @@ Before committing frontend changes, perform at least:
 node --check /tmp/relevant-script.js
 ```
 
-For full UI verification, load the app in a browser, check the five navigation tabs, test the refresh control, and unlock the Saved tweets overlay on a mobile-sized viewport.
+For full UI verification, load the app in a browser, check the five navigation tabs, test the refresh control,.
 
 ## Deployment
 
 The `main` branch is published through GitHub Pages. The normal deployment workflow is:
 
 ```bash
-git add index.html README.md health-data.json notes-encrypted.json
+git add index.html README.md health-data.json
 git commit -m "Describe the change"
 git push origin main
 ```
