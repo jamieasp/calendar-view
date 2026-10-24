@@ -679,6 +679,7 @@
     }
     .train-timer-block.gone { opacity: 0; }
     .train-timer-block.rest { background: #8ec2db; }
+    .train-timer-block.second-side { background: #3f8ecb; }
     .train-timer-label { font-size: 0.68rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; flex: 0 0 auto; width: 30px; }
     .train-timer-btn {
       appearance: none;
@@ -4244,7 +4245,17 @@
           if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
           const ctx = audioCtx;
           const now = ctx.currentTime;
-          if (final) {
+          if (final === "switch") {
+            // A three-note handoff cue: distinct from both the countdown and finish.
+            [[523, now, 0.16], [784, now + 0.16, 0.16], [1046, now + 0.32, 0.28]].forEach(([freq, t, dur]) => {
+              const osc = ctx.createOscillator(); const gain = ctx.createGain();
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.type = "triangle"; osc.frequency.value = freq;
+              gain.gain.setValueAtTime(0.34, t);
+              gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+              osc.start(t); osc.stop(t + dur);
+            });
+          } else if (final) {
             [[880, now, 0.28], [1046, now + 0.22, 0.36]].forEach(([freq, t, dur]) => {
               const osc = ctx.createOscillator(); const gain = ctx.createGain();
               osc.connect(gain); gain.connect(ctx.destination);
@@ -4263,7 +4274,7 @@
           }
         } catch (e) {}
       }
-      function makeTimer(li, total, isRest, onComplete) {
+      function makeTimer(li, total, isRest, onComplete, { twoSided = false } = {}) {
         const row = document.createElement("div");
         row.className = "train-timer";
         if (isRest) {
@@ -4285,13 +4296,26 @@
         btn.textContent = "\u25B6";
         row.appendChild(blocksEl);
         row.appendChild(btn);
+        let twoBtn = null;
+        if (twoSided) {
+          twoBtn = document.createElement("button");
+          twoBtn.className = "train-timer-btn";
+          twoBtn.type = "button";
+          twoBtn.textContent = "▶ ×2";
+          twoBtn.setAttribute("aria-label", "Play both sides");
+          twoBtn.title = "Play both sides automatically";
+          row.appendChild(twoBtn);
+        }
         li.appendChild(row);
         let timer = null;
         let remaining = total;
+        let playingBoth = false;
+        let side = 1;
         function reset() {
-          clearInterval(timer); timer = null; remaining = total;
-          blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone"));
+          clearInterval(timer); timer = null; remaining = total; playingBoth = false; side = 1;
+          blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone", "second-side"));
           btn.textContent = "\u25B6";
+          if (twoBtn) { twoBtn.textContent = "▶ ×2"; twoBtn.disabled = false; }
         }
         function tick() {
           const live = blocksEl.querySelector(".train-timer-block:not(.gone)");
@@ -4301,7 +4325,18 @@
           const elapsed = total - remaining;
           if (remaining > 3 && elapsed % 15 === 0) ping(false);
           if (remaining > 0 && remaining <= 3) ping(false);
-          if (remaining <= 0) { ping(true); reset(); if (onComplete) onComplete(); }
+          if (remaining <= 0) {
+            if (playingBoth && side === 1) {
+              ping("switch");
+              side = 2; remaining = total;
+              blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone"));
+              blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.add("second-side"));
+              btn.textContent = "\u25A0 2/2";
+              if (twoBtn) twoBtn.textContent = "2/2";
+              return;
+            }
+            ping(true); reset(); if (onComplete) onComplete();
+          }
         }
         function start() {
           if (timer) { reset(); return; }
@@ -4309,16 +4344,23 @@
           timer = setInterval(tick, 1000);
         }
         btn.addEventListener("click", start);
+        if (twoBtn) twoBtn.addEventListener("click", () => {
+          if (timer) reset();
+          playingBoth = true; side = 1; twoBtn.disabled = true; twoBtn.textContent = "1/2";
+          start();
+        });
         return { start };
       }
       document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
+        const stretchSection = document.getElementById("stretches-title").closest(".train-section");
+        const twoSided = stretchSection.contains(li) && /\beach side\b/i.test(li.querySelector(".train-sets")?.textContent || "");
         if (li.dataset.restSeconds) {
           let restStart = null;
           makeTimer(li, parseInt(li.dataset.seconds), false, () => { if (restStart) restStart(); });
           const restCtrl = makeTimer(li, parseInt(li.dataset.restSeconds), true);
           restStart = () => restCtrl.start();
         } else {
-          makeTimer(li, parseInt(li.dataset.seconds), false);
+          makeTimer(li, parseInt(li.dataset.seconds), false, null, { twoSided });
         }
       });
     }
