@@ -124,11 +124,14 @@ def iter_workouts_from_file(path: Path) -> Iterable[dict]:
 
 def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
     seen: dict[str, dict] = {}
+    # The live Suunto stream occasionally ends after its first page. Include
+    # every cached page to retain older workouts, then let newer local exports
+    # override duplicate keys.
     sources = [
-        FRESH_NDJSON,
-        DATA_DIR / "workouts_since_2025-06-18.ndjson",
+        *sorted((DATA_DIR / "pages").glob("workouts_offset_*.json")),
         DATA_DIR / "workouts_all.ndjson",
-        DATA_DIR / "pages" / "workouts_offset_0.json",
+        DATA_DIR / "workouts_since_2025-06-18.ndjson",
+        FRESH_NDJSON,
     ]
     for source in sources:
         for workout in iter_workouts_from_file(source) or []:
