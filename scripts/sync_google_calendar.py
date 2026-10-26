@@ -52,6 +52,9 @@ class SourceEvent:
     title: str
     list_title: str
     meta: str
+    start_time: str | None
+    end_time: str | None
+    location: str | None
     race: bool
 
     @property
@@ -80,11 +83,9 @@ class SourceEvent:
         return "\n".join(bits)
 
     def body(self) -> dict[str, Any]:
-        return {
+        body = {
             "summary": self.google_summary,
             "description": self.description,
-            "start": {"date": self.start},
-            "end": {"date": self.google_end_exclusive},
             "transparency": "transparent",
             "source": {"title": "Jamie’s Race Calendar", "url": SOURCE_URL},
             "extendedProperties": {
@@ -95,6 +96,15 @@ class SourceEvent:
                 }
             },
         }
+        if self.start_time:
+            body["start"] = {"dateTime": f"{self.start}T{self.start_time}:00", "timeZone": "Europe/London"}
+            body["end"] = {"dateTime": f"{self.end or self.start}T{self.end_time or self.start_time}:00", "timeZone": "Europe/London"}
+        else:
+            body["start"] = {"date": self.start}
+            body["end"] = {"date": self.google_end_exclusive}
+        if self.location:
+            body["location"] = self.location
+        return body
 
 
 def js_string(value: str) -> str:
@@ -111,7 +121,7 @@ def extract_events() -> list[SourceEvent]:
     events: list[SourceEvent] = []
     for obj in objects:
         raw: dict[str, str] = {}
-        for key in ["syncId", "start", "end", "status", "title", "listTitle", "meta"]:
+        for key in ["syncId", "start", "end", "startTime", "endTime", "location", "status", "title", "listTitle", "meta"]:
             m = re.search(rf'{key}:\s*"((?:[^"\\]|\\.)*)"', obj)
             if m:
                 raw[key] = js_string(m.group(1))
@@ -133,6 +143,9 @@ def extract_events() -> list[SourceEvent]:
                 title=raw["title"],
                 list_title=raw.get("listTitle", raw["title"]),
                 meta=raw.get("meta", ""),
+                start_time=raw.get("startTime"),
+                end_time=raw.get("endTime"),
+                location=raw.get("location"),
                 race="race: true" in obj,
             )
         )
