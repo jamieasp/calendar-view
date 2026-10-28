@@ -14,7 +14,7 @@
 //   }
 //
 // Running sessions also carry "rpe" (Planned Perceived Exertion, out of 10),
-// rendered in the modal as "RPE: 3/10". Other session types omit it.
+// rendered in the modal as "PPE: 3/10". Other session types omit it.
 //
 // Any day with one or more activities gets a 🧢 in its calendar tile.
 // Tapping the cap opens a modal with what Matt scheduled, the coach's extra
@@ -82,7 +82,7 @@
     closeModal();
     var blocks = acts.map(function (a) {
       var rpe = (a.rpe !== undefined && a.rpe !== null && a.rpe !== "")
-        ? '<p class="coach-modal-rpe">RPE: ' + esc(a.rpe) + '/10</p>'
+        ? '<p class="coach-modal-rpe">PPE: ' + esc(a.rpe) + '/10</p>'
         : "";
       var detail = a.detail ? "<p>" + esc(a.detail) + "</p>" : "";
       var link = a.url
