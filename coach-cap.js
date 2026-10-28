@@ -85,10 +85,7 @@
         ? '<p class="coach-modal-rpe">PPE: ' + esc(a.rpe) + '/10</p>'
         : "";
       var detail = a.detail ? "<p>" + esc(a.detail) + "</p>" : "";
-      var link = a.url
-        ? '<a class="coach-modal-done" href="' + esc(a.url) + '" target="_blank" rel="noopener">Mark as done on Training Tilt ↗</a>'
-        : "";
-      return '<div class="coach-modal-act"><h3>' + esc(a.title || "Coach session") + "</h3>" + rpe + detail + link + "</div>";
+      return '<div class="coach-modal-act"><h3>' + esc(a.title || "Coach session") + "</h3>" + rpe + detail + "</div>";
     }).join("");
     var wrap = document.createElement("div");
     wrap.id = "coach-modal-backdrop";
