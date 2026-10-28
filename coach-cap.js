@@ -145,6 +145,7 @@
   }
 
   function init() {
+    ensureStyles();
     var grid = document.getElementById("calendar");
     if (grid && "MutationObserver" in window) {
       // renderCalendar rebuilds the grid (view switches, history expand);
