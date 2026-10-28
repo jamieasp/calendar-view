@@ -13,6 +13,9 @@
 //     }
 //   }
 //
+// Running sessions also carry "rpe" (Planned Perceived Exertion, out of 10),
+// rendered in the modal as "RPE: 3/10". Other session types omit it.
+//
 // Any day with one or more activities gets a 🧢 in its calendar tile.
 // Tapping the cap opens a modal with what Matt scheduled, the coach's extra
 // info, and a link to Training Tilt where the session can be marked done.
@@ -57,6 +60,7 @@
       ".coach-modal-act{border-top:1px solid var(--line,#ded6c8);padding:12px 0;}" +
       ".coach-modal-act:first-of-type{border-top:0;padding-top:4px;}" +
       ".coach-modal-act h3{margin:0 0 6px;font-size:0.98rem;}" +
+      ".coach-modal-rpe{margin:0 0 8px;font-size:0.9rem;font-weight:700;}" +
       ".coach-modal-act p{margin:0 0 10px;white-space:pre-wrap;font-size:0.92rem;line-height:1.45;}" +
       ".coach-modal-done{display:inline-block;padding:9px 14px;border-radius:999px;background:rgba(255,226,77,0.38);color:var(--ink,#17202a);font-weight:800;font-size:0.9rem;text-decoration:none;}" +
       ".coach-modal-done:active{transform:translateY(1px);}";
@@ -77,11 +81,14 @@
     ensureStyles();
     closeModal();
     var blocks = acts.map(function (a) {
+      var rpe = (a.rpe !== undefined && a.rpe !== null && a.rpe !== "")
+        ? '<p class="coach-modal-rpe">RPE: ' + esc(a.rpe) + '/10</p>'
+        : "";
       var detail = a.detail ? "<p>" + esc(a.detail) + "</p>" : "";
       var link = a.url
         ? '<a class="coach-modal-done" href="' + esc(a.url) + '" target="_blank" rel="noopener">Mark as done on Training Tilt ↗</a>'
         : "";
-      return '<div class="coach-modal-act"><h3>' + esc(a.title || "Coach session") + "</h3>" + detail + link + "</div>";
+      return '<div class="coach-modal-act"><h3>' + esc(a.title || "Coach session") + "</h3>" + rpe + detail + link + "</div>";
     }).join("");
     var wrap = document.createElement("div");
     wrap.id = "coach-modal-backdrop";
