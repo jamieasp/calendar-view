@@ -103,8 +103,21 @@
     "title": "Ankle/Calf/Achilles Strengthening - lower impact",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
    }
+  ],
+  "2026-11-13": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening - lower impact",
+    "detail": "Calf raises each leg x 20\nJump on the spot x 30\nJump on the spot each leg x 10\nJump left/right x 10 each leg\nJump forward/backwards x 10 each leg\nSquat x 10\nLunge x 8 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "10 km | Easy pace",
+    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 3
+   }
   ]
  },
  "source": "Training Tilt — Matt Buck, Running Adventures",
- "updated": "2026-10-29T06:58:20Z"
+ "updated": "2026-10-31T06:53:34Z"
 }
