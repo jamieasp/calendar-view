@@ -1,12 +1,7 @@
 {
+ "updated": "2026-11-01T07:02:15Z",
+ "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-10-31": [
-   {
-    "detail": "Walk at high effort level",
-    "title": "5 km | Walking",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
-   }
-  ],
   "2026-11-03": [
    {
     "detail": "Calf raises each leg x 20\nJump on the spot x 30\nJump on the spot each leg x 10\nJump left/right x 10 each leg\nJump forward/backwards x 10 each leg\nSquat x 10\nLunge x 8 each leg\nRoll calfs",
@@ -116,8 +111,14 @@
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
     "rpe": 3
    }
+  ],
+  "2026-11-15": [
+   {
+    "title": "20 km | Ultra pace",
+    "detail": "Ultra pace (preferably on trails - walk the hills)\nThis is a pace to aim for during long runs when training for your ultra. This pace is will seem slow as it basically takes into account the fact that you will be both running and walking. It's essentially a 'keep moving' pace and is more aimed at stopping you going too fast than anything else.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 5
+   }
   ]
- },
- "source": "Training Tilt — Matt Buck, Running Adventures",
- "updated": "2026-10-31T06:53:34Z"
+ }
 }
