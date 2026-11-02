@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-01T07:02:15Z",
+ "updated": "2026-11-02T07:05:36Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
   "2026-11-03": [
@@ -118,6 +118,14 @@
     "detail": "Ultra pace (preferably on trails - walk the hills)\nThis is a pace to aim for during long runs when training for your ultra. This pace is will seem slow as it basically takes into account the fact that you will be both running and walking. It's essentially a 'keep moving' pace and is more aimed at stopping you going too fast than anything else.",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
     "rpe": 5
+   }
+  ],
+  "2026-11-16": [
+   {
+    "title": "5 km | Easy pace",
+    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 3
    }
   ]
  }
