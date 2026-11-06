@@ -813,6 +813,18 @@
       stroke-width: 3;
       opacity: 0.9;
     }
+    .chart-target {
+      fill: none;
+      stroke: #b77900;
+      stroke-width: 3;
+      stroke-dasharray: 10 9;
+      vector-effect: non-scaling-stroke;
+    }
+    .chart-target-label {
+      fill: #8f6000;
+      font-size: 26px;
+      font-weight: 900;
+    }
     .chart-line.weekly-21 {
       stroke: #17202a;
       stroke-width: 3;
@@ -3388,7 +3400,7 @@
       const comparison2024 = cumulativeSeries(comparisonRunDistances2024, year - 2);
       if (!current.points.length) return;
 
-      const rawYMax = Math.max(50, current.total, comparison.total, comparison2024.total);
+      const rawYMax = Math.max(1000, current.total, comparison.total, comparison2024.total);
       const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
@@ -3409,6 +3421,8 @@
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
+        <path class="chart-target" d="M${x(yearStart).toFixed(1)},${y(0).toFixed(1)} L${x(yearEnd).toFixed(1)},${y(1000).toFixed(1)}"></path>
+        <text class="chart-target-label" x="${(x(yearEnd) + 22).toFixed(1)}" y="${(y(1000) + 10).toFixed(1)}">1,000 km target</text>
         <path class="chart-line comparison-2024" d="${linePath(comparison2024.points)}"></path>
         <path class="chart-line comparison-2025" d="${linePath(comparison.points)}"></path>
         <path class="chart-line" d="${linePath(current.points)}"></path>
