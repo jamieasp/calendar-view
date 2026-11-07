@@ -832,10 +832,6 @@
       stroke-width: 1;
       vector-effect: non-scaling-stroke;
     }
-    .chart-line.weekly-7 {
-      stroke: #c0392b;
-      stroke-width: 4;
-    }
     .chart-line.weekly-21 {
       stroke: #17202a;
       stroke-width: 3;
@@ -1361,7 +1357,7 @@
       <div class="chart-header secondary-chart-title">
         <h2>Weekly Running Distance</h2>
       </div>
-      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance based on seven-day and 21-day moving averages"></svg>
+      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance based on a 21-day moving average"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
@@ -3540,10 +3536,9 @@
       const svg = document.getElementById("weekly-distance-chart");
       if (!svg) return;
 
-      const sevenDay = runningDistanceMovingAverage(runDistances, year, 7);
       const twentyOneDay = runningDistanceMovingAverage(runDistances, year, 21);
       const weeklyTotals = weeklyRunningTotals(runDistances, year);
-      if (!sevenDay.length || !twentyOneDay.length || !weeklyTotals.length) return;
+      if (!twentyOneDay.length || !weeklyTotals.length) return;
 
       const width = 1500;
       const height = 620;
@@ -3553,7 +3548,7 @@
       const yearStart = new Date(`${year}-01-01T12:00:00`);
       const yearEnd = new Date(`${year}-12-31T12:00:00`);
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
-      const rawYMax = Math.max(10, ...weeklyTotals.map(week => week.value), ...sevenDay.map(point => point.value), ...twentyOneDay.map(point => point.value));
+      const rawYMax = Math.max(10, ...weeklyTotals.map(week => week.value), ...twentyOneDay.map(point => point.value));
       const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
@@ -3564,7 +3559,6 @@
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
       const linePath = points => svgPath(points, x, y);
       const weeklyBarWidth = plotW * 7 / (totalDays + 1);
-      const latest7 = sevenDay[sevenDay.length - 1];
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
@@ -3576,8 +3570,6 @@
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">km / week</text>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
         <path class="chart-line weekly-21" d="${linePath(twentyOneDay)}"></path>
-        <path class="chart-line weekly-7" d="${linePath(sevenDay)}"></path>
-        ${chartEndLabel(x(latest7.date) + 28, y(latest7.value) - 28, ["7 day moving avg", `${Math.round(latest7.value)}km/week`])}
       `;
     }
 
