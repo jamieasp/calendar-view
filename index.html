@@ -3272,15 +3272,16 @@
       const points = panel.points.map(point => ({ date: dateFromIso(point.date), iso: point.date, value: Number(point.value) }));
       if (!points.length) return "";
       const values = points.map(point => point.value);
+      const isSleepHours = panel.title === "Hours of Sleep";
       const ymin = Math.min(...values);
       const ymax = Math.max(...values);
       const yr = ymax - ymin || 1;
       const isSparse = panel.kind === "BodyFat";
-      // Keep the plot itself exactly bounded by the recorded values. Tick marks
+      // Keep non-sleep plots exactly bounded by their recorded values. Tick marks
       // are still chosen from a human-friendly interval, but never expand the
       // visual scale beyond the smallest/largest datapoint.
-      const yDomainMin = ymin;
-      const yDomainMax = ymax === ymin ? ymin + 1 : ymax;
+      const yDomainMin = isSleepHours ? 3 : ymin;
+      const yDomainMax = isSleepHours ? 11 : (ymax === ymin ? ymin + 1 : ymax);
       const rawStart = points[0].date;
       const rawEnd = points[points.length - 1].date;
       const nowDate = new Date();
@@ -3288,8 +3289,9 @@
       const end = isSparse ? new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate() + 3) : rawEnd;
       const spanDays = Math.max(1, Math.round((end - start) / 86400000));
       const x = date => margin.left + ((date - start) / 86400000 / spanDays) * plotW;
-      const yTicks = niceTicks(yDomainMin, yDomainMax, 5)
-        .filter(tick => tick >= yDomainMin && tick <= yDomainMax);
+      const yTicks = isSleepHours
+        ? [3, 5, 7, 9, 11]
+        : niceTicks(yDomainMin, yDomainMax, 5).filter(tick => tick >= yDomainMin && tick <= yDomainMax);
       const yPrecision = Math.max(tickPrecision(yTicks), panel.kind === "RHR" ? 0 : 1);
       const y = value => margin.top + plotH - ((value - yDomainMin) / (yDomainMax - yDomainMin)) * plotH;
       const ma7 = isSparse ? [] : centeredMA(values, 7).map((value, index) => ({ date: points[index].date, value }));
