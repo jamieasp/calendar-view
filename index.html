@@ -3565,7 +3565,6 @@
       const linePath = points => svgPath(points, x, y);
       const weeklyBarWidth = plotW * 7 / (totalDays + 1);
       const latest7 = sevenDay[sevenDay.length - 1];
-      const latest21 = twentyOneDay[twentyOneDay.length - 1];
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
@@ -3579,7 +3578,6 @@
         <path class="chart-line weekly-21" d="${linePath(twentyOneDay)}"></path>
         <path class="chart-line weekly-7" d="${linePath(sevenDay)}"></path>
         ${chartEndLabel(x(latest7.date) + 28, y(latest7.value) - 28, ["7 day moving avg", `${Math.round(latest7.value)}km/week`])}
-        ${chartEndLabel(x(latest21.date) + 28, y(latest21.value) + 28, ["21 day moving avg", `${Math.round(latest21.value)}km/week`])}
       `;
     }
 
