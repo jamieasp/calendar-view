@@ -827,14 +827,15 @@
       font-weight: 900;
     }
     .chart-weekly-bar {
-      fill: rgba(183, 121, 0, 0.16);
-      stroke: rgba(143, 96, 0, 0.20);
+      fill: #f4c542;
+      stroke: #b77900;
       stroke-width: 1;
       vector-effect: non-scaling-stroke;
     }
-    .chart-line.weekly-21 {
-      stroke: #17202a;
-      stroke-width: 3;
+    .chart-weekly-current-label {
+      fill: #8f6000;
+      font-size: 25px;
+      font-weight: 900;
     }
     .chart-dot { fill: var(--pencil); }
     .histogram-unit {
@@ -1357,7 +1358,7 @@
       <div class="chart-header secondary-chart-title">
         <h2>Weekly Running Distance</h2>
       </div>
-      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance based on a 21-day moving average"></svg>
+      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance totals"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
@@ -3493,28 +3494,6 @@
       `;
     }
 
-    function runningDistanceMovingAverage(distances, seriesYear, windowSize) {
-      const start = new Date(`${seriesYear}-01-01T12:00:00`);
-      const end = seriesYear === today.getFullYear()
-        ? new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
-        : new Date(`${seriesYear}-12-31T12:00:00`);
-      const daily = [];
-      for (const date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-        const iso = isoDate(date.getFullYear(), date.getMonth(), date.getDate());
-        daily.push({ iso, date: new Date(date), km: Number(distances[iso] || 0) });
-      }
-      // Center the moving average so the line describes the surrounding period,
-      // rather than lagging behind the underlying running data.
-      return daily.map((entry, index) => {
-        const halfWindow = Math.floor(windowSize / 2);
-        const lo = Math.max(0, index - halfWindow);
-        const hi = Math.min(daily.length, index + halfWindow + 1);
-        const window = daily.slice(lo, hi);
-        const average = window.reduce((sum, day) => sum + day.km, 0) / window.length;
-        return { ...entry, value: average * 7 };
-      });
-    }
-
     function weeklyRunningTotals(distances, seriesYear) {
       const start = new Date(`${seriesYear}-01-01T12:00:00`);
       const end = seriesYear === today.getFullYear()
@@ -3536,9 +3515,8 @@
       const svg = document.getElementById("weekly-distance-chart");
       if (!svg) return;
 
-      const twentyOneDay = runningDistanceMovingAverage(runDistances, year, 21);
       const weeklyTotals = weeklyRunningTotals(runDistances, year);
-      if (!twentyOneDay.length || !weeklyTotals.length) return;
+      if (!weeklyTotals.length) return;
 
       const width = 1500;
       const height = 620;
@@ -3548,7 +3526,9 @@
       const yearStart = new Date(`${year}-01-01T12:00:00`);
       const yearEnd = new Date(`${year}-12-31T12:00:00`);
       const totalDays = Math.round((yearEnd - yearStart) / 86400000);
-      const rawYMax = Math.max(10, ...weeklyTotals.map(week => week.value), ...twentyOneDay.map(point => point.value));
+      const maxWeeklyTotal = Math.max(0, ...weeklyTotals.map(week => week.value));
+      // Reserve headroom so the in-progress week's label clears its bar.
+      const rawYMax = Math.max(10, maxWeeklyTotal * 1.15);
       const yTicks = niceTicks(0, rawYMax, 5).filter(tick => tick >= 0);
       const yMax = yTicks[yTicks.length - 1];
       const dayOfYear = date => Math.round((date - new Date(`${date.getFullYear()}-01-01T12:00:00`)) / 86400000);
@@ -3557,19 +3537,24 @@
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
       const itbsStart = new Date(`${year}-02-22T12:00:00`);
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
-      const linePath = points => svgPath(points, x, y);
       const weeklyBarWidth = plotW * 7 / (totalDays + 1);
+      const currentWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
+      currentWeekStart.setDate(currentWeekStart.getDate() - ((currentWeekStart.getDay() + 6) % 7));
+      const currentWeek = weeklyTotals.find(week => week.date.getTime() === currentWeekStart.getTime());
+      const currentWeekLabel = currentWeek
+        ? `${Number(currentWeek.value.toFixed(1)).toLocaleString("en-GB")} km`
+        : "0 km";
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
         ${weeklyTotals.map(week => `<rect class="chart-weekly-bar" x="${Math.max(margin.left, x(week.date)).toFixed(1)}" y="${y(week.value).toFixed(1)}" width="${weeklyBarWidth.toFixed(1)}" height="${(height - margin.bottom - y(week.value)).toFixed(1)}"></rect>`).join("")}
+        ${currentWeek ? `<text class="chart-weekly-current-label" x="${(Math.max(margin.left, x(currentWeek.date)) + weeklyBarWidth / 2).toFixed(1)}" y="${Math.max(margin.top + 28, y(currentWeek.value) - 16).toFixed(1)}" text-anchor="middle">${currentWeekLabel}</text>` : ""}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 34}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">km / week</text>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
-        <path class="chart-line weekly-21" d="${linePath(twentyOneDay)}"></path>
       `;
     }
 
