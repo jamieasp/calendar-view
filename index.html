@@ -715,6 +715,18 @@
       flex: 0 0 auto;
     }
     .train-timer-btn:active { transform: translateY(1px); }
+    .train-timer-status {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 750;
+      min-width: 8.5rem;
+      text-align: right;
+    }
+    .warmup-checklist li[data-timer-label] {
+      display: grid;
+      grid-template-columns: 1.15rem minmax(0, 1fr);
+    }
+    .warmup-checklist li[data-timer-label] .train-timer { grid-column: 2; }
     .chart-section {
       margin-top: 64px;
       padding-top: 12px;
@@ -1464,12 +1476,15 @@
       <div class="train-block">
         <ul class="train-list warmup-checklist">
           <li><input id="warmup-calf-raises" type="checkbox"><label for="warmup-calf-raises"><span class="train-exercise">Calf raises</span><span class="train-sets">each leg &times;20</span></label></li>
+          <li data-seconds="45" data-timer-label="Heel walk set 1"><input id="warmup-heel-walk-1" type="checkbox"><label for="warmup-heel-walk-1"><span class="train-exercise"><a href="https://kinetic-revolution.com/shin-strengthening-heel-walk-drill-for-runners" target="_blank" rel="noopener" class="train-link">Heel walks</a></span><span class="train-sets">45s &middot; set 1 of 3</span></label></li>
           <li><input id="warmup-jump-spot" type="checkbox"><label for="warmup-jump-spot"><span class="train-exercise">Jump on the spot</span><span class="train-sets">&times;30</span></label></li>
           <li><input id="warmup-jump-spot-leg" type="checkbox"><label for="warmup-jump-spot-leg"><span class="train-exercise">Jump on the spot</span><span class="train-sets">each leg &times;10</span></label></li>
           <li><input id="warmup-jump-left-right" type="checkbox"><label for="warmup-jump-left-right"><span class="train-exercise">Jump left/right</span><span class="train-sets">each leg &times;10</span></label></li>
           <li><input id="warmup-jump-forwards-backwards" type="checkbox"><label for="warmup-jump-forwards-backwards"><span class="train-exercise">Jump forwards/backwards</span><span class="train-sets">each leg &times;10</span></label></li>
+          <li data-seconds="45" data-timer-label="Heel walk set 2"><input id="warmup-heel-walk-2" type="checkbox"><label for="warmup-heel-walk-2"><span class="train-exercise"><a href="https://kinetic-revolution.com/shin-strengthening-heel-walk-drill-for-runners" target="_blank" rel="noopener" class="train-link">Heel walks</a></span><span class="train-sets">45s &middot; set 2 of 3</span></label></li>
           <li><input id="warmup-squat" type="checkbox"><label for="warmup-squat"><span class="train-exercise">Squat</span><span class="train-sets">&times;10</span></label></li>
           <li><input id="warmup-lunge" type="checkbox"><label for="warmup-lunge"><span class="train-exercise">Lunge</span><span class="train-sets">each leg &times;8</span></label></li>
+          <li data-seconds="45" data-timer-label="Heel walk set 3"><input id="warmup-heel-walk-3" type="checkbox"><label for="warmup-heel-walk-3"><span class="train-exercise"><a href="https://kinetic-revolution.com/shin-strengthening-heel-walk-drill-for-runners" target="_blank" rel="noopener" class="train-link">Heel walks</a></span><span class="train-sets">45s &middot; set 3 of 3</span></label></li>
           <li><input id="warmup-roll-calves" type="checkbox"><label for="warmup-roll-calves"><span class="train-exercise">Roll calves</span></label></li>
         </ul>
       </div>
@@ -4355,7 +4370,7 @@
           }
         } catch (e) {}
       }
-      function makeTimer(li, total, isRest, onComplete, { twoSided = false } = {}) {
+      function makeTimer(li, total, isRest, onComplete, { twoSided = false, statusLabel = "" } = {}) {
         const row = document.createElement("div");
         row.className = "train-timer";
         if (isRest) {
@@ -4375,8 +4390,17 @@
         btn.className = "train-timer-btn";
         btn.type = "button";
         btn.textContent = "\u25B6";
+        if (statusLabel) btn.setAttribute("aria-label", "Start " + total + "-second " + statusLabel + " timer");
         row.appendChild(blocksEl);
         row.appendChild(btn);
+        let status = null;
+        if (statusLabel) {
+          status = document.createElement("span");
+          status.className = "train-timer-status";
+          status.setAttribute("role", "status");
+          status.setAttribute("aria-live", "polite");
+          row.appendChild(status);
+        }
         let twoBtn = null;
         if (twoSided) {
           twoBtn = document.createElement("button");
@@ -4392,10 +4416,17 @@
         let remaining = total;
         let playingBoth = false;
         let side = 1;
+        function updateStatus(message) {
+          if (status) status.textContent = message;
+        }
         function reset() {
           clearInterval(timer); timer = null; remaining = total; playingBoth = false; side = 1;
           blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone", "second-side"));
           btn.textContent = "\u25B6";
+          if (statusLabel) {
+            btn.setAttribute("aria-label", "Start " + total + "-second " + statusLabel + " timer");
+            updateStatus("Ready — " + total + "s");
+          }
           if (twoBtn) { twoBtn.textContent = "▶ ×2"; twoBtn.disabled = false; }
         }
         function tick() {
@@ -4403,6 +4434,7 @@
           if (!live) { reset(); return; }
           live.classList.add("gone");
           remaining--;
+          if (statusLabel && remaining > 0) updateStatus(remaining + "s remaining");
           const elapsed = total - remaining;
           if (remaining > 3 && elapsed % 15 === 0) ping(false);
           if (remaining > 0 && remaining <= 3) ping(false);
@@ -4416,12 +4448,27 @@
               if (twoBtn) twoBtn.textContent = "2/2";
               return;
             }
-            ping(true); reset(); if (onComplete) onComplete();
+            ping(true);
+            if (statusLabel) {
+              updateStatus("Complete — 0s");
+              clearInterval(timer); timer = null;
+              remaining = total;
+              blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone", "second-side"));
+              btn.textContent = "↻";
+              btn.setAttribute("aria-label", "Restart " + total + "-second " + statusLabel + " timer");
+            } else {
+              reset();
+            }
+            if (onComplete) onComplete();
           }
         }
         function start() {
           if (timer) { reset(); return; }
           btn.textContent = "\u25A0";
+          if (statusLabel) {
+            btn.setAttribute("aria-label", "Reset " + statusLabel + " timer");
+            updateStatus(total + "s remaining");
+          }
           timer = setInterval(tick, 1000);
         }
         btn.addEventListener("click", start);
@@ -4430,18 +4477,22 @@
           playingBoth = true; side = 1; twoBtn.disabled = true; twoBtn.textContent = "1/2";
           start();
         });
-        return { start };
+        reset();
+        return { start, destroy() { clearInterval(timer); row.remove(); } };
       }
       document.querySelectorAll(".train-list li[data-seconds]").forEach(li => {
+        (li._trainTimers || []).forEach(timer => timer.destroy());
+        li._trainTimers = [];
         const stretchSection = document.getElementById("stretches-title").closest(".train-section");
         const twoSided = stretchSection.contains(li) && /\beach side\b/i.test(li.querySelector(".train-sets")?.textContent || "");
         if (li.dataset.restSeconds) {
           let restStart = null;
-          makeTimer(li, parseInt(li.dataset.seconds), false, () => { if (restStart) restStart(); });
+          li._trainTimers.push(makeTimer(li, parseInt(li.dataset.seconds), false, () => { if (restStart) restStart(); }));
           const restCtrl = makeTimer(li, parseInt(li.dataset.restSeconds), true);
+          li._trainTimers.push(restCtrl);
           restStart = () => restCtrl.start();
         } else {
-          makeTimer(li, parseInt(li.dataset.seconds), false, null, { twoSided });
+          li._trainTimers.push(makeTimer(li, parseInt(li.dataset.seconds), false, null, { twoSided, statusLabel: li.dataset.timerLabel || "" }));
         }
       });
     }
