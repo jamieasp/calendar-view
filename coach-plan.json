@@ -1,14 +1,7 @@
 {
- "updated": "2026-11-08T07:03:44Z",
+ "updated": "2026-11-09T07:01:08Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-08": [
-   {
-    "title": "Back to running",
-    "detail": "",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
-   }
-  ],
   "2026-11-09": [
    {
     "title": "5 km | Easy pace",
@@ -91,6 +84,14 @@
     "title": "Marrakech–Agafay Trail",
     "detail": "42 km trail race in Agafay, Morocco; registered. The Agafay Desert is a rocky, arid landscape near Marrakech, offering a distinctive desert-trail setting.",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   }
+  ],
+  "2026-11-23": [
+   {
+    "title": "5 km | Easy pace",
+    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 3
    }
   ]
  }
