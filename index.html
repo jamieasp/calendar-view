@@ -579,6 +579,24 @@
       flex-direction: column;
       gap: 2px;
     }
+    .warmup-checklist li {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .warmup-checklist input {
+      width: 1.15rem;
+      height: 1.15rem;
+      margin: 3px 0 0;
+      flex: 0 0 auto;
+      accent-color: var(--today);
+    }
+    .warmup-checklist label {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
     .train-exercise {
       font-weight: 850;
       font-size: 1.02rem;
@@ -1439,6 +1457,21 @@
             </ul>
           </div>
         </details>
+      </div>
+    </section>
+    <section class="train-section" aria-labelledby="matts-strengthening-warmup-title">
+      <h2 id="matts-strengthening-warmup-title">Matt&rsquo;s Strengthening Warmup</h2>
+      <div class="train-block">
+        <ul class="train-list warmup-checklist">
+          <li><input id="warmup-calf-raises" type="checkbox"><label for="warmup-calf-raises"><span class="train-exercise">Calf raises</span><span class="train-sets">each leg &times;20</span></label></li>
+          <li><input id="warmup-jump-spot" type="checkbox"><label for="warmup-jump-spot"><span class="train-exercise">Jump on the spot</span><span class="train-sets">&times;30</span></label></li>
+          <li><input id="warmup-jump-spot-leg" type="checkbox"><label for="warmup-jump-spot-leg"><span class="train-exercise">Jump on the spot</span><span class="train-sets">each leg &times;10</span></label></li>
+          <li><input id="warmup-jump-left-right" type="checkbox"><label for="warmup-jump-left-right"><span class="train-exercise">Jump left/right</span><span class="train-sets">each leg &times;10</span></label></li>
+          <li><input id="warmup-jump-forwards-backwards" type="checkbox"><label for="warmup-jump-forwards-backwards"><span class="train-exercise">Jump forwards/backwards</span><span class="train-sets">each leg &times;10</span></label></li>
+          <li><input id="warmup-squat" type="checkbox"><label for="warmup-squat"><span class="train-exercise">Squat</span><span class="train-sets">&times;10</span></label></li>
+          <li><input id="warmup-lunge" type="checkbox"><label for="warmup-lunge"><span class="train-exercise">Lunge</span><span class="train-sets">each leg &times;8</span></label></li>
+          <li><input id="warmup-roll-calves" type="checkbox"><label for="warmup-roll-calves"><span class="train-exercise">Roll calves</span></label></li>
+        </ul>
       </div>
     </section>
     <section class="train-section" aria-labelledby="train-title">
