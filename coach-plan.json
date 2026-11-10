@@ -1,15 +1,7 @@
 {
- "updated": "2026-11-09T07:01:08Z",
+ "updated": "2026-11-10T07:03:12Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-09": [
-   {
-    "title": "5 km | Easy pace",
-    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
-    "rpe": 3
-   }
-  ],
   "2026-11-10": [
    {
     "title": "Upper Body Strength",
@@ -92,6 +84,13 @@
     "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
     "rpe": 3
+   }
+  ],
+  "2026-11-24": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises each leg x 20\nJump on the spot x 30\nJump on the spot each leg x 10\nJump left/right x 10 each leg\nJump forward/backwards x 10 each leg\nSquat x 10\nLunge x 8 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
    }
   ]
  }
