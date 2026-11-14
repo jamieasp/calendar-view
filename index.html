@@ -1356,14 +1356,14 @@
       <ul id="considered-races" class="race-list"></ul>
     </section>
     <div class="calendar-heading-wrap"><h2 class="calendar-heading">Calendar</h2></div>
-    <nav class="calendar-range-controls calendar-range-controls-earlier" aria-label="Earlier calendar dates">
-      <button type="button" class="expand-years" data-action="toggle-earlier" aria-controls="calendar" aria-expanded="false">Show Earlier</button>
+    <nav class="calendar-range-controls calendar-range-controls-earlier" aria-label="Earlier calendar months">
+      <button type="button" class="expand-years" data-action="toggle-earlier" aria-controls="calendar" aria-expanded="false" aria-label="Show earlier calendar months, January to September 2026">Show Earlier</button>
     </nav>
     <div class="calendar-wrap">
       <section id="calendar" class="year-grid" aria-label="October 2026 to April 2027 calendar"></section>
     </div>
-    <nav class="calendar-range-controls" aria-label="Later calendar dates">
-      <button type="button" class="expand-years" data-action="toggle-later" aria-controls="calendar" aria-expanded="false">Show Later</button>
+    <nav class="calendar-range-controls" aria-label="Later calendar months">
+      <button type="button" class="expand-years" data-action="toggle-later" aria-controls="calendar" aria-expanded="false" aria-label="Show later calendar months, May to December 2027">Show Later</button>
     </nav>
     <section class="health-charts" aria-labelledby="health-charts-title">
       <h2 id="health-charts-title">Vitals</h2>
@@ -1607,7 +1607,7 @@
     const year = 2026;
     const calendarStartYear = 2026;
     const calendarStartMonth = 0;
-    const monthsToRender = 18;
+    const monthsToRender = 24;
     let showEarlier = false;
     let showLater = false;
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -1624,6 +1624,28 @@
         const date = new Date(displayYear, month, 1, 12);
         return (showEarlier || date >= defaultStart) && (showLater || date <= defaultEnd);
       });
+    }
+    function calendarRangeLabel(months) {
+      const first = months[0];
+      const last = months[months.length - 1];
+      return `${monthNames[first.month]} ${first.year} to ${monthNames[last.month]} ${last.year} calendar`;
+    }
+    function updateCalendarAccessibility() {
+      const months = visibleDisplayMonths();
+      calendar.setAttribute("aria-label", calendarRangeLabel(months));
+
+      const earlierButton = document.querySelector('[data-action="toggle-earlier"]');
+      if (earlierButton) {
+        earlierButton.setAttribute("aria-label", showEarlier
+          ? "Hide earlier calendar months, January to September 2026"
+          : "Show earlier calendar months, January to September 2026");
+      }
+      const laterButton = document.querySelector('[data-action="toggle-later"]');
+      if (laterButton) {
+        laterButton.setAttribute("aria-label", showLater
+          ? "Hide later calendar months, May to December 2027"
+          : "Show later calendar months, May to December 2027");
+      }
     }
     const calendar = document.getElementById("calendar");
     let histogramYearFilter = "all";
@@ -4066,6 +4088,7 @@
       const visibleMonths = visibleDisplayMonths();
       const firstMonth = visibleMonths[0];
       const lastMonth = visibleMonths[visibleMonths.length - 1];
+      updateCalendarAccessibility();
       const first = new Date(firstMonth.year, firstMonth.month, 1, 12);
       for (let i = 0; i < mondayFirstOffset(first); i++) {
         const blank = document.createElement("div");
