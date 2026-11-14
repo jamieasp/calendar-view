@@ -192,28 +192,18 @@
     .calendar-wrap {
       position: relative;
     }
-    .earlier-scrim {
-      position: absolute;
-      top: 0;
-      left: -12px;
-      right: -12px;
-      height: 130px;
-      background: linear-gradient(to bottom, #fff 0%, #fff 38%, transparent 100%);
-      z-index: 10;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 16px;
-      pointer-events: none;
-      transition: opacity 0.25s;
+    .calendar-range-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px auto 0;
     }
-    .earlier-scrim.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .earlier-scrim > button {
-      pointer-events: auto;
+    .calendar-range-controls .expand-years {
+      width: 100%;
       margin: 0;
+    }
+    @media (max-width: 480px) {
+      .calendar-range-controls { grid-template-columns: 1fr; }
     }
     .year-grid {
       position: relative;
@@ -1366,12 +1356,12 @@
     </section>
     <div class="calendar-heading-wrap"><h2 class="calendar-heading">Calendar</h2></div>
     <div class="calendar-wrap">
-      <div class="earlier-scrim" id="earlier-scrim">
-        <button type="button" class="expand-years" data-action="toggle-earlier" aria-expanded="false">Show earlier</button>
-      </div>
-      <section id="calendar" class="year-grid" aria-label="2026 calendar"></section>
+      <section id="calendar" class="year-grid" aria-label="October 2026 to April 2027 calendar"></section>
     </div>
-    <button type="button" class="expand-years" data-action="toggle-2027" aria-expanded="false">Show 2027</button>
+    <nav class="calendar-range-controls" aria-label="Calendar date ranges">
+      <button type="button" class="expand-years" data-action="toggle-earlier" aria-controls="calendar" aria-expanded="false">Show earlier: January–September 2026</button>
+      <button type="button" class="expand-years" data-action="toggle-later" aria-controls="calendar" aria-expanded="false">Show later: May–June 2027</button>
+    </nav>
     <section class="health-charts" aria-labelledby="health-charts-title">
       <h2 id="health-charts-title">Vitals</h2>
       <div id="health-charts"></div>
@@ -1615,8 +1605,8 @@
     const calendarStartYear = 2026;
     const calendarStartMonth = 0;
     const monthsToRender = 18;
-    let show2027 = false;
     let showEarlier = false;
+    let showLater = false;
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const dows = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const today = new Date();
@@ -1625,14 +1615,11 @@
       return { year: calendarStartYear + Math.floor(monthIndex / 12), month: monthIndex % 12 };
     });
     function visibleDisplayMonths() {
-      const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1, 12);
-      const earliestDefault = new Date(currentMonthStart);
-      earliestDefault.setMonth(earliestDefault.getMonth() - 3);
+      const defaultStart = new Date(2026, 9, 1, 12);
+      const defaultEnd = new Date(2027, 3, 1, 12);
       return displayMonths.filter(({ year: displayYear, month }) => {
         const date = new Date(displayYear, month, 1, 12);
-        const isEarlier = date < earliestDefault;
-        const isFutureYear = displayYear > calendarStartYear;
-        return (showEarlier || !isEarlier) && (show2027 || !isFutureYear);
+        return (showEarlier || date >= defaultStart) && (showLater || date <= defaultEnd);
       });
     }
     const calendar = document.getElementById("calendar");
@@ -4995,29 +4982,25 @@
     function toggleEarlier() {
       showEarlier = !showEarlier;
       const button = document.querySelector('[data-action="toggle-earlier"]');
-      const scrim = document.getElementById('earlier-scrim');
       if (button) {
-        button.textContent = showEarlier ? "Hide earlier" : "Show earlier";
+        button.textContent = showEarlier ? "Hide earlier: January–September 2026" : "Show earlier: January–September 2026";
         button.setAttribute("aria-expanded", String(showEarlier));
-      }
-      if (scrim) {
-        scrim.classList.toggle('hidden', showEarlier);
       }
       renderCalendar();
       if (!showEarlier) {
         calendar.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }
-    function toggle2027() {
-      show2027 = !show2027;
-      const button = document.querySelector('[data-action="toggle-2027"]');
+    function toggleLater() {
+      showLater = !showLater;
+      const button = document.querySelector('[data-action="toggle-later"]');
       if (button) {
-        button.textContent = show2027 ? "Hide 2027" : "Show 2027";
-        button.setAttribute("aria-expanded", String(show2027));
+        button.textContent = showLater ? "Hide later: May–June 2027" : "Show later: May–June 2027";
+        button.setAttribute("aria-expanded", String(showLater));
       }
       renderCalendar();
-      if (!show2027) {
-        document.querySelector('[data-iso="2026-12-31"]')?.scrollIntoView({ behavior: "smooth", block: "end" });
+      if (!showLater) {
+        document.querySelector('[data-iso="2027-04-30"]')?.scrollIntoView({ behavior: "smooth", block: "end" });
       }
     }
     async function hardRefresh() {
@@ -5087,7 +5070,7 @@
       });
     });
     document.querySelector('[data-action="toggle-earlier"]')?.addEventListener("click", toggleEarlier);
-    document.querySelector('[data-action="toggle-2027"]')?.addEventListener("click", toggle2027);
+    document.querySelector('[data-action="toggle-later"]')?.addEventListener("click", toggleLater);
     document.querySelector('[data-action="copy-url"]')?.addEventListener("click", () => { copyCalendarUrl().catch(() => {}); });
     document.querySelector('[data-action="refresh"]')?.addEventListener("click", () => { hardRefresh().catch(() => window.location.reload()); });
 
