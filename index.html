@@ -198,6 +198,7 @@
       gap: 10px;
       margin: 18px auto 0;
     }
+    .calendar-range-controls-earlier { margin: 0 auto 18px; }
     .calendar-range-controls .expand-years {
       width: 100%;
       margin: 0;
@@ -1355,12 +1356,14 @@
       <ul id="considered-races" class="race-list"></ul>
     </section>
     <div class="calendar-heading-wrap"><h2 class="calendar-heading">Calendar</h2></div>
+    <nav class="calendar-range-controls calendar-range-controls-earlier" aria-label="Earlier calendar dates">
+      <button type="button" class="expand-years" data-action="toggle-earlier" aria-controls="calendar" aria-expanded="false">Show Earlier</button>
+    </nav>
     <div class="calendar-wrap">
       <section id="calendar" class="year-grid" aria-label="October 2026 to April 2027 calendar"></section>
     </div>
-    <nav class="calendar-range-controls" aria-label="Calendar date ranges">
-      <button type="button" class="expand-years" data-action="toggle-earlier" aria-controls="calendar" aria-expanded="false">Show earlier: January–September 2026</button>
-      <button type="button" class="expand-years" data-action="toggle-later" aria-controls="calendar" aria-expanded="false">Show later: May–June 2027</button>
+    <nav class="calendar-range-controls" aria-label="Later calendar dates">
+      <button type="button" class="expand-years" data-action="toggle-later" aria-controls="calendar" aria-expanded="false">Show Later</button>
     </nav>
     <section class="health-charts" aria-labelledby="health-charts-title">
       <h2 id="health-charts-title">Vitals</h2>
@@ -3193,9 +3196,8 @@
       { syncId: "xmas-2026", start: "2026-12-25", status: "trip", title: "Xmas", listTitle: "Xmas", meta: "" },
       { syncId: "ultra-trail-chiang-mai-40k-2027", start: "2027-01-10", status: "upcoming", race: true, title: "UTCM 40K", listTitle: "Ultra Trail Chiang Mai 40K", meta: "40km · Chiang Dao, Thailand · registered", url: "https://chiangmai.utmb.world/" },
       { syncId: "utmb-cornwall-2027", start: "2027-01-25", status: "interesting", race: true, title: "UTMB Cornwall", listTitle: "UTMB Cornwall", meta: "25 Jan 2027", url: "https://arcofattrition.utmb.world/", watched: true, lastChecked: "2 Aug 2026 09:01 BST" },
-      { syncId: "jack-hols-feb-2027", start: "2027-02-11", end: "2027-02-19", status: "school", title: "Jack Hols", listTitle: "Jack Hols", meta: "Jack holiday · 9 days" },
       { syncId: "villareal-feb-2027", start: "2027-02-14", status: "upcoming", title: "⚽ Villareal?", listTitle: "Villareal?", meta: "" },
-      { syncId: "half-term-feb-2027", start: "2027-02-15", end: "2027-02-22", status: "school", title: "Half Term", listTitle: "Jack half term", meta: "ASL holiday" },
+      { syncId: "half-term-feb-2027", start: "2027-02-11", end: "2027-02-22", status: "school", title: "Half Term", listTitle: "Half Term", meta: "ASL holiday · 12 days" },
       { syncId: "bilbao-feb-2027", start: "2027-02-28", status: "upcoming", title: "⚽ Bilbao?", listTitle: "Bilbao?", meta: "" },
       { syncId: "chianti-marathon-trail-2027", start: "2027-03-19", status: "upcoming", race: true, title: "Chianti Marathon", listTitle: "Chianti Marathon Trail", meta: "46km · ↗ 1,650m" },
       { syncId: "indomit-pedra-do-bau-2027", start: "2027-03-20", status: "interesting", race: true, title: "INDOMIT Pedra do Baú", listTitle: "INDOMIT Columbia Pedra do Baú", meta: "35km · ↗ 1,868m or 50km · ↗ 3,221m · São Bento do Sapucaí, Brazil · 35K or 50K?", url: "https://www.ticketsports.com.br/e/INDOMIT+COLUMBIA+PEDRA+DO+BA%C3%9A+2027-87146?cupom=GOTRILHA10" },
@@ -4986,7 +4988,7 @@
       showEarlier = !showEarlier;
       const button = document.querySelector('[data-action="toggle-earlier"]');
       if (button) {
-        button.textContent = showEarlier ? "Hide earlier: January–September 2026" : "Show earlier: January–September 2026";
+        button.textContent = showEarlier ? "Hide Earlier" : "Show Earlier";
         button.setAttribute("aria-expanded", String(showEarlier));
       }
       renderCalendar();
@@ -4998,7 +5000,7 @@
       showLater = !showLater;
       const button = document.querySelector('[data-action="toggle-later"]');
       if (button) {
-        button.textContent = showLater ? "Hide later: May–June 2027" : "Show later: May–June 2027";
+        button.textContent = showLater ? "Hide Later" : "Show Later";
         button.setAttribute("aria-expanded", String(showLater));
       }
       renderCalendar();
