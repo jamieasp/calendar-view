@@ -1503,7 +1503,7 @@
       <div class="train-block">
         <h3 class="train-block-title">🧘 Stretches</h3>
         <ul class="train-list">
-          <li data-seconds="60"><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
+          <li data-seconds="60" data-timer-label="Calf stretch"><span class="train-exercise"><a href="https://youtu.be/rKyumDL5A6s" target="_blank" class="train-link">Calf stretch</a></span><span class="train-sets">60s each side &times;2</span></li>
           <li data-seconds="60"><span class="train-exercise">Pec stretch</span><span class="train-sets">60s</span></li>
           <li data-seconds="90"><span class="train-exercise"><a href="https://youtu.be/t4Zz6-aG8Iw" target="_blank" class="train-link">Deer / 90-90 hip stretch</a></span><span class="train-sets">90s each side &times;1</span></li>
         </ul>
@@ -4484,25 +4484,30 @@
         let remaining = total;
         let playingBoth = false;
         let side = 1;
+        let completedTwoSets = false;
         function updateStatus(message) {
           if (status) status.textContent = message;
         }
         function reset() {
-          clearInterval(timer); timer = null; remaining = total; playingBoth = false; side = 1;
+          clearInterval(timer); timer = null; remaining = total; playingBoth = false; side = 1; completedTwoSets = false;
           blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone", "second-side"));
           btn.textContent = "\u25B6";
           if (statusLabel) {
             btn.setAttribute("aria-label", "Start " + total + "-second " + statusLabel + " timer");
             updateStatus("Ready — " + total + "s");
           }
-          if (twoBtn) { twoBtn.textContent = "▶ ×2"; twoBtn.disabled = false; }
+          if (twoBtn) {
+            twoBtn.textContent = "▶ ×2";
+            twoBtn.disabled = false;
+            if (statusLabel) twoBtn.setAttribute("aria-label", "Start two " + total + "-second " + statusLabel + " sets");
+          }
         }
         function tick() {
           const live = blocksEl.querySelector(".train-timer-block:not(.gone)");
           if (!live) { reset(); return; }
           live.classList.add("gone");
           remaining--;
-          if (statusLabel && remaining > 0) updateStatus(remaining + "s remaining");
+          if (statusLabel && remaining > 0) updateStatus((playingBoth ? "Set " + side + " of 2 — " : "") + remaining + "s remaining");
           const elapsed = total - remaining;
           if (remaining > 3 && elapsed % 15 === 0) ping(false);
           if (remaining > 0 && remaining <= 3) ping(false);
@@ -4514,16 +4519,21 @@
               blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.add("second-side"));
               btn.textContent = "\u25A0 2/2";
               if (twoBtn) twoBtn.textContent = "2/2";
+              if (statusLabel) updateStatus("Set 2 of 2 — " + total + "s remaining");
               return;
             }
             ping(true);
             if (statusLabel) {
-              updateStatus("Complete — 0s");
+              const finishedTwoSets = playingBoth;
+              updateStatus(finishedTwoSets ? "Complete — 2 sets" : "Complete — 0s");
               clearInterval(timer); timer = null;
               remaining = total;
               blocksEl.querySelectorAll(".train-timer-block").forEach(b => b.classList.remove("gone", "second-side"));
               btn.textContent = "↻";
-              btn.setAttribute("aria-label", "Restart " + total + "-second " + statusLabel + " timer");
+              btn.setAttribute("aria-label", "Restart " + (finishedTwoSets ? "two-set " : "") + total + "-second " + statusLabel + " timer");
+              completedTwoSets = finishedTwoSets;
+              playingBoth = false;
+              side = 1;
             } else {
               reset();
             }
@@ -4532,17 +4542,23 @@
         }
         function start() {
           if (timer) { reset(); return; }
+          if (completedTwoSets) {
+            playingBoth = true;
+            side = 1;
+            completedTwoSets = false;
+            if (twoBtn) { twoBtn.disabled = true; twoBtn.textContent = "1/2"; }
+          }
           btn.textContent = "\u25A0";
           if (statusLabel) {
             btn.setAttribute("aria-label", "Reset " + statusLabel + " timer");
-            updateStatus(total + "s remaining");
+            updateStatus((playingBoth ? "Set 1 of 2 — " : "") + total + "s remaining");
           }
           timer = setInterval(tick, 1000);
         }
         btn.addEventListener("click", start);
         if (twoBtn) twoBtn.addEventListener("click", () => {
           if (timer) reset();
-          playingBoth = true; side = 1; twoBtn.disabled = true; twoBtn.textContent = "1/2";
+          playingBoth = true; side = 1; completedTwoSets = false; twoBtn.disabled = true; twoBtn.textContent = "1/2";
           start();
         });
         reset();
