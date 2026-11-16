@@ -903,6 +903,10 @@
       fill: var(--pink-highlighter);
       opacity: 0.38;
     }
+    .chart-vas {
+      fill: var(--interesting-highlighter);
+      opacity: 0.46;
+    }
     .health-charts {
       margin-top: 72px;
       padding-top: 12px;
@@ -1372,7 +1376,7 @@
       <div class="chart-header">
         <h2 id="distance-chart-title">Cumulative running distance</h2>
       </div>
-      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS period shaded pink"></svg>
+      <svg id="distance-chart" class="distance-chart" viewBox="0 0 1500 700" role="img" aria-label="Cumulative running distance through 2026 with ITBS and Vas recovery periods shaded"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Cumulative elevation gain</h2>
       </div>
@@ -1380,7 +1384,7 @@
       <div class="chart-header secondary-chart-title">
         <h2>Weekly Running Distance</h2>
       </div>
-      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance totals"></svg>
+      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance totals with ITBS and Vas recovery periods shaded"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
@@ -3548,17 +3552,22 @@
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
       const itbsStart = new Date(`${year}-02-22T12:00:00`);
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
+      const vasStart = new Date(`${year}-10-25T12:00:00`);
+      // Use the next day as the exclusive edge so the 10-day period includes 25 Oct–3 Nov.
+      const vasEndExclusive = new Date(`${year}-11-04T12:00:00`);
       const last = current.points[current.points.length - 1];
       const comparisonLast = comparison.points[comparison.points.length - 1];
       const comparison2024Last = comparison2024.points[comparison2024.points.length - 1];
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
+        <rect class="chart-vas" x="${x(vasStart).toFixed(1)}" y="${margin.top}" width="${(x(vasEndExclusive) - x(vasStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 36}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}"></line>
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
+        <text class="chart-note" x="${((x(vasStart) + x(vasEndExclusive)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">Vas</text>
         <path class="chart-target" d="M${x(yearStart).toFixed(1)},${y(0).toFixed(1)} L${x(yearEnd).toFixed(1)},${y(1000).toFixed(1)}"></path>
         <text class="chart-target-label" x="${(x(yearEnd) + 22).toFixed(1)}" y="${(y(1000) + 10).toFixed(1)}">1,000 km target</text>
         <path class="chart-line comparison-2024" d="${linePath(comparison2024.points)}"></path>
@@ -3659,6 +3668,9 @@
       const monthTicks = Array.from({ length: 12 }, (_, m) => new Date(year, m, 1, 12));
       const itbsStart = new Date(`${year}-02-22T12:00:00`);
       const itbsEnd = new Date(`${year}-05-10T12:00:00`);
+      const vasStart = new Date(`${year}-10-25T12:00:00`);
+      // Use the next day as the exclusive edge so the 10-day period includes 25 Oct–3 Nov.
+      const vasEndExclusive = new Date(`${year}-11-04T12:00:00`);
       const weeklyBarWidth = plotW * 7 / (totalDays + 1);
       const currentWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12);
       currentWeekStart.setDate(currentWeekStart.getDate() - ((currentWeekStart.getDay() + 6) % 7));
@@ -3669,6 +3681,7 @@
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
+        <rect class="chart-vas" x="${x(vasStart).toFixed(1)}" y="${margin.top}" width="${(x(vasEndExclusive) - x(vasStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
         ${weeklyTotals.map(week => `<rect class="chart-weekly-bar" x="${Math.max(margin.left, x(week.date)).toFixed(1)}" y="${y(week.value).toFixed(1)}" width="${weeklyBarWidth.toFixed(1)}" height="${(height - margin.bottom - y(week.value)).toFixed(1)}"></rect>`).join("")}
         ${currentWeek ? `<text class="chart-weekly-current-label" x="${(Math.max(margin.left, x(currentWeek.date)) + weeklyBarWidth / 2).toFixed(1)}" y="${Math.max(margin.top + 28, y(currentWeek.value) - 16).toFixed(1)}" text-anchor="middle">${currentWeekLabel}</text>` : ""}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
@@ -3677,6 +3690,7 @@
         <line class="chart-axis" x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${height - margin.bottom}"></line>
         <text class="chart-label" x="35" y="${margin.top + plotH / 2}" text-anchor="middle" transform="rotate(-90 35 ${margin.top + plotH / 2})">km / week</text>
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
+        <text class="chart-note" x="${((x(vasStart) + x(vasEndExclusive)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">Vas</text>
       `;
     }
 
