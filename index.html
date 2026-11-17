@@ -851,6 +851,21 @@
       stroke: #b77900;
       stroke-width: 1;
       vector-effect: non-scaling-stroke;
+      cursor: pointer;
+    }
+    .chart-weekly-bar:is(:hover, :focus, .is-selected) {
+      stroke-width: 4;
+    }
+    .chart-weekly-bar:focus {
+      outline: none;
+    }
+    .weekly-date-disclosure {
+      min-height: 1.5em;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 23px;
+      font-weight: 800;
     }
     .chart-weekly-current-label {
       fill: #8f6000;
@@ -1384,7 +1399,8 @@
       <div class="chart-header secondary-chart-title">
         <h2>Weekly Running Distance</h2>
       </div>
-      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="img" aria-label="Weekly running distance totals with ITBS and Vas recovery periods shaded"></svg>
+      <svg id="weekly-distance-chart" class="distance-chart" viewBox="0 0 1500 620" role="group" aria-label="Weekly running distance totals with ITBS and Vas recovery periods shaded" aria-describedby="weekly-distance-disclosure"></svg>
+      <p id="weekly-distance-disclosure" class="weekly-date-disclosure" aria-live="polite">Select a weekly bar to view its calendar dates.</p>
       <div class="chart-header secondary-chart-title">
         <h2>Daily distance distribution</h2>
       </div>
@@ -3636,7 +3652,16 @@
         const weekStart = new Date(date);
         weekStart.setDate(date.getDate() - ((date.getDay() + 6) % 7));
         const key = isoDate(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
-        if (!weeks.has(key)) weeks.set(key, { date: weekStart, value: 0 });
+        if (!weeks.has(key)) {
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+          weeks.set(key, {
+            date: weekStart,
+            rangeStart: weekStart < start ? new Date(start) : new Date(weekStart),
+            rangeEnd: weekEnd > end ? new Date(end) : weekEnd,
+            value: 0,
+          });
+        }
         weeks.get(key).value += Number(distances[iso] || 0);
       }
       return Array.from(weeks.values());
@@ -3678,11 +3703,15 @@
       const currentWeekLabel = currentWeek
         ? `${Number(currentWeek.value.toFixed(1)).toLocaleString("en-GB")} km`
         : "0 km";
+      const weeklyDateLabel = week => {
+        const options = { weekday: "short", day: "numeric", month: "short", year: "numeric" };
+        return `${week.rangeStart.toLocaleDateString("en-GB", options)} – ${week.rangeEnd.toLocaleDateString("en-GB", options)}`;
+      };
 
       svg.innerHTML = `
         <rect class="chart-itbs" x="${x(itbsStart).toFixed(1)}" y="${margin.top}" width="${(x(itbsEnd) - x(itbsStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
         <rect class="chart-vas" x="${x(vasStart).toFixed(1)}" y="${margin.top}" width="${(x(vasEndExclusive) - x(vasStart)).toFixed(1)}" height="${plotH}" rx="9"></rect>
-        ${weeklyTotals.map(week => `<rect class="chart-weekly-bar" x="${Math.max(margin.left, x(week.date)).toFixed(1)}" y="${y(week.value).toFixed(1)}" width="${weeklyBarWidth.toFixed(1)}" height="${(height - margin.bottom - y(week.value)).toFixed(1)}"></rect>`).join("")}
+        ${weeklyTotals.map((week, index) => { const range = weeklyDateLabel(week); return `<rect class="chart-weekly-bar" data-week-index="${index}" x="${Math.max(margin.left, x(week.date)).toFixed(1)}" y="${y(week.value).toFixed(1)}" width="${weeklyBarWidth.toFixed(1)}" height="${(height - margin.bottom - y(week.value)).toFixed(1)}" role="button" tabindex="0" aria-pressed="false" aria-label="Show dates for weekly total: ${range}"><title>${range}</title></rect>`; }).join("")}
         ${currentWeek ? `<text class="chart-weekly-current-label" x="${(Math.max(margin.left, x(currentWeek.date)) + weeklyBarWidth / 2).toFixed(1)}" y="${Math.max(margin.top + 28, y(currentWeek.value) - 16).toFixed(1)}" text-anchor="middle">${currentWeekLabel}</text>` : ""}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         ${monthTicks.map(date => `<line class="chart-grid" x1="${x(date).toFixed(1)}" y1="${margin.top}" x2="${x(date).toFixed(1)}" y2="${height - margin.bottom}" opacity="0.42"></line><text class="chart-label" x="${x(date).toFixed(1)}" y="${height - 34}" text-anchor="middle">${date.toLocaleDateString("en-GB", { month: "short" })}</text>`).join("")}
@@ -3692,6 +3721,27 @@
         <text class="chart-note" x="${((x(itbsStart) + x(itbsEnd)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">ITBS</text>
         <text class="chart-note" x="${((x(vasStart) + x(vasEndExclusive)) / 2).toFixed(1)}" y="${margin.top + 52}" text-anchor="middle">Vas</text>
       `;
+
+      const disclosure = document.getElementById("weekly-distance-disclosure");
+      const selectWeek = bar => {
+        const week = weeklyTotals[Number(bar.dataset.weekIndex)];
+        if (!week || !disclosure) return;
+        svg.querySelectorAll(".chart-weekly-bar").forEach(candidate => {
+          const selected = candidate === bar;
+          candidate.classList.toggle("is-selected", selected);
+          candidate.setAttribute("aria-pressed", String(selected));
+        });
+        disclosure.textContent = `Week: ${weeklyDateLabel(week)}`;
+      };
+      svg.querySelectorAll(".chart-weekly-bar").forEach(bar => {
+        bar.addEventListener("click", () => selectWeek(bar));
+        bar.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectWeek(bar);
+          }
+        });
+      });
     }
 
     function renderRunDensityChart() {
