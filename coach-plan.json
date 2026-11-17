@@ -1,15 +1,7 @@
 {
- "updated": "2026-11-16T06:50:01Z",
+ "updated": "2026-11-17T06:58:26Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-16": [
-   {
-    "title": "5 km | Easy pace",
-    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
-    "rpe": 3
-   }
-  ],
   "2026-11-19": [
    {
     "title": "5 km | Easy pace",
@@ -43,7 +35,7 @@
   "2026-11-25": [
    {
     "title": "Core Stability",
-    "detail": "Plank x 60 seconds\nSide Plank x 30 seconds each side\nPlank Jacks x 15\nDeadbugs x 15 each side\nCrunches x 20\nRussian Twists x 10 each side\nBird Dogs x 10 each side",
+    "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\n•Warm-Up:\n• Shoulder Taps – 2 x 20 (10 per side)\n• Reverse Lunge with Knee Drive – 2 x 10 per leg\n•Main Set:\n1. Bird Dog – 3 x 10 per side\n2. Side Plank with Hip Drops – 3 x 10 per side\n3. Dead Bug – 3 x 12\n4. Cobra Hold – 3 x 15-second hold\n•Cool-Down:\n• Couch Stretch – 2 x Hold 20 seconds per side\n• Foam Rolling Back Extension – 60 seconds",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
    }
   ],
@@ -80,6 +72,19 @@
     "title": "Quad-Focused Strength & Power",
     "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\nWarm-Up:\n• A Skips – 2 x 30 seconds\n• High Knees – 2 x 30 seconds\n• World's Greatest Stretch – 3 reps per side\nMain Workout:\n1. Cyclist Squat– 4 x 10 reps (weighted if possible)\n2. FFE Split Squat– 3 x 10 reps per leg\n3. Lunge Pulse– 3 x 12 reps per leg\n4. Squat Jumps– 3 x 15 reps (explosive movement for power)\n5. Reverse Lunge(TRX or bodyweight) – 3 x 10 reps per leg\nCore Finisher:\n• Plank Jacks – 3 x 20 seconds\n• Side Plank (easy or hard) – 2 x 20 seconds per side\nCool Down:\n• Couch Stretch – 30 seconds per leg\n• Soleus Stretch – 30 seconds per side\n• Foam Roll Quads",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   }
+  ],
+  "2026-12-01": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "6 km | 1 min intervals",
+    "detail": "1 km @ Easy pace | INTERVALS: 1 min @ full effort, 1 min @ easy pace and repeat for distance | 1 km @ Easy pace",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 10
    }
   ]
  }
