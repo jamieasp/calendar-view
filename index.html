@@ -797,6 +797,7 @@
     .heatmap-cell.level-3 { fill: rgba(222, 158, 0, 0.90); }
     .heatmap-cell.level-4 { fill: rgba(143, 91, 0, 0.96); }
     .heatmap-cell.stretch-done { fill: rgba(255, 210, 49, 0.88); }
+    .heatmap-cell.strength-done { fill: rgba(255, 210, 49, 0.88); }
     .heatmap-cell.bedtime-0 { fill: rgba(238, 236, 231, 0.76); }
     .heatmap-cell.bedtime-1 { fill: rgba(198, 226, 255, 0.82); }
     .heatmap-cell.bedtime-2 { fill: rgba(129, 184, 235, 0.88); }
@@ -1447,6 +1448,10 @@
         <h2>Stretch heatmap</h2>
       </div>
       <svg id="stretch-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style stretch consistency heatmap"></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2>Strength heatmap</h2>
+      </div>
+      <svg id="strength-heatmap" class="distance-chart" viewBox="0 0 1500 430" role="img" aria-label="GitHub-style strength training consistency heatmap"></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Bedtime heatmap</h2>
       </div>
@@ -4083,6 +4088,12 @@
         labelForValue: (value, iso) => value ? `${iso}: stretched` : `${iso}: no stretch logged`,
       });
     }
+    function renderStrengthHeatmap() {
+      renderYearHeatmap("strength-heatmap", year, absStreaks, {
+        classForValue: value => value ? "heatmap-cell strength-done" : "heatmap-cell level-0",
+        labelForValue: (value, iso) => value ? `${iso}: strength or abs session completed` : `${iso}: no strength or abs session logged`,
+      });
+    }
     function renderBedtimeHeatmap() {
       const levelForBedtime = value => {
         if (!value && value !== 0) return 0;
@@ -4263,6 +4274,7 @@
     renderDistanceHeatmap();
     renderElevationHeatmap();
     renderStretchHeatmap();
+    renderStrengthHeatmap();
     renderBedtimeHeatmap();
     renderHealthCharts();
     initTimers();
