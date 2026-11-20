@@ -1,15 +1,7 @@
 {
- "updated": "2026-11-18T06:57:31Z",
+ "updated": "2026-11-20T06:57:57Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-19": [
-   {
-    "title": "5 km | Easy pace",
-    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
-    "rpe": 3
-   }
-  ],
   "2026-11-22": [
    {
     "title": "Marrakech–Agafay Trail",
@@ -92,6 +84,32 @@
     "title": "Functional Core",
     "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\n•Warm-Up:\n• World's Greatest Stretch – 4 per side, hold 10 seconds per position\n• Reverse Lunge with Knee Drive – 2 x 10 per leg\n•Main Set:\n1. Side Plank Hard (do Side Plank Easy if needed) – 2 x 45 seconds per side\n2. Plank – 3 x 45-second hold\n3. Dumbbell Under Core Move – 3 x 12 (can use any weight if you don't have a dumbbell)\n4. Romanian Deadlift – 3 x 10 (dumbbells or bodyweight)\n•Cool-Down:\n• Soleus Stretch – Hold 30 seconds per leg\n• Scorpion Stretch – 10 slow reps (5 per side)",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   }
+  ],
+  "2026-12-03": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "6 km | Hill Sprint Reps (Up)",
+    "detail": "1 km @ Easy pace to hill | 4 km: Hills | 1 km @ Easy pace. Run at maximum effort up the hill and jog slowly or walk back down. Take up to 30 seconds rest before going again. You should use a hill that gives you approx 30-45 secs of climbing. Vary the gradient of hill each time if you can. However, don't use hills that are too steep.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 10
+   }
+  ],
+  "2026-12-04": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "10 km | Easy pace",
+    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 3
    }
   ]
  }
