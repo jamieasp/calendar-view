@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T07:01:18.858130+00:00",
+  "generatedAt": "2026-11-21T07:01:13.177006+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -1553,10 +1553,10 @@
         },
         {
           "date": "2026-11-20",
-          "value": 59.0
+          "value": 60.0
         }
       ],
-      "latestPercentile": 68.1
+      "latestPercentile": 54.6
     },
     {
       "kind": "HRV",
@@ -4541,10 +4541,10 @@
         },
         {
           "date": "2026-11-20",
-          "value": 1.509
+          "value": 1.5345
         }
       ],
-      "latestPercentile": 59.8
+      "latestPercentile": 55.0
     },
     {
       "kind": "Breathing",
