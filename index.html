@@ -766,6 +766,9 @@
     .heatmap-filter[data-heatmap-year="2025"] { background: rgba(255, 226, 77, 0.50); }
     .histogram-filter[data-histogram-year="2026"],
     .heatmap-filter[data-heatmap-year="2026"] { background: rgba(255, 226, 77, 0.82); }
+    .histogram-filter[data-pace-histogram-year="2024"] { background: rgba(255, 226, 77, 0.22); }
+    .histogram-filter[data-pace-histogram-year="2025"] { background: rgba(255, 226, 77, 0.50); }
+    .histogram-filter[data-pace-histogram-year="2026"] { background: rgba(255, 226, 77, 0.82); }
     .histogram-filter.active,
     .heatmap-filter.active {
       box-shadow: inset 0 0 0 2px var(--pencil), 0 3px 8px rgba(21, 37, 54, 0.10);
@@ -1425,6 +1428,15 @@
       <div class="chart-header secondary-chart-title">
         <h2>Pace per run distribution</h2>
       </div>
+      <div class="histogram-filters" aria-label="Pace per run histogram years">
+        <button type="button" class="histogram-filter active" data-pace-histogram-year="all" aria-pressed="true">All time</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2021" aria-pressed="false">2021</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2022" aria-pressed="false">2022</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2023" aria-pressed="false">2023</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2024" aria-pressed="false">2024</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2025" aria-pressed="false">2025</button>
+        <button type="button" class="histogram-filter" data-pace-histogram-year="2026" aria-pressed="false">2026</button>
+      </div>
       <svg id="pace-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of pace per run across all available history, in minutes per kilometre, with latest run marked. The x-axis is capped at 14:00 per kilometre; runs at or slower than 14:00 per kilometre are aggregated in the terminal bin."></svg>
       <div class="chart-header secondary-chart-title">
         <h2>Distance heatmap</h2>
@@ -1675,6 +1687,7 @@
     const calendar = document.getElementById("calendar");
     let histogramYearFilter = "all";
     let elevationHistogramYearFilter = "all";
+    let paceHistogramYearFilter = "all";
     let heatmapYearFilter = String(year);
     let elevationHeatmapYearFilter = String(year);
     const runDistances = {
@@ -5076,10 +5089,13 @@
       const svg = document.getElementById("pace-density-chart");
       if (!svg || !runPaces.length) return;
 
-      const runs = runPaces
+      const allRuns = runPaces
         .filter(run => Number.isFinite(Number(run.pace)) && Number(run.pace) > 0)
         .map(run => ({ ...run, pace: Number(run.pace), date: dateFromIso(run.date) }))
         .sort((a, b) => a.date - b.date);
+      const runs = paceHistogramYearFilter === "all"
+        ? allRuns
+        : allRuns.filter(run => String(run.date.getFullYear()) === paceHistogramYearFilter);
       if (!runs.length) return;
 
       const width = 1500;
@@ -5117,7 +5133,7 @@
         const units = bucket.runs.map((run, index) => {
           const yy = baseline - unitHeight * (index + 1);
           const isLatest = run.date.getTime() === latest.date.getTime() && run.pace === latest.pace;
-          const cls = isLatest ? "histogram-latest-unit" : "histogram-unit y2026";
+          const cls = isLatest ? "histogram-latest-unit" : `histogram-unit y${run.date.getFullYear()}`;
           const isTerminalBucket = bucket.pace + bucketSize === domainMax;
           const range = isTerminalBucket ? `${formatPace(bucket.pace)}–${formatPace(domainMax)}+/km (${formatPace(domainMax)}+/km aggregated)` : `${formatPace(bucket.pace)}–${formatPace(bucket.pace + bucketSize)}/km`;
           const label = `${isLatest ? "Latest run: " : ""}${run.date.toISOString().slice(0, 10)}: ${formatPace(run.pace)}/km · ${range}`;
@@ -5130,8 +5146,10 @@
         return `${units}${dividers}`;
       }).join("");
 
+      const periodLabel = paceHistogramYearFilter === "all" ? "All available history" : paceHistogramYearFilter;
+      svg.setAttribute("aria-label", `Histogram of pace per run for ${periodLabel}, in minutes per kilometre, with latest run marked. The x-axis is capped at 14:00 per kilometre; runs at or slower than 14:00 per kilometre are aggregated in the terminal bin.`);
       svg.innerHTML = `
-        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">All available history · ${runs.length} runs · latest ${formatPace(latest.pace)}/km · avg ${formatPace(avg)}/km${clippedRuns ? ` · ${clippedRuns} at ${formatPace(paceCap)}+/km` : ""}</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">${periodLabel} · ${runs.length} runs · latest ${formatPace(latest.pace)}/km · avg ${formatPace(avg)}/km${clippedRuns ? ` · ${clippedRuns} at ${formatPace(paceCap)}+/km` : ""}</text>
         ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${formatPace(tick)}${tick === domainMax ? "+" : ""}</text>`).join("")}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
@@ -6330,6 +6348,17 @@
         elevationHistogramYearFilter = button.dataset.elevationHistogramYear || "all";
         document.querySelectorAll("[data-elevation-histogram-year]").forEach(filter => filter.classList.toggle("active", filter === button));
         renderElevationDensityChart();
+      });
+    });
+    document.querySelectorAll("[data-pace-histogram-year]").forEach(button => {
+      button.addEventListener("click", () => {
+        paceHistogramYearFilter = button.dataset.paceHistogramYear || "all";
+        document.querySelectorAll("[data-pace-histogram-year]").forEach(filter => {
+          const selected = filter === button;
+          filter.classList.toggle("active", selected);
+          filter.setAttribute("aria-pressed", String(selected));
+        });
+        renderPaceDensityChart();
       });
     });
     document.querySelectorAll("[data-heatmap-year]").forEach(button => {
