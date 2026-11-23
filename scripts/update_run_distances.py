@@ -152,10 +152,11 @@ def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str
         if not start_ms:
             continue
         day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date().isoformat()
-        if not day.startswith(f"{YEAR}-"):
-            continue
-        daily_km[day] += distance_m / 1000
-        daily_ascent_m[day] += workout.get("totalAscent") or 0
+        # Calendar distance and elevation stay scoped to the displayed year, while
+        # pace distribution retains every available historical run.
+        if day.startswith(f"{YEAR}-"):
+            daily_km[day] += distance_m / 1000
+            daily_ascent_m[day] += workout.get("totalAscent") or 0
         total_time_s = float(workout.get("totalTime") or 0)
         distance_km = distance_m / 1000
         if total_time_s > 0 and distance_km > 0:
