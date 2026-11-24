@@ -1,22 +1,7 @@
 {
- "updated": "2026-11-22T06:54:32Z",
+ "updated": "2026-11-24T07:04:22Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-22": [
-   {
-    "title": "Marrakech–Agafay Trail",
-    "detail": "42 km trail race in Agafay, Morocco; registered. The Agafay Desert is a rocky, arid landscape near Marrakech, offering a distinctive desert-trail setting.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
-   }
-  ],
-  "2026-11-23": [
-   {
-    "title": "5 km | Easy pace",
-    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
-    "rpe": 3
-   }
-  ],
   "2026-11-24": [
    {
     "title": "Ankle/Calf/Achilles Strengthening",
@@ -118,6 +103,26 @@
     "detail": "Ultra pace (preferably on trails - walk the hills)\nThis is a pace to aim for during long runs when training for your ultra. This pace is will seem slow as it basically takes into account the fact that you will be both running and walking. It's essentially a 'keep moving' pace and is more aimed at stopping you going too fast than anything else.",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
     "rpe": 5
+   }
+  ],
+  "2026-12-07": [
+   {
+    "title": "Quad-Focused Strength & Power",
+    "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\nWarm-Up:\n• A Skips – 2 x 30 seconds\n• High Knees – 2 x 30 seconds\n• World's Greatest Stretch – 3 reps per side\nMain Workout:\n1. Cyclist Squat– 4 x 10 reps (weighted if possible)\n2. FFE Split Squat– 3 x 10 reps per leg\n3. Lunge Pulse– 3 x 12 reps per leg\n4. Squat Jumps– 3 x 15 reps (explosive movement for power)\n5. Reverse Lunge(TRX or bodyweight) – 3 x 10 reps per leg\nCore Finisher:\n• Plank Jacks – 3 x 20 seconds\n• Side Plank (easy or hard) – 2 x 20 seconds per side\nCool Down:\n• Couch Stretch – 30 seconds per leg\n• Soleus Stretch – 30 seconds per side\n• Foam Roll Quads",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   }
+  ],
+  "2026-12-08": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "6 km | 2 min intervals",
+    "detail": "1 km @ Easy pace | INTERVALS: 2 min @ full effort, 1 min @ easy pace and repeat for distance | 1 km @ Easy pace",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 10
    }
   ]
  }
