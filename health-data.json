@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-24T07:01:18.566300+00:00",
+  "generatedAt": "2026-11-25T07:01:15.356999+00:00",
   "start": "2025-11-01",
   "eventMarkers": [
     {
@@ -6151,9 +6151,13 @@
         {
           "date": "2026-11-19",
           "value": 18.2
+        },
+        {
+          "date": "2026-11-24",
+          "value": 18.2
         }
       ],
-      "latestPercentile": 11.9
+      "latestPercentile": 13.6
     }
   ]
 }
