@@ -215,6 +215,42 @@ def build_ratio_points(rhr_points: list[tuple[dt.date, float]], hrv_points: list
     return out
 
 
+def load_suunto_long_run_dates(start: dt.date) -> set[dt.date]:
+    """Return locally cached Suunto running days whose total is at least 8 km.
+
+    Google Health's exercise export is incomplete for part of early 2026.  The
+    calendar already uses these key-deduplicated Suunto workouts for its daily
+    run distances, so use the same source and UTC date convention for the heart
+    chart markers.  A Suunto workout has a stable key; later sources replace an
+    earlier copy rather than inflating a day's distance.
+    """
+    seen: dict[str, dict] = {}
+    sources = [
+        *sorted((DATA_DIR / "pages").glob("workouts_offset_*.json")),
+        DATA_DIR / "workouts_all.ndjson",
+        DATA_DIR / "workouts_since_2025-06-18.ndjson",
+        FRESH_NDJSON,
+    ]
+    for source in sources:
+        for workout in iter_workouts_from_file(source) or []:
+            key = workout.get("key")
+            if key:
+                seen[key] = workout
+
+    kilometers_by_date: dict[dt.date, float] = collections.defaultdict(float)
+    for workout in seen.values():
+        if workout.get("activityId") not in RUN_ACTIVITY_IDS:
+            continue
+        try:
+            distance_km = float(workout.get("totalDistance") or 0) / 1000
+            day = dt.datetime.fromtimestamp(float(workout["startTime"]) / 1000, dt.UTC).date()
+        except (KeyError, TypeError, ValueError, OSError):
+            continue
+        if distance_km > 0 and day >= start:
+            kilometers_by_date[day] += distance_km
+    return {day for day, total_km in kilometers_by_date.items() if total_km >= 8}
+
+
 def parse_long_run_dates(exercise_payload: dict, start: dt.date) -> list[dt.date]:
     dates = set(MANUAL_LONG_DATES)
     run_segments_by_date: dict[dt.date, list[tuple[dt.datetime, dt.datetime, float]]] = {}
@@ -251,6 +287,9 @@ def parse_long_run_dates(exercise_payload: dict, start: dt.date) -> list[dt.date
             total_km += max(km for _, _, km in current_cluster)
         if total_km >= 8:
             dates.add(day)
+    # Merge by chart date: this retains Google Health-only markers while
+    # restoring valid historical Suunto markers absent from that export.
+    dates.update(load_suunto_long_run_dates(start))
     return sorted(day for day in dates if day >= start)
 
 
