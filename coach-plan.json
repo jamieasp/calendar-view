@@ -1,14 +1,7 @@
 {
- "updated": "2026-11-25T06:58:07Z",
+ "updated": "2026-11-26T06:54:42Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-25": [
-   {
-    "title": "Core Stability",
-    "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\n•Warm-Up:\n• Shoulder Taps – 2 x 20 (10 per side)\n• Reverse Lunge with Knee Drive – 2 x 10 per leg\n•Main Set:\n1. Bird Dog – 3 x 10 per side\n2. Side Plank with Hip Drops – 3 x 10 per side\n3. Dead Bug – 3 x 12\n4. Cobra Hold – 3 x 15-second hold\n•Cool-Down:\n• Couch Stretch – 2 x Hold 20 seconds per side\n• Foam Rolling Back Extension – 60 seconds",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
-   }
-  ],
   "2026-11-26": [
    {
     "title": "Ankle/Calf/Achilles Strengthening",
@@ -123,6 +116,19 @@
     "title": "Core Stability",
     "detail": "CLICK ON VIDEO TAB FOR DEMONSTRATION OF MOVEMENT.\n•Warm-Up:\n• Shoulder Taps – 2 x 20 (10 per side)\n• Reverse Lunge with Knee Drive – 2 x 10 per leg\n•Main Set:\n1. Bird Dog – 3 x 10 per side\n2. Side Plank with Hip Drops – 3 x 10 per side\n3. Dead Bug – 3 x 12\n4. Cobra Hold – 3 x 15-second hold\n•Cool-Down:\n• Couch Stretch – 2 x Hold 20 seconds per side\n• Foam Rolling Back Extension – 60 seconds",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   }
+  ],
+  "2026-12-10": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "6 km | Long and Steady Hill Reps (Up)",
+    "detail": "1 km @ Easy pace to hill | 4 km: Hills | 1 km @ Easy pace. Run at comfortable effort up the hill and jog slowly or walk back down. Take up to 30 seconds rest before going again. You should use a hill that gives you approx 5 minutes of climbing. Vary the gradient of hill each time if you can. However, don't use hills that are too steep.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 8
    }
   ]
  }
