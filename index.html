@@ -5096,8 +5096,10 @@
 
       const allRuns = runPaces
         .filter(run => Number.isFinite(Number(run.pace)) && Number(run.pace) > 0)
-        .map(run => ({ ...run, pace: Number(run.pace), date: dateFromIso(run.date) }))
-        .sort((a, b) => a.date - b.date);
+        // Preserve the source position as a per-run identity. Dates and paces can
+        // legitimately repeat, so neither is safe for selecting the one latest run.
+        .map((run, sourceIndex) => ({ ...run, pace: Number(run.pace), date: dateFromIso(run.date), sourceIndex }))
+        .sort((a, b) => a.date - b.date || a.sourceIndex - b.sourceIndex);
       const runs = paceHistogramYearFilter === "all"
         ? allRuns
         : allRuns.filter(run => String(run.date.getFullYear()) === paceHistogramYearFilter);
@@ -5137,7 +5139,7 @@
         const bx = x(bucket.pace) + barGap / 2;
         const units = bucket.runs.map((run, index) => {
           const yy = baseline - unitHeight * (index + 1);
-          const isLatest = run.date.getTime() === latest.date.getTime() && run.pace === latest.pace;
+          const isLatest = run.sourceIndex === latest.sourceIndex;
           const cls = isLatest ? "histogram-latest-unit" : `histogram-unit y${run.date.getFullYear()}`;
           const isTerminalBucket = bucket.pace + bucketSize === domainMax;
           const range = isTerminalBucket ? `${formatPace(bucket.pace)}–${formatPace(domainMax)}+/km (${formatPace(domainMax)}+/km aggregated)` : `${formatPace(bucket.pace)}–${formatPace(bucket.pace + bucketSize)}/km`;
