@@ -5156,7 +5156,7 @@
         const units = bucket.runs.map((run, index) => {
           const yy = baseline - unitHeight * (index + 1);
           const isGloballyLatest = run.sourceIndex === globallyLatestRun.sourceIndex;
-          const cls = isGloballyLatest ? "histogram-latest-unit" : `histogram-unit y${run.date.getFullYear()}`;
+          const cls = isGloballyLatest ? "histogram-latest-unit" : `histogram-unit y${Math.max(2024, run.date.getFullYear())}`;
           const isTerminalBucket = bucket.pace + bucketSize === domainMax;
           const range = isTerminalBucket ? `${formatPace(bucket.pace)}–${formatPace(domainMax)}+/km (${formatPace(domainMax)}+/km aggregated)` : `${formatPace(bucket.pace)}–${formatPace(bucket.pace + bucketSize)}/km`;
           const label = `${isGloballyLatest ? "Globally most recent run: " : ""}${run.date.toISOString().slice(0, 10)}: ${formatPace(run.pace)}/km · ${range}`;
