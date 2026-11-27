@@ -5107,11 +5107,15 @@
       if (!svg || !runPaces.length) return;
 
       const allRuns = runPaces
-        .filter(run => Number.isFinite(Number(run.pace)) && Number(run.pace) > 0)
-        // Preserve the source position as a per-run identity. Dates and paces can
-        // legitimately repeat, so neither is safe for selecting the one latest run.
-        .map((run, sourceIndex) => ({ ...run, pace: Number(run.pace), date: dateFromIso(run.date), sourceIndex }))
+        // Preserve the original source position as a per-run identity. Dates and
+        // paces can legitimately repeat, so neither is safe for selecting one run.
+        .map((run, sourceIndex) => ({ ...run, pace: Number(run.pace), sourceIndex }))
+        .filter(run => Number.isFinite(run.pace) && run.pace > 0)
+        .map(run => ({ ...run, date: dateFromIso(run.date) }))
         .sort((a, b) => a.date - b.date || a.sourceIndex - b.sourceIndex);
+      // The highlight belongs to one activity across the complete dataset, not
+      // to the latest activity in whichever year happens to be visible.
+      const globallyLatestRun = allRuns.at(-1);
       const runs = paceHistogramYearFilter === "all"
         ? allRuns
         : allRuns.filter(run => String(run.date.getFullYear()) === paceHistogramYearFilter);
@@ -5140,7 +5144,7 @@
       const y = count => margin.top + plotH - (count / yMax) * plotH;
       const baseline = margin.top + plotH;
       const xTicks = Array.from({ length: Math.floor(domainMax - domainMin) + 1 }, (_, index) => domainMin + index);
-      const latest = runs.at(-1);
+      const globallyLatestRunIsVisible = runs.some(run => run.sourceIndex === globallyLatestRun.sourceIndex);
       const avg = runs.reduce((sum, run) => sum + run.pace, 0) / runs.length;
       const clippedRuns = runs.filter(run => run.pace >= paceCap).length;
       const barGap = 3;
@@ -5151,11 +5155,11 @@
         const bx = x(bucket.pace) + barGap / 2;
         const units = bucket.runs.map((run, index) => {
           const yy = baseline - unitHeight * (index + 1);
-          const isLatest = run.sourceIndex === latest.sourceIndex;
-          const cls = isLatest ? "histogram-latest-unit" : `histogram-unit y${run.date.getFullYear()}`;
+          const isGloballyLatest = run.sourceIndex === globallyLatestRun.sourceIndex;
+          const cls = isGloballyLatest ? "histogram-latest-unit" : `histogram-unit y${run.date.getFullYear()}`;
           const isTerminalBucket = bucket.pace + bucketSize === domainMax;
           const range = isTerminalBucket ? `${formatPace(bucket.pace)}–${formatPace(domainMax)}+/km (${formatPace(domainMax)}+/km aggregated)` : `${formatPace(bucket.pace)}–${formatPace(bucket.pace + bucketSize)}/km`;
-          const label = `${isLatest ? "Latest run: " : ""}${run.date.toISOString().slice(0, 10)}: ${formatPace(run.pace)}/km · ${range}`;
+          const label = `${isGloballyLatest ? "Globally most recent run: " : ""}${run.date.toISOString().slice(0, 10)}: ${formatPace(run.pace)}/km · ${range}`;
           return `<rect class="${cls}" x="${bx.toFixed(1)}" y="${yy.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${unitHeight.toFixed(1)}" rx="5"><title>${label}</title></rect>`;
         }).join("");
         const dividers = Array.from({ length: bucket.runs.length - 1 }, (_, index) => {
@@ -5166,9 +5170,13 @@
       }).join("");
 
       const periodLabel = paceHistogramYearFilter === "all" ? "All available history" : paceHistogramYearFilter;
-      svg.setAttribute("aria-label", `Histogram of pace per run for ${periodLabel}, in minutes per kilometre, with latest run marked. The x-axis is capped at 14:00 per kilometre; runs at or slower than 14:00 per kilometre are aggregated in the terminal bin.`);
+      const globallyLatestDate = globallyLatestRun.date.toISOString().slice(0, 10);
+      const globalHighlightSummary = globallyLatestRunIsVisible
+        ? `globally latest ${globallyLatestDate} ${formatPace(globallyLatestRun.pace)}/km highlighted`
+        : `globally latest ${globallyLatestDate} not in this view`;
+      svg.setAttribute("aria-label", `Histogram of pace per run for ${periodLabel}, in minutes per kilometre. The globally most recent run is highlighted only when it is included in this view. The x-axis is capped at 14:00 per kilometre; runs at or slower than 14:00 per kilometre are aggregated in the terminal bin.`);
       svg.innerHTML = `
-        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">${periodLabel} · ${runs.length} runs · latest ${formatPace(latest.pace)}/km · avg ${formatPace(avg)}/km${clippedRuns ? ` · ${clippedRuns} at ${formatPace(paceCap)}+/km` : ""}</text>
+        <text class="chart-label" x="${width - margin.right}" y="42" text-anchor="end">${periodLabel} · ${runs.length} runs · ${globalHighlightSummary} · avg ${formatPace(avg)}/km${clippedRuns ? ` · ${clippedRuns} at ${formatPace(paceCap)}+/km` : ""}</text>
         ${xTicks.map(tick => `<line class="chart-grid" x1="${x(tick).toFixed(1)}" y1="${margin.top}" x2="${x(tick).toFixed(1)}" y2="${baseline}" opacity="0.36"></line><text class="chart-label" x="${x(tick).toFixed(1)}" y="${height - 30}" text-anchor="middle">${formatPace(tick)}${tick === domainMax ? "+" : ""}</text>`).join("")}
         ${yTicks.map(tick => `<line class="chart-grid" x1="${margin.left}" y1="${y(tick).toFixed(1)}" x2="${width - margin.right}" y2="${y(tick).toFixed(1)}" opacity="0.38"></line><text class="chart-label" x="${margin.left - 20}" y="${(y(tick) + 8).toFixed(1)}" text-anchor="end">${tick}</text>`).join("")}
         <line class="chart-axis" x1="${margin.left}" y1="${baseline}" x2="${width - margin.right}" y2="${baseline}"></line>
