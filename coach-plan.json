@@ -1,20 +1,7 @@
 {
- "updated": "2026-11-26T06:54:42Z",
+ "updated": "2026-11-27T06:59:14Z",
  "source": "Training Tilt — Matt Buck, Running Adventures",
  "days": {
-  "2026-11-26": [
-   {
-    "title": "Ankle/Calf/Achilles Strengthening",
-    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
-   },
-   {
-    "title": "5 km | Easy pace",
-    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
-    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
-    "rpe": 3
-   }
-  ],
   "2026-11-27": [
    {
     "title": "Ankle/Calf/Achilles Strengthening",
@@ -129,6 +116,19 @@
     "detail": "1 km @ Easy pace to hill | 4 km: Hills | 1 km @ Easy pace. Run at comfortable effort up the hill and jog slowly or walk back down. Take up to 30 seconds rest before going again. You should use a hill that gives you approx 5 minutes of climbing. Vary the gradient of hill each time if you can. However, don't use hills that are too steep.",
     "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
     "rpe": 8
+   }
+  ],
+  "2026-12-11": [
+   {
+    "title": "Ankle/Calf/Achilles Strengthening",
+    "detail": "Calf raises both legs x 50\nCalf raises each leg x 20\nJump on the spot x 50\nJump on the spot each leg x 20\nJump left/right x 20 each leg\nJump forward/backwards x 20 each leg\nSquat x 20\nLunge x 10 each leg\nRoll calfs",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member"
+   },
+   {
+    "title": "10 km | Easy pace",
+    "detail": "Easy pace for distance.\nThis is exactly as it says, it should feel very easy, almost too easy. These runs are used as recovery runs or pre/post a big race or challenge.",
+    "url": "https://runningadventures.trainingtiltapp.com/Membership/Dashboard/Member",
+    "rpe": 3
    }
   ]
  }
