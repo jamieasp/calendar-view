@@ -411,8 +411,52 @@ def load_bedtimes() -> tuple[dict[str, int], dict[str, str]]:
     return bedtimes, labels
 
 
+def load_index_run_history(html: str) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
+    """Read the existing embedded run history before applying a fresh response.
+
+    Suunto's stream can end after one page. The index is therefore a durable
+    cache: fresh records replace records for the dates returned, while dates
+    absent from a partial response remain intact.
+    """
+    def parse(name: str, closer: str):
+        match = re.search(rf"    const {name} = (.*?{closer});", html, re.S)
+        if not match:
+            raise RuntimeError(f"Could not find {name} block in index.html")
+        return json.loads(match.group(1))
+
+    distances = parse("runDistances", r"\}")
+    elevations = parse("runElevations", r"\}")
+    paces = parse("runPaces", r"\]")
+    if not isinstance(distances, dict) or not isinstance(elevations, dict) or not isinstance(paces, list):
+        raise RuntimeError("Embedded run history has an unexpected shape")
+    return distances, elevations, paces
+
+
+def merge_run_history(
+    existing_distances: dict[str, int], existing_elevations: dict[str, int],
+    existing_paces: list[dict[str, float | str]], retrieved_distances: dict[str, int],
+    retrieved_elevations: dict[str, int], retrieved_paces: list[dict[str, float | str]],
+) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
+    """Merge retrieved Suunto data without losing history missing from its response."""
+    distances = {**existing_distances, **retrieved_distances}
+    elevations = {**existing_elevations, **retrieved_elevations}
+    retrieved_pace_days = {str(run.get("date")) for run in retrieved_paces if run.get("date")}
+    paces = [run for run in existing_paces if str(run.get("date")) not in retrieved_pace_days]
+    paces.extend(retrieved_paces)
+    return (
+        dict(sorted(distances.items())),
+        dict(sorted(elevations.items())),
+        sorted(paces, key=lambda run: (str(run.get("date")), float(run.get("pace") or 0))),
+    )
+
+
 def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], run_paces: list[dict[str, float | str]], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
     html = INDEX.read_text()
+    existing_distances, existing_elevations, existing_paces = load_index_run_history(html)
+    run_distances, run_elevations, run_paces = merge_run_history(
+        existing_distances, existing_elevations, existing_paces,
+        run_distances, run_elevations, run_paces,
+    )
     required_dynamic_consumers = [
         "function monthRunTotal(totalYear, month)",
         "function renderDistanceChart()",
