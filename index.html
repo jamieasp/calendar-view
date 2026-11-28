@@ -909,6 +909,19 @@
       stroke-dasharray: 3 5;
       vector-effect: non-scaling-stroke;
     }
+    .ternary-axis-arrow {
+      fill: none;
+      stroke: var(--pencil);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .ternary-axis-label {
+      fill: var(--pencil);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 29px;
+      font-weight: 900;
+    }
     .ternary-dot {
       fill: rgba(255, 210, 49, 0.62);
       stroke: rgba(143, 96, 0, 0.78);
@@ -5258,15 +5271,14 @@
       ].filter(Boolean);
       const describe = run => (run.isLatest ? "Globally latest eligible run, " : "") + run.date + ": " + run.distance.toFixed(run.distance % 1 ? 1 : 0) + " km; " + Math.round(run.elevation).toLocaleString("en-GB") + " m climbed; " + formatPace(run.pace) + "/km.";
       copy.textContent = runs.length + " reliably matched runs. Each point uses within-dataset percentile ranks (log-scaled for distance and elevation) so units do not dominate; yellow = run, black = globally latest eligible run. " + (omittedCount ? omittedCount + " pace entries omitted: " + omissionParts.join(", ") + "." : "");
-      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " reliably matched runs. Triangle corners are relative distance, elevation gain and pace in minutes per kilometre, where the pace corner means relatively slower. " + omittedCount + " pace entries were omitted because they could not be joined reliably.");
+      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " reliably matched runs. Directional arrows explain the three relative axes: distance runs from shorter to longer toward the lower-left corner, elevation runs from flatter to hillier toward the lower-right corner, and pace runs from slower at the top corner to faster toward the base. " + omittedCount + " pace entries were omitted because they could not be joined reliably.");
       const circles = plotted.map((run, index) => "<circle class=\"ternary-dot" + (run.isLatest ? " latest" : "") + "\" cx=\"" + run.x.toFixed(1) + "\" cy=\"" + run.y.toFixed(1) + "\" r=\"" + (run.isLatest ? 15 : 10) + "\" role=\"button\" tabindex=\"0\" data-run-profile-index=\"" + index + "\" aria-label=\"" + describe(run) + "\"><title>" + describe(run) + "</title></circle>").join("");
       svg.innerHTML = [
+        "<defs><marker id=\"run-profile-axis-arrowhead\" viewBox=\"0 0 10 10\" refX=\"8.5\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#152536\"></path></marker></defs>",
         "<text class=\"chart-label\" x=\"750\" y=\"54\" text-anchor=\"middle\">Relative profile (percentile-normalised; each point sums to 100%)</text>",
         "<polygon class=\"ternary-triangle\" points=\"230,890 1270,890 750,140\"></polygon>",
         "<line class=\"ternary-guide\" x1=\"750\" y1=\"140\" x2=\"750\" y2=\"890\"></line><line class=\"ternary-guide\" x1=\"230\" y1=\"890\" x2=\"1010\" y2=\"515\"></line><line class=\"ternary-guide\" x1=\"1270\" y1=\"890\" x2=\"490\" y2=\"515\"></line>",
-        "<text class=\"chart-note\" x=\"750\" y=\"106\" text-anchor=\"middle\">Pace</text><text class=\"chart-label\" x=\"750\" y=\"132\" text-anchor=\"middle\">slower min/km</text>",
-        "<text class=\"chart-note\" x=\"190\" y=\"940\" text-anchor=\"start\">Distance</text><text class=\"chart-label\" x=\"190\" y=\"968\" text-anchor=\"start\">longer km</text>",
-        "<text class=\"chart-note\" x=\"1310\" y=\"940\" text-anchor=\"end\">Elevation gain</text><text class=\"chart-label\" x=\"1310\" y=\"968\" text-anchor=\"end\">more metres climbed</text>",
+        "<g class=\"ternary-axis-annotations\" aria-hidden=\"true\"><path class=\"ternary-axis-arrow\" d=\"M 108 286 L 108 490\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><path class=\"ternary-guide\" d=\"M 128 286 L 688 152\"></path><text class=\"ternary-axis-label\" x=\"62\" y=\"266\" text-anchor=\"start\">Pace</text><text class=\"chart-label\" x=\"62\" y=\"522\" text-anchor=\"start\">slower → faster</text><path class=\"ternary-axis-arrow\" d=\"M 125 605 L 212 830\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"44\" y=\"620\" text-anchor=\"start\">Distance</text><text class=\"chart-label\" x=\"44\" y=\"650\" text-anchor=\"start\">shorter</text><text class=\"chart-label\" x=\"44\" y=\"680\" text-anchor=\"start\">→ longer</text><path class=\"ternary-axis-arrow\" d=\"M 1375 605 L 1288 830\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"1456\" y=\"620\" text-anchor=\"end\">Elevation</text><text class=\"chart-label\" x=\"1456\" y=\"650\" text-anchor=\"end\">flatter</text><text class=\"chart-label\" x=\"1456\" y=\"680\" text-anchor=\"end\">→ hillier</text></g>",
         "<g aria-label=\"Legend\"><circle class=\"ternary-dot\" cx=\"510\" cy=\"1038\" r=\"12\"></circle><text class=\"chart-label\" x=\"532\" y=\"1047\">eligible run</text><circle class=\"ternary-dot latest\" cx=\"870\" cy=\"1038\" r=\"14\"></circle><text class=\"chart-label\" x=\"895\" y=\"1047\">globally latest eligible run</text></g>",
         circles,
       ].join("");
