@@ -122,7 +122,13 @@ def iter_workouts_from_file(path: Path) -> Iterable[dict]:
                 yield workout
 
 
-def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
+def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]], list[dict[str, float | str]]]:
+    """Build daily totals and an activity-identity-preserving chart source.
+
+    Each runActivities record keeps Suunto's stable key. This avoids joining
+    separate day-keyed datasets and preserves multiple activities on one day.
+    Pace is calculated only from Suunto's recorded time and distance.
+    """
     seen: dict[str, dict] = {}
     # The live Suunto stream occasionally ends after its first page. Include
     # every cached page to retain older workouts, then let newer local exports
@@ -141,30 +147,40 @@ def load_running_totals() -> tuple[dict[str, int], dict[str, int], list[dict[str
 
     daily_km: dict[str, float] = collections.defaultdict(float)
     daily_ascent_m: dict[str, float] = collections.defaultdict(float)
-    paces: list[dict[str, float | str]] = []
-    for workout in seen.values():
+    activities: list[dict[str, float | str]] = []
+    for key, workout in seen.items():
         if workout.get("activityId") not in RUN_ACTIVITY_IDS:
             continue
-        distance_m = workout.get("totalDistance") or 0
-        if distance_m <= 0:
+        try:
+            distance_m = float(workout.get("totalDistance"))
+            elevation_m = float(workout.get("totalAscent"))
+            total_time_s = float(workout.get("totalTime"))
+            start_ms = float(workout.get("startTime"))
+        except (TypeError, ValueError):
             continue
-        start_ms = workout.get("startTime")
-        if not start_ms:
+        # A zero-distance record cannot have an actual pace: never infer one.
+        if distance_m <= 0 or elevation_m < 0 or total_time_s <= 0:
             continue
         day = dt.datetime.fromtimestamp(start_ms / 1000, dt.UTC).date().isoformat()
+        distance_km = distance_m / 1000
+        activities.append({
+            "id": str(key), "date": day, "startedAt": int(start_ms),
+            "distance": round(distance_km, 3), "elevation": round(elevation_m, 1),
+            "pace": round(total_time_s / 60 / distance_km, 3),
+        })
         # Calendar distance and elevation stay scoped to the displayed year, while
         # pace distribution retains every available historical run.
         if day.startswith(f"{YEAR}-"):
-            daily_km[day] += distance_m / 1000
-            daily_ascent_m[day] += workout.get("totalAscent") or 0
-        total_time_s = float(workout.get("totalTime") or 0)
-        distance_km = distance_m / 1000
-        if total_time_s > 0 and distance_km > 0:
-            paces.append({"date": day, "pace": round(total_time_s / 60 / distance_km, 3)})
+            daily_km[day] += distance_km
+            daily_ascent_m[day] += elevation_m
 
     distances = {day: math.floor(km + 0.5) for day, km in sorted(daily_km.items()) if math.floor(km + 0.5) > 0}
     elevations = {day: math.floor(meters + 0.5) for day, meters in sorted(daily_ascent_m.items()) if math.floor(meters + 0.5) > 0}
-    return distances, elevations, sorted(paces, key=lambda run: str(run["date"]))
+    activities.sort(key=lambda run: (int(run["startedAt"]), str(run["id"])))
+    # The pace-density chart retains its compact projection; the ternary chart
+    # consumes runActivities directly.
+    paces = [{"date": run["date"], "pace": run["pace"]} for run in activities]
+    return distances, elevations, paces, activities
 
 
 
@@ -411,7 +427,7 @@ def load_bedtimes() -> tuple[dict[str, int], dict[str, str]]:
     return bedtimes, labels
 
 
-def load_index_run_history(html: str) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
+def load_index_run_history(html: str) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]], list[dict[str, float | str]]]:
     """Read the existing embedded run history before applying a fresh response.
 
     Suunto's stream can end after one page. The index is therefore a durable
@@ -427,35 +443,42 @@ def load_index_run_history(html: str) -> tuple[dict[str, int], dict[str, int], l
     distances = parse("runDistances", r"\}")
     elevations = parse("runElevations", r"\}")
     paces = parse("runPaces", r"\]")
-    if not isinstance(distances, dict) or not isinstance(elevations, dict) or not isinstance(paces, list):
+    activities = parse("runActivities", r"\]")
+    if not isinstance(distances, dict) or not isinstance(elevations, dict) or not isinstance(paces, list) or not isinstance(activities, list):
         raise RuntimeError("Embedded run history has an unexpected shape")
-    return distances, elevations, paces
+    return distances, elevations, paces, activities
 
 
 def merge_run_history(
     existing_distances: dict[str, int], existing_elevations: dict[str, int],
     existing_paces: list[dict[str, float | str]], retrieved_distances: dict[str, int],
     retrieved_elevations: dict[str, int], retrieved_paces: list[dict[str, float | str]],
-) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]]]:
+    existing_activities: list[dict[str, float | str]], retrieved_activities: list[dict[str, float | str]],
+) -> tuple[dict[str, int], dict[str, int], list[dict[str, float | str]], list[dict[str, float | str]]]:
     """Merge retrieved Suunto data without losing history missing from its response."""
     distances = {**existing_distances, **retrieved_distances}
     elevations = {**existing_elevations, **retrieved_elevations}
     retrieved_pace_days = {str(run.get("date")) for run in retrieved_paces if run.get("date")}
     paces = [run for run in existing_paces if str(run.get("date")) not in retrieved_pace_days]
     paces.extend(retrieved_paces)
+    activities_by_id = {str(run.get("id")): run for run in existing_activities if run.get("id")}
+    activities_by_id.update({str(run["id"]): run for run in retrieved_activities if run.get("id")})
+    activities = sorted(activities_by_id.values(), key=lambda run: (int(run.get("startedAt") or 0), str(run.get("id"))))
     return (
         dict(sorted(distances.items())),
         dict(sorted(elevations.items())),
         sorted(paces, key=lambda run: (str(run.get("date")), float(run.get("pace") or 0))),
+        activities,
     )
 
 
-def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], run_paces: list[dict[str, float | str]], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
+def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], run_paces: list[dict[str, float | str]], run_activities: list[dict[str, float | str]], bedtimes: dict[str, int], bedtime_labels: dict[str, str]) -> bool:
     html = INDEX.read_text()
-    existing_distances, existing_elevations, existing_paces = load_index_run_history(html)
-    run_distances, run_elevations, run_paces = merge_run_history(
+    existing_distances, existing_elevations, existing_paces, existing_activities = load_index_run_history(html)
+    run_distances, run_elevations, run_paces, run_activities = merge_run_history(
         existing_distances, existing_elevations, existing_paces,
         run_distances, run_elevations, run_paces,
+        existing_activities, run_activities,
     )
     required_dynamic_consumers = [
         "function monthRunTotal(totalYear, month)",
@@ -491,6 +514,12 @@ def update_index(run_distances: dict[str, int], run_elevations: dict[str, int], 
     updated, elevation_count = elevation_pattern.subn(elevation_replacement, updated, count=1)
     if elevation_count != 1:
         raise RuntimeError("Could not find exactly one runElevations block in index.html")
+
+    activities_replacement = "    const runActivities = " + json.dumps(run_activities, indent=6).replace("\n", "\n    ") + ";"
+    activities_pattern = re.compile(r"    const runActivities = \[.*?\];", re.S)
+    updated, activities_count = activities_pattern.subn(activities_replacement, updated, count=1)
+    if activities_count != 1:
+        raise RuntimeError("Could not find exactly one runActivities block in index.html")
 
     pace_replacement = "    const runPaces = " + json.dumps(run_paces, indent=6).replace("\n", "\n    ") + ";"
     pace_pattern = re.compile(r"    const runPaces = \[.*?\];", re.S)
@@ -536,9 +565,9 @@ def main() -> int:
     if not SUUNTOOL.exists():
         raise FileNotFoundError(f"Missing suuntool at {SUUNTOOL}")
     pull_workouts()
-    distances, elevations, paces = load_running_totals()
+    distances, elevations, paces, activities = load_running_totals()
     bedtimes, bedtime_labels = load_bedtimes()
-    changed = update_index(distances, elevations, paces, bedtimes, bedtime_labels)
+    changed = update_index(distances, elevations, paces, activities, bedtimes, bedtime_labels)
     stretch_changed = update_stretch_streaks()
     health_changed = write_health_chart_data()
     print(f"Loaded {len(distances)} run-distance days, {len(elevations)} elevation days, {len(paces)} runs with pace, and {len(bedtimes)} bedtime days for {YEAR}.")
