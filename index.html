@@ -922,6 +922,33 @@
       font-size: 38px;
       font-weight: 900;
     }
+    .ternary-scale-line,
+    .ternary-scale-tick {
+      stroke: rgba(21, 37, 54, 0.68);
+      stroke-width: 1.8;
+      vector-effect: non-scaling-stroke;
+    }
+    .ternary-scale-line { stroke-dasharray: 2 5; }
+    .ternary-scale-tick { stroke-linecap: round; }
+    .ternary-scale-label {
+      fill: var(--pencil);
+      font-size: 23px;
+      font-weight: 850;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 247, 0.94);
+      stroke-width: 5px;
+      stroke-linejoin: round;
+    }
+    .ternary-scale-title {
+      fill: var(--muted);
+      font-size: 21px;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 247, 0.94);
+      stroke-width: 5px;
+      stroke-linejoin: round;
+    }
     .ternary-dot {
       fill: rgba(255, 210, 49, 0.62);
       stroke: rgba(143, 96, 0, 0.78);
@@ -8323,7 +8350,9 @@
         const weights = {
           distance: scaled(percentile(distanceValues, Math.log1p(run.distance))),
           elevation: scaled(percentile(elevationValues, Math.log1p(run.elevation))),
-          pace: scaled(percentile(paceValues, run.pace)),
+          // A lower minutes-per-kilometre value is faster, so reverse this
+          // rank: the top Faster vertex must mean an actually faster pace.
+          pace: scaled(1 - percentile(paceValues, run.pace)),
         };
         const total = weights.distance + weights.elevation + weights.pace;
         const x = (weights.distance * vertices.distance.x + weights.elevation * vertices.elevation.x + weights.pace * vertices.pace.x) / total;
@@ -8331,14 +8360,53 @@
         return { ...run, x, y, isLatest: run.id === latest.id };
       });
       const describe = run => (run.isLatest ? "Globally latest eligible run, " : "") + run.date + ": " + run.distance.toFixed(run.distance % 1 ? 1 : 0) + " km; " + Math.round(run.elevation).toLocaleString("en-GB") + " m climbed; " + formatPace(run.pace) + "/km.";
-      copy.textContent = runs.length + " complete Suunto run activities. Move toward a corner for more of that attribute; positions compare the three attributes relative to each run. Each point uses within-dataset percentile ranks (log-scaled for distance and elevation) so units do not dominate; yellow = run, black = globally latest run.";
-      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " complete Suunto run activities. Move toward the Longer lower-left corner for more distance, the Faster top corner for a faster pace, or the Hillier lower-right corner for more elevation. Positions compare the three attributes relative to each run.");
+      const quantile = (values, fraction) => {
+        const sorted = [...values].sort((a, b) => a - b);
+        const position = (sorted.length - 1) * fraction;
+        const lower = Math.floor(position);
+        const upper = Math.ceil(position);
+        return sorted[lower] + (sorted[upper] - sorted[lower]) * (position - lower);
+      };
+      const referenceValues = values => {
+        const candidates = [0, 0.25, 0.5, 0.75, 1].map(fraction => ({ fraction, value: quantile(values, fraction) }));
+        return candidates.filter((candidate, index) => !index || Math.abs(candidate.value - candidates[index - 1].value) > 0.001);
+      };
+      const scaleMarkup = (start, end, references, format, options = {}) => {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const normal = { x: -dy / length, y: dx / length };
+        const tick = 11;
+        const labelOffset = options.labelOffset || { x: 0, y: 0 };
+        const title = options.title || "";
+        const titleMarkup = title ? `<text class="ternary-scale-title" x="${options.titleX}" y="${options.titleY}" text-anchor="${options.titleAnchor || "middle"}"${options.titleTransform ? ` transform="${options.titleTransform}"` : ""}>${title}</text>` : "";
+        return `<g class="ternary-scale" aria-hidden="true"><line class="ternary-scale-line" x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}"></line>${references.map(reference => {
+          const x = start.x + dx * reference.fraction;
+          const y = start.y + dy * reference.fraction;
+          const x1 = x - normal.x * tick;
+          const y1 = y - normal.y * tick;
+          const x2 = x + normal.x * tick;
+          const y2 = y + normal.y * tick;
+          return `<line class="ternary-scale-tick" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"></line><text class="ternary-scale-label" x="${(x + labelOffset.x).toFixed(1)}" y="${(y + labelOffset.y).toFixed(1)}" text-anchor="${options.textAnchor || "middle"}">${format(reference.value)}</text>`;
+        }).join("")} ${titleMarkup}</g>`;
+      };
+      const distanceReferences = referenceValues(runs.map(run => run.distance));
+      const elevationReferences = referenceValues(runs.map(run => run.elevation));
+      // The pace line runs from the slow base to the fast vertex, so its labels
+      // must use the reverse percentile order used by the plotted weights.
+      const paceReferences = referenceValues(runs.map(run => run.pace)).reverse().map(reference => ({ ...reference, fraction: 1 - reference.fraction }));
+      const distanceScale = scaleMarkup({ x: 985, y: 525 }, { x: 285, y: 862 }, distanceReferences, value => `${value.toFixed(value < 10 ? 1 : 0)} km`, { labelOffset: { x: -34, y: -12 }, textAnchor: "end", title: "Distance · km", titleX: 500, titleY: 600 });
+      const elevationScale = scaleMarkup({ x: 515, y: 525 }, { x: 1215, y: 862 }, elevationReferences, value => `${Math.round(value).toLocaleString("en-GB")} m`, { labelOffset: { x: 34, y: -12 }, textAnchor: "start", title: "Elevation · m", titleX: 1000, titleY: 600 });
+      const paceScale = scaleMarkup({ x: 750, y: 820 }, { x: 750, y: 205 }, paceReferences, value => `${formatPace(value)}/km`, { labelOffset: { x: 30, y: 8 }, textAnchor: "start", title: "Pace · slow → fast (min/km)", titleX: -515, titleY: 862, titleTransform: "rotate(-90)" });
+      copy.textContent = runs.length + " complete Suunto run activities. Move toward a corner for more of that attribute; positions compare the three attributes relative to each run. The unit labels are reference values placed on percentile-normalised axes (log-transformed before ranking for distance and elevation), not linear measurement scales. Pace runs from slower at the base to faster at the top; yellow = run, black = globally latest run.";
+      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " complete Suunto run activities. Move toward the Longer lower-left corner for more distance, the Faster top corner for a faster pace, or the Hillier lower-right corner for more elevation. Distance labels are kilometres, elevation labels are metres, and pace labels run slower to faster in minutes per kilometre. These are reference values on percentile-normalised axes, not linear measurement scales. Positions compare the three attributes relative to each run.");
       const circles = plotted.map((run, index) => "<circle class=\"ternary-dot" + (run.isLatest ? " latest" : "") + "\" cx=\"" + run.x.toFixed(1) + "\" cy=\"" + run.y.toFixed(1) + "\" r=\"" + (run.isLatest ? 15 : 10) + "\" role=\"button\" tabindex=\"0\" data-run-profile-index=\"" + index + "\" aria-label=\"" + describe(run) + "\"><title>" + describe(run) + "</title></circle>").join("");
       svg.innerHTML = [
         "<defs><marker id=\"run-profile-axis-arrowhead\" viewBox=\"0 0 10 10\" refX=\"8.5\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#152536\"></path></marker></defs>",
         "<text class=\"chart-label\" x=\"750\" y=\"54\" text-anchor=\"middle\">Relative profile (percentile-normalised; each point sums to 100%)</text>",
         "<polygon class=\"ternary-triangle\" points=\"230,890 1270,890 750,140\"></polygon>",
         "<line class=\"ternary-guide\" x1=\"750\" y1=\"140\" x2=\"750\" y2=\"890\"></line><line class=\"ternary-guide\" x1=\"230\" y1=\"890\" x2=\"1010\" y2=\"515\"></line><line class=\"ternary-guide\" x1=\"1270\" y1=\"890\" x2=\"490\" y2=\"515\"></line>",
+        distanceScale, elevationScale, paceScale,
         "<g class=\"ternary-axis-annotations\" aria-hidden=\"true\"><path class=\"ternary-axis-arrow\" d=\"M 1090 620 L 300 850\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"255\" y=\"866\" text-anchor=\"start\">Longer</text><path class=\"ternary-axis-arrow\" d=\"M 750 830 L 750 205\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"750\" y=\"120\" text-anchor=\"middle\">Faster</text><path class=\"ternary-axis-arrow\" d=\"M 410 620 L 1200 850\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"1245\" y=\"866\" text-anchor=\"end\">Hillier</text></g>",
         "<g aria-label=\"Legend\"><circle class=\"ternary-dot\" cx=\"510\" cy=\"1038\" r=\"12\"></circle><text class=\"chart-label\" x=\"532\" y=\"1047\">eligible run</text><circle class=\"ternary-dot latest\" cx=\"870\" cy=\"1038\" r=\"14\"></circle><text class=\"chart-label\" x=\"895\" y=\"1047\">globally latest eligible run</text></g>",
         circles,
