@@ -897,6 +897,45 @@
       opacity: 0.96;
       vector-effect: non-scaling-stroke;
     }
+    .ternary-triangle {
+      fill: rgba(255, 226, 77, 0.08);
+      stroke: var(--pencil);
+      stroke-width: 2.4;
+      vector-effect: non-scaling-stroke;
+    }
+    .ternary-guide {
+      stroke: rgba(21, 37, 54, 0.24);
+      stroke-width: 1;
+      stroke-dasharray: 3 5;
+      vector-effect: non-scaling-stroke;
+    }
+    .ternary-dot {
+      fill: rgba(255, 210, 49, 0.62);
+      stroke: rgba(143, 96, 0, 0.78);
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+      cursor: pointer;
+    }
+    .ternary-dot:is(:hover, :focus) {
+      fill: rgba(255, 210, 49, 0.96);
+      stroke: var(--pencil);
+      stroke-width: 3.6;
+    }
+    .ternary-dot:focus { outline: none; }
+    .ternary-dot.latest {
+      fill: #152536;
+      stroke: #000;
+      stroke-width: 3;
+      opacity: 1;
+    }
+    .ternary-detail {
+      min-height: 1.5em;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+      font-size: 23px;
+      font-weight: 800;
+    }
     .chart-label {
       fill: var(--muted);
       font-size: 24px;
@@ -1407,6 +1446,12 @@
         <button type="button" class="histogram-filter" data-pace-histogram-year="2026" aria-pressed="false">2026</button>
       </div>
       <svg id="pace-density-chart" class="distance-chart" viewBox="0 0 1500 860" role="img" aria-label="Histogram of pace per run across all available history, in minutes per kilometre, with latest run marked. The x-axis is capped at 14:00 per kilometre; runs at or slower than 14:00 per kilometre are aggregated in the terminal bin."></svg>
+      <div class="chart-header secondary-chart-title">
+        <h2 id="run-profile-chart-title">Run profile: pace, elevation &amp; distance</h2>
+      </div>
+      <p class="sub" id="run-profile-copy">Each point balances its within-dataset pace, elevation and distance ranks; the black point is the latest eligible run.</p>
+      <svg id="run-profile-chart" class="distance-chart" viewBox="0 0 1500 1100" role="group" aria-labelledby="run-profile-chart-title" aria-describedby="run-profile-copy run-profile-detail"></svg>
+      <p class="ternary-detail" id="run-profile-detail" aria-live="polite">Select a point to hear its run details.</p>
       <div class="chart-header secondary-chart-title">
         <h2>Distance heatmap</h2>
       </div>
@@ -5145,6 +5190,97 @@
       `;
     }
 
+    function renderRunProfileChart() {
+      const svg = document.getElementById("run-profile-chart");
+      const copy = document.getElementById("run-profile-copy");
+      const detail = document.getElementById("run-profile-detail");
+      if (!svg || !copy || !detail) return;
+
+      // Distance/elevation are daily; a date with multiple pace activities
+      // cannot be joined to those daily totals without making an assumption.
+      const pacesByDate = new Map();
+      runPaces.forEach((run, sourceIndex) => {
+        const date = String(run.date || "");
+        if (!pacesByDate.has(date)) pacesByDate.set(date, []);
+        pacesByDate.get(date).push({ ...run, sourceIndex, pace: Number(run.pace) });
+      });
+      const omitted = { duplicatePace: 0, missingDistance: 0, missingElevation: 0, invalidPace: 0 };
+      const runs = [];
+      pacesByDate.forEach((paceRuns, date) => {
+        if (paceRuns.length !== 1) { omitted.duplicatePace += paceRuns.length; return; }
+        const run = paceRuns[0];
+        const distance = Number(runDistances[date]);
+        const elevation = Number(runElevations[date]);
+        if (!Number.isFinite(distance) || distance <= 0) { omitted.missingDistance++; return; }
+        if (!Number.isFinite(elevation) || elevation < 0) { omitted.missingElevation++; return; }
+        if (!Number.isFinite(run.pace) || run.pace <= 0) { omitted.invalidPace++; return; }
+        runs.push({ ...run, date, distance, elevation });
+      });
+      runs.sort((a, b) => a.date.localeCompare(b.date) || a.sourceIndex - b.sourceIndex);
+      if (!runs.length) {
+        copy.textContent = "No runs can be reliably matched across pace, elevation and distance yet.";
+        svg.innerHTML = "";
+        detail.textContent = "No eligible run details available.";
+        return;
+      }
+
+      // Percentile ranks put differently scaled measures on equal footing;
+      // log transforms prevent the biggest distances or climbs dominating.
+      const percentile = (values, value) => {
+        const sorted = [...values].sort((a, b) => a - b);
+        const first = sorted.findIndex(candidate => candidate === value);
+        const last = sorted.length - 1 - [...sorted].reverse().findIndex(candidate => candidate === value);
+        return sorted.length < 2 ? 0.5 : ((first + last) / 2) / (sorted.length - 1);
+      };
+      const distanceValues = runs.map(run => Math.log1p(run.distance));
+      const elevationValues = runs.map(run => Math.log1p(run.elevation));
+      const paceValues = runs.map(run => run.pace);
+      const latest = runs.at(-1);
+      const vertices = { distance: { x: 230, y: 890 }, elevation: { x: 1270, y: 890 }, pace: { x: 750, y: 140 } };
+      const scaled = rank => 0.08 + 0.92 * rank;
+      const plotted = runs.map(run => {
+        const weights = {
+          distance: scaled(percentile(distanceValues, Math.log1p(run.distance))),
+          elevation: scaled(percentile(elevationValues, Math.log1p(run.elevation))),
+          pace: scaled(percentile(paceValues, run.pace)),
+        };
+        const total = weights.distance + weights.elevation + weights.pace;
+        const x = (weights.distance * vertices.distance.x + weights.elevation * vertices.elevation.x + weights.pace * vertices.pace.x) / total;
+        const y = (weights.distance * vertices.distance.y + weights.elevation * vertices.elevation.y + weights.pace * vertices.pace.y) / total;
+        return { ...run, x, y, isLatest: run.sourceIndex === latest.sourceIndex };
+      });
+      const omittedCount = runPaces.length - runs.length;
+      const omissionParts = [
+        omitted.missingDistance && omitted.missingDistance + " without distance",
+        omitted.missingElevation && omitted.missingElevation + " without elevation",
+        omitted.duplicatePace && omitted.duplicatePace + " from dates with multiple pace activities",
+        omitted.invalidPace && omitted.invalidPace + " with invalid pace",
+      ].filter(Boolean);
+      const describe = run => (run.isLatest ? "Globally latest eligible run, " : "") + run.date + ": " + run.distance.toFixed(run.distance % 1 ? 1 : 0) + " km; " + Math.round(run.elevation).toLocaleString("en-GB") + " m climbed; " + formatPace(run.pace) + "/km.";
+      copy.textContent = runs.length + " reliably matched runs. Each point uses within-dataset percentile ranks (log-scaled for distance and elevation) so units do not dominate; yellow = run, black = globally latest eligible run. " + (omittedCount ? omittedCount + " pace entries omitted: " + omissionParts.join(", ") + "." : "");
+      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " reliably matched runs. Triangle corners are relative distance, elevation gain and pace in minutes per kilometre, where the pace corner means relatively slower. " + omittedCount + " pace entries were omitted because they could not be joined reliably.");
+      const circles = plotted.map((run, index) => "<circle class=\"ternary-dot" + (run.isLatest ? " latest" : "") + "\" cx=\"" + run.x.toFixed(1) + "\" cy=\"" + run.y.toFixed(1) + "\" r=\"" + (run.isLatest ? 15 : 10) + "\" role=\"button\" tabindex=\"0\" data-run-profile-index=\"" + index + "\" aria-label=\"" + describe(run) + "\"><title>" + describe(run) + "</title></circle>").join("");
+      svg.innerHTML = [
+        "<text class=\"chart-label\" x=\"750\" y=\"54\" text-anchor=\"middle\">Relative profile (percentile-normalised; each point sums to 100%)</text>",
+        "<polygon class=\"ternary-triangle\" points=\"230,890 1270,890 750,140\"></polygon>",
+        "<line class=\"ternary-guide\" x1=\"750\" y1=\"140\" x2=\"750\" y2=\"890\"></line><line class=\"ternary-guide\" x1=\"230\" y1=\"890\" x2=\"1010\" y2=\"515\"></line><line class=\"ternary-guide\" x1=\"1270\" y1=\"890\" x2=\"490\" y2=\"515\"></line>",
+        "<text class=\"chart-note\" x=\"750\" y=\"106\" text-anchor=\"middle\">Pace</text><text class=\"chart-label\" x=\"750\" y=\"132\" text-anchor=\"middle\">slower min/km</text>",
+        "<text class=\"chart-note\" x=\"190\" y=\"940\" text-anchor=\"start\">Distance</text><text class=\"chart-label\" x=\"190\" y=\"968\" text-anchor=\"start\">longer km</text>",
+        "<text class=\"chart-note\" x=\"1310\" y=\"940\" text-anchor=\"end\">Elevation gain</text><text class=\"chart-label\" x=\"1310\" y=\"968\" text-anchor=\"end\">more metres climbed</text>",
+        "<g aria-label=\"Legend\"><circle class=\"ternary-dot\" cx=\"510\" cy=\"1038\" r=\"12\"></circle><text class=\"chart-label\" x=\"532\" y=\"1047\">eligible run</text><circle class=\"ternary-dot latest\" cx=\"870\" cy=\"1038\" r=\"14\"></circle><text class=\"chart-label\" x=\"895\" y=\"1047\">globally latest eligible run</text></g>",
+        circles,
+      ].join("");
+      const showDetail = run => { detail.textContent = describe(run); };
+      svg.querySelectorAll("[data-run-profile-index]").forEach(dot => {
+        const run = plotted[Number(dot.dataset.runProfileIndex)];
+        dot.addEventListener("click", () => showDetail(run));
+        dot.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); showDetail(run); }
+        });
+      });
+      detail.textContent = "Globally latest eligible run: " + describe(latest) + " Select a dot for its details.";
+    }
+
     function runDistanceSourceForYear(selectedYear) {
       if (selectedYear === 2024) return comparisonRunDistances2024;
       if (selectedYear === 2025) return comparisonRunDistances;
@@ -5411,6 +5547,7 @@
     renderRunDensityChart();
     renderElevationDensityChart();
     renderPaceDensityChart();
+    renderRunProfileChart();
     renderDistanceHeatmap();
     renderElevationHeatmap();
     renderStretchHeatmap();
