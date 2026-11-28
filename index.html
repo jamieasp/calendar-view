@@ -919,7 +919,7 @@
     .ternary-axis-label {
       fill: var(--pencil);
       font-family: "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-      font-size: 29px;
+      font-size: 38px;
       font-weight: 900;
     }
     .ternary-dot {
@@ -1462,7 +1462,7 @@
       <div class="chart-header secondary-chart-title">
         <h2 id="run-profile-chart-title">Run profile: pace, elevation &amp; distance</h2>
       </div>
-      <p class="sub" id="run-profile-copy">Each point balances its within-dataset pace, elevation and distance ranks; the black point is the latest eligible run.</p>
+      <p class="sub" id="run-profile-copy">Move toward a corner for more of that attribute; positions compare the three attributes relative to each run. The black point is the latest eligible run.</p>
       <svg id="run-profile-chart" class="distance-chart" viewBox="0 0 1500 1100" role="group" aria-labelledby="run-profile-chart-title" aria-describedby="run-profile-copy run-profile-detail"></svg>
       <p class="ternary-detail" id="run-profile-detail" aria-live="polite">Select a point to hear its run details.</p>
       <div class="chart-header secondary-chart-title">
@@ -8331,15 +8331,15 @@
         return { ...run, x, y, isLatest: run.id === latest.id };
       });
       const describe = run => (run.isLatest ? "Globally latest eligible run, " : "") + run.date + ": " + run.distance.toFixed(run.distance % 1 ? 1 : 0) + " km; " + Math.round(run.elevation).toLocaleString("en-GB") + " m climbed; " + formatPace(run.pace) + "/km.";
-      copy.textContent = runs.length + " complete Suunto run activities. Each point uses within-dataset percentile ranks (log-scaled for distance and elevation) so units do not dominate; yellow = run, black = globally latest run.";
-      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " complete Suunto run activities. Directional arrows explain the three relative axes: distance runs from shorter to longer toward the lower-left corner, elevation runs from flatter to hillier toward the lower-right corner, and pace runs from slower at the top corner to faster toward the base.");
+      copy.textContent = runs.length + " complete Suunto run activities. Move toward a corner for more of that attribute; positions compare the three attributes relative to each run. Each point uses within-dataset percentile ranks (log-scaled for distance and elevation) so units do not dominate; yellow = run, black = globally latest run.";
+      svg.setAttribute("aria-label", "Ternary scatter plot of " + runs.length + " complete Suunto run activities. Move toward the Longer lower-left corner for more distance, the Faster top corner for a faster pace, or the Hillier lower-right corner for more elevation. Positions compare the three attributes relative to each run.");
       const circles = plotted.map((run, index) => "<circle class=\"ternary-dot" + (run.isLatest ? " latest" : "") + "\" cx=\"" + run.x.toFixed(1) + "\" cy=\"" + run.y.toFixed(1) + "\" r=\"" + (run.isLatest ? 15 : 10) + "\" role=\"button\" tabindex=\"0\" data-run-profile-index=\"" + index + "\" aria-label=\"" + describe(run) + "\"><title>" + describe(run) + "</title></circle>").join("");
       svg.innerHTML = [
         "<defs><marker id=\"run-profile-axis-arrowhead\" viewBox=\"0 0 10 10\" refX=\"8.5\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#152536\"></path></marker></defs>",
         "<text class=\"chart-label\" x=\"750\" y=\"54\" text-anchor=\"middle\">Relative profile (percentile-normalised; each point sums to 100%)</text>",
         "<polygon class=\"ternary-triangle\" points=\"230,890 1270,890 750,140\"></polygon>",
         "<line class=\"ternary-guide\" x1=\"750\" y1=\"140\" x2=\"750\" y2=\"890\"></line><line class=\"ternary-guide\" x1=\"230\" y1=\"890\" x2=\"1010\" y2=\"515\"></line><line class=\"ternary-guide\" x1=\"1270\" y1=\"890\" x2=\"490\" y2=\"515\"></line>",
-        "<g class=\"ternary-axis-annotations\" aria-hidden=\"true\"><path class=\"ternary-axis-arrow\" d=\"M 108 286 L 108 490\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><path class=\"ternary-guide\" d=\"M 128 286 L 688 152\"></path><text class=\"ternary-axis-label\" x=\"62\" y=\"266\" text-anchor=\"start\">Pace</text><text class=\"chart-label\" x=\"62\" y=\"522\" text-anchor=\"start\">slower → faster</text><path class=\"ternary-axis-arrow\" d=\"M 125 605 L 212 830\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"44\" y=\"620\" text-anchor=\"start\">Distance</text><text class=\"chart-label\" x=\"44\" y=\"650\" text-anchor=\"start\">shorter</text><text class=\"chart-label\" x=\"44\" y=\"680\" text-anchor=\"start\">→ longer</text><path class=\"ternary-axis-arrow\" d=\"M 1375 605 L 1288 830\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"1456\" y=\"620\" text-anchor=\"end\">Elevation</text><text class=\"chart-label\" x=\"1456\" y=\"650\" text-anchor=\"end\">flatter</text><text class=\"chart-label\" x=\"1456\" y=\"680\" text-anchor=\"end\">→ hillier</text></g>",
+        "<g class=\"ternary-axis-annotations\" aria-hidden=\"true\"><path class=\"ternary-axis-arrow\" d=\"M 1090 620 L 300 850\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"255\" y=\"866\" text-anchor=\"start\">Longer</text><path class=\"ternary-axis-arrow\" d=\"M 750 830 L 750 205\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"750\" y=\"120\" text-anchor=\"middle\">Faster</text><path class=\"ternary-axis-arrow\" d=\"M 410 620 L 1200 850\" marker-end=\"url(#run-profile-axis-arrowhead)\"></path><text class=\"ternary-axis-label\" x=\"1245\" y=\"866\" text-anchor=\"end\">Hillier</text></g>",
         "<g aria-label=\"Legend\"><circle class=\"ternary-dot\" cx=\"510\" cy=\"1038\" r=\"12\"></circle><text class=\"chart-label\" x=\"532\" y=\"1047\">eligible run</text><circle class=\"ternary-dot latest\" cx=\"870\" cy=\"1038\" r=\"14\"></circle><text class=\"chart-label\" x=\"895\" y=\"1047\">globally latest eligible run</text></g>",
         circles,
       ].join("");
